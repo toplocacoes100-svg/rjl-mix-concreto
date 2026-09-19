@@ -13203,7 +13203,7 @@ function BotaoAjudaMascote({ onAbrir }) {
         padding: 0,
       }}
     >
-      <Betoneirinha tamanho={40} />
+      <Betoneirinha tamanho={50} />
     </button>
   );
 }
