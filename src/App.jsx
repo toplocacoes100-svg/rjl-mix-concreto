@@ -1753,9 +1753,14 @@ export default function App() {
         // quando ainda não venceu.
         dataServico: r.data || "",
         // Vencimento = data do serviço + 30 dias (prazo padrão de
-        // pagamento) — não a data do serviço em si, senão todo trabalho
-        // recém-feito já nasceria "atrasado" antes mesmo de vencer.
-        vencimento: adicionarDias(r.data, 30) || r.data || "",
+        // pagamento) na PRIMEIRA vez que a conta é criada — não a data do
+        // serviço em si, senão todo trabalho recém-feito já nasceria
+        // "atrasado" antes mesmo de vencer. Depois que a conta já existe,
+        // vencimento também vira campo só do Financeiro (mesma razão do
+        // "valor pago" acima): se você mudar a data de vencimento na tela
+        // "editar conta", ela tem que continuar do jeito que você deixou,
+        // não voltar sozinha pra "data do serviço + 30 dias".
+        vencimento: existente ? (existente.vencimento || adicionarDias(r.data, 30) || r.data || "") : (adicionarDias(r.data, 30) || r.data || ""),
         dataPagamento: statusFin === "Pago" ? r.data || "" : "",
         status: statusFin,
         formaPagamento: r.formaPagamento || existente?.formaPagamento || "",
@@ -1775,7 +1780,6 @@ export default function App() {
         existente.status !== contaDesejada.status ||
         existente.valor !== contaDesejada.valor ||
         existente.pedido !== contaDesejada.pedido ||
-        existente.vencimento !== contaDesejada.vencimento ||
         existente.dataServico !== contaDesejada.dataServico
       ) {
         mudou = true;
@@ -2205,6 +2209,7 @@ export default function App() {
               usuarios={usuarios}
               onChangeUsuarios={(next) => persist(STORAGE_KEYS.usuarios, setUsuarios, next)}
               logAcessos={logAcessos}
+              onChangeLogAcessos={(next) => persist(STORAGE_KEYS.logAcessos, setLogAcessos, next)}
               clientes={clientes}
               onChangeClientes={(next) => persist(STORAGE_KEYS.clientes, setClientes, next)}
               producaoEsc={producaoEsc}
@@ -4228,7 +4233,7 @@ function RelatorioGeralPedido({ pedido, cliente, producaoEsc, propostas, finance
     };
 
     if (!blob) {
-      setAviso("Geração de PDF não disponível nesta pré-visualização — enviando como texto. No site publicado, este botão manda o documento com a logo.");
+      setAviso("Ainda não gero PDF de verdade — mandando como texto. Pra enviar com a logo, use "Imprimir" e escolha "Salvar como PDF".");
       abrirTextoSimples();
       return;
     }
@@ -6164,10 +6169,7 @@ function AgendaModule({ agenda, maquinas, clienteByPedido, producaoEsc, producao
 function maquinasNoDia(dataISO, producaoEsc, producaoPerf) {
   const doDia = [];
   (producaoEsc || []).forEach((r) => {
-    if (r.data === dataISO) doDia.push({ equipamento: r.equipamento || "-", cliente: r.cliente || "-", tipo: "Escavadeira", pedido: r.pedido });
-  });
-  (producaoPerf || []).forEach((r) => {
-    if (r.data === dataISO) doDia.push({ equipamento: r.equipamento || "-", cliente: r.cliente || "-", tipo: "Perfuratriz", pedido: r.pedido });
+    if (r.data === dataISO) doDia.push({ equipamento: r.equipamento || "-", cliente: r.cliente || "-", tipo: "", pedido: r.pedido });
   });
   return doDia;
 }
@@ -6269,11 +6271,11 @@ function CalendarioMensal({ agenda, producaoEsc, producaoPerf, clienteByPedido, 
             <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
               {diaInfo.maquinas.length > 0 && (
                 <div>
-                  <div style={{ fontSize: "12px", fontWeight: 600, marginBottom: "6px" }}>Máquinas em obra</div>
+                  <div style={{ fontSize: "12px", fontWeight: 600, marginBottom: "6px" }}>Concreto</div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                     {diaInfo.maquinas.map((m, i) => (
                       <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: "13px" }}>
-                        <span><strong>{m.equipamento}</strong> · {m.tipo}</span>
+                        <span><strong>{m.equipamento}</strong>{m.tipo ? ` · ${m.tipo}` : ""}</span>
                         <span style={{ color: "var(--text-muted)" }}>{m.cliente} (#{m.pedido})</span>
                       </div>
                     ))}
@@ -8589,7 +8591,7 @@ function DadosEmpresaSection({ prefs, onPrefsChanged }) {
   );
 }
 
-function ConfiguracoesModule({ onPasswordChanged, onAppPasswordChanged, prefs, onPrefsChanged, maquinas, onChangeMaquinas, operadores, onChangeOperadores, vendedores, onChangeVendedores, usuarios, onChangeUsuarios, logAcessos, clientes, onChangeClientes, producaoEsc, onChangeProducaoEsc, producaoPerf, onChangeProducaoPerf, statusClientes, onChangeStatusClientes, financeiro, onChangeFinanceiro, manutencoes, onChangeManutencoes, agenda, onChangeAgenda, funcionarios, onChangeFuncionarios, motoristas, onChangeMotoristas, caminhoes, onChangeCaminhoes, empresasRetirada, onChangeEmpresasRetirada, requireAdmin }) {
+function ConfiguracoesModule({ onPasswordChanged, onAppPasswordChanged, prefs, onPrefsChanged, maquinas, onChangeMaquinas, operadores, onChangeOperadores, vendedores, onChangeVendedores, usuarios, onChangeUsuarios, logAcessos, onChangeLogAcessos, clientes, onChangeClientes, producaoEsc, onChangeProducaoEsc, producaoPerf, onChangeProducaoPerf, statusClientes, onChangeStatusClientes, financeiro, onChangeFinanceiro, manutencoes, onChangeManutencoes, agenda, onChangeAgenda, funcionarios, onChangeFuncionarios, motoristas, onChangeMotoristas, caminhoes, onChangeCaminhoes, empresasRetirada, onChangeEmpresasRetirada, requireAdmin }) {
   return (
     <div className="tl-fade-in">
       <PageHeader eyebrow="Administração" title="Configurações" />
@@ -8615,45 +8617,6 @@ function ConfiguracoesModule({ onPasswordChanged, onAppPasswordChanged, prefs, o
         requireAdmin={requireAdmin}
       />
 
-      <RevisarPagamentosSection
-        producaoEsc={producaoEsc}
-        producaoPerf={producaoPerf}
-        onChangeProducaoEsc={onChangeProducaoEsc}
-        onChangeProducaoPerf={onChangeProducaoPerf}
-      />
-
-      <SincronizarPlanilhaSection
-        clientes={clientes}
-        producaoEsc={producaoEsc}
-        producaoPerf={producaoPerf}
-        financeiro={financeiro}
-        onChangeClientes={onChangeClientes}
-        onChangeProducaoEsc={onChangeProducaoEsc}
-        onChangeProducaoPerf={onChangeProducaoPerf}
-        onChangeFinanceiro={onChangeFinanceiro}
-        requireAdmin={requireAdmin}
-      />
-
-      <ImportarDadosSection
-        clientes={clientes}
-        producaoEsc={producaoEsc}
-        producaoPerf={producaoPerf}
-        financeiro={financeiro}
-        manutencoes={manutencoes}
-        agenda={agenda}
-        maquinas={maquinas}
-        onImportarClientes={onChangeClientes}
-        onImportarProducaoEsc={onChangeProducaoEsc}
-        onImportarProducaoPerf={onChangeProducaoPerf}
-        onImportarFinanceiro={onChangeFinanceiro}
-        onImportarManutencoes={onChangeManutencoes}
-        onImportarAgenda={onChangeAgenda}
-      />
-
-      <CorrigirClientesDuplicadosSection clientes={clientes} onChangeClientes={onChangeClientes} />
-
-      <ZerarFinanceiroSection financeiro={financeiro} onChangeFinanceiro={onChangeFinanceiro} />
-
       <div style={{ background: "var(--bg-panel)", border: "1px solid var(--border-soft)", borderRadius: "9px", padding: "20px", marginBottom: "18px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
           <Users size={18} style={{ color: "var(--amber)" }} />
@@ -8666,9 +8629,25 @@ function ConfiguracoesModule({ onPasswordChanged, onAppPasswordChanged, prefs, o
       </div>
 
       <div style={{ background: "var(--bg-panel)", border: "1px solid var(--border-soft)", borderRadius: "9px", padding: "20px", marginBottom: "18px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
-          <ClipboardCheck size={18} style={{ color: "var(--amber)" }} />
-          <h3 className="tl-display" style={{ fontSize: "18px", fontWeight: 700 }}>Histórico de acesso</h3>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px", flexWrap: "wrap", gap: "10px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <ClipboardCheck size={18} style={{ color: "var(--amber)" }} />
+            <h3 className="tl-display" style={{ fontSize: "18px", fontWeight: 700 }}>Histórico de acesso</h3>
+          </div>
+          {(logAcessos || []).length > 0 && (
+            <Button
+              size="sm"
+              variant="subtle"
+              icon={Trash2}
+              onClick={() => {
+                if (window.confirm(`Apagar todo o histórico de acesso (${logAcessos.length} registros)? Essa ação não pode ser desfeita.`)) {
+                  onChangeLogAcessos([]);
+                }
+              }}
+            >
+              Limpar histórico
+            </Button>
+          )}
         </div>
         <LogAcessoLista logAcessos={logAcessos} />
       </div>
@@ -9096,7 +9075,7 @@ function InadimplenciaSection({ clientes, financeiro, producaoEsc, producaoPerf,
     const fileName = `pendencias-${clienteSelecionado.nome.replace(/\s+/g, "-").toLowerCase()}.pdf`;
 
     if (!blob) {
-      setAvisoPdfCliente("Geração de PDF não disponível nesta pré-visualização — no site publicado, este botão gera o documento com a logo.");
+      setAvisoPdfCliente("Ainda não gero PDF de verdade aqui — use "Imprimir" e escolha "Salvar como PDF" pra baixar o documento com a logo.");
       return;
     }
 
@@ -9832,7 +9811,7 @@ function RelatorioProducaoFinanceiro({ itens, tipoFixo, onClose }) {
       `\n\nTotal geral: ${money(totalGeral)}\n\n${PREFS_ATUAL_REF?.nomeEmpresa || "RJL Mix Concreto"}`;
 
     if (!blob) {
-      setAviso("Geração de PDF não disponível nesta pré-visualização — no site publicado, este botão manda o documento com a logo.");
+      setAviso("Ainda não gero PDF de verdade — mandando como texto. Pra enviar com a logo, use "Imprimir" e escolha "Salvar como PDF".");
       window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, "_blank");
       return;
     }
@@ -10528,7 +10507,7 @@ function ReciboView({ conta, cliente, onClose }) {
     };
 
     if (!blob) {
-      setAviso("Geração de PDF não disponível nesta pré-visualização — enviando como texto. No site publicado, este botão manda o documento com a logo.");
+      setAviso("Ainda não gero PDF de verdade — mandando como texto. Pra enviar com a logo, use "Imprimir" e escolha "Salvar como PDF".");
       abrirTextoSimples();
       return;
     }
@@ -12449,7 +12428,7 @@ function RelatorioMensalFolha({ mes, itens, onClose }) {
       `Pendente: ${money(totalPendente)}\n\n${PREFS_ATUAL_REF?.nomeEmpresa || "RJL Mix Concreto"}`;
 
     if (!blob) {
-      setAviso("Geração de PDF não disponível nesta pré-visualização — no site publicado, este botão manda o documento com a logo.");
+      setAviso("Ainda não gero PDF de verdade — mandando como texto. Pra enviar com a logo, use "Imprimir" e escolha "Salvar como PDF".");
       window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, "_blank");
       return;
     }
