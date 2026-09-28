@@ -1327,6 +1327,20 @@ const NAV_ITEMS = [
   { id: "relatorios", label: "Relatório Geral", icon: BarChart3 },
   { id: "configuracoes", label: "Configurações", icon: Settings },
 ];
+// "Modo campo": um link separado (?campo=1 na URL) pra quem só precisa
+// pesar carga e lançar bomba no local da obra — sem o menu inteiro do
+// escritório atrapalhando num celular. É o MESMO site, o MESMO login e o
+// MESMO banco de dados — só esconde as outras abas enquanto esse link
+// estiver ativo. Pra usar: manda pro pessoal de campo o link do site com
+// "?campo=1" no final (ex: https://seusite.vercel.app/?campo=1).
+const ABAS_MODO_CAMPO = ["centralBalanca", "bombaConcreto"];
+function estaEmModoCampo() {
+  try {
+    return new URLSearchParams(window.location.search).get("campo") === "1";
+  } catch (e) {
+    return false;
+  }
+}
 
 export default function App() {
   // Link separado pra equipe de campo: adicione ?campo=1 no fim do endereço
@@ -1334,7 +1348,9 @@ export default function App() {
   // tick de carregamento e apontamento diário — sem ver clientes, financeiro
   // ou qualquer outra área.
   const campoMode = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("campo") === "1";
+  const modoCampo = useMemo(() => estaEmModoCampo(), []);
   const [tab, setTab] = useState(() => {
+    if (modoCampo) return "centralBalanca";
     // Lembra em qual página a pessoa estava — assim atualizar (F5) não
     // manda de volta pro Painel toda vez. Dura só enquanto a aba do
     // navegador estiver aberta (fecha e abre de novo, começa do Painel).
@@ -1994,6 +2010,8 @@ export default function App() {
               propostas={propostas}
               agenda={agenda}
               financeiro={financeiro}
+              movimentosEstoque={movimentosEstoque}
+              prefs={prefs}
               goTo={setTab}
             />
           )}
@@ -2050,6 +2068,7 @@ export default function App() {
               propostas={propostas}
               clientes={clientes}
               clienteByPedido={clienteByPedido}
+              vendedores={vendedores}
               onChange={(next) => persist(STORAGE_KEYS.propostas, setPropostas, next)}
               draft={propostaDraft}
               onDraftHandled={() => setPropostaDraft(null)}
@@ -2130,6 +2149,11 @@ export default function App() {
             <EstoqueModule
               movimentos={movimentosEstoque}
               onChange={(next) => persist(STORAGE_KEYS.movimentosEstoque, setMovimentosEstoque, next)}
+              prefs={prefs}
+              onPrefsChanged={async (next) => {
+                setPrefs(next);
+                await window.storage.set(STORAGE_KEYS.prefs, JSON.stringify(next), true);
+              }}
             />
           )}
           {tab === "bombaConcreto" && (
@@ -2315,7 +2339,7 @@ function Sidebar({ tab, setTab, locked, usuarioAtual, onLogout, naoLidas, prefs 
         </div>
       </div>
       <nav style={{ display: "flex", gap: "2px" }}>
-        {NAV_ITEMS.map((item) => {
+        {NAV_ITEMS.filter((item) => !modoCampo || ABAS_MODO_CAMPO.includes(item.id)).map((item) => {
           const active = tab === item.id;
           return (
             <button
@@ -2375,7 +2399,7 @@ function Sidebar({ tab, setTab, locked, usuarioAtual, onLogout, naoLidas, prefs 
 /* ------------------------------------------------------------------ */
 /*  Dashboard                                                           */
 /* ------------------------------------------------------------------ */
-function Dashboard({ clientes, producaoEsc, producaoPerf, propostas, agenda, financeiro, goTo }) {
+function Dashboard({ clientes, producaoEsc, producaoPerf, propostas, agenda, financeiro, movimentosEstoque, prefs, goTo }) {
   // Conta PEDIDOS únicos em aberto, não lançamentos — um mesmo pedido pode
   // ter vários lançamentos (ex: vários dias de serviço), e isso não pode
   // contar como "vários pedidos" separados.
@@ -2406,6 +2430,19 @@ function Dashboard({ clientes, producaoEsc, producaoPerf, propostas, agenda, fin
     });
     return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0])).slice(-6);
   }, [producaoEsc, producaoPerf]);
+
+  // Materiais que já chegaram (ou passaram) do estoque mínimo que você
+  // definiu na tela de Estoque de Materiais.
+  const materiaisEmFalta = useMemo(() => {
+    const minimos = prefs?.estoqueMinimo || {};
+    const saldoPorMaterial = {};
+    MATERIAIS_ESTOCADOS.forEach((m) => (saldoPorMaterial[m] = 0));
+    (movimentosEstoque || []).forEach((mv) => {
+      if (!(mv.material in saldoPorMaterial)) return;
+      saldoPorMaterial[mv.material] += mv.tipo === "Entrada" ? Number(mv.quantidade) || 0 : -(Number(mv.quantidade) || 0);
+    });
+    return MATERIAIS_ESTOCADOS.filter((m) => numeroSeguro(minimos[m]) > 0 && saldoPorMaterial[m] <= numeroSeguro(minimos[m]));
+  }, [movimentosEstoque, prefs]);
 
   const stats = [
     { label: "Clientes cadastrados", value: clientes.length, icon: Users, go: "clientes" },
@@ -2525,6 +2562,33 @@ function Dashboard({ clientes, producaoEsc, producaoPerf, propostas, agenda, fin
             {contasAReceberVencendo.length > 0 && ` · ${contasAReceberVencendo.length} a receber`}
             {contasAPagarVencendo.length > 0 && ` · ${contasAPagarVencendo.length} a pagar`}
             {" "}— clique para ver o financeiro
+          </div>
+        </button>
+      )}
+
+      {materiaisEmFalta.length > 0 && (
+        <button
+          onClick={() => goTo("estoque")}
+          className="tl-focus"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            width: "100%",
+            textAlign: "left",
+            background: "#3A1E1E",
+            border: "1px solid #5A2F2F",
+            borderRadius: "9px",
+            padding: "14px 16px",
+            marginBottom: "20px",
+            cursor: "pointer",
+          }}
+        >
+          <Boxes size={18} style={{ color: "var(--danger)", flexShrink: 0 }} />
+          <div style={{ fontSize: "13px", color: "#D6706F" }}>
+            <strong>{materiaisEmFalta.length} material{materiaisEmFalta.length > 1 ? "is" : ""} no estoque mínimo</strong>
+            {": "}{materiaisEmFalta.join(", ")}
+            {" "}— clique para ver o estoque
           </div>
         </button>
       )}
@@ -4206,7 +4270,7 @@ function RelatorioGeralPedido({ pedido, cliente, producaoEsc, propostas, finance
   const contasPedido = (financeiro || []).filter((c) => String(c.pedido).trim() === pedido);
 
   const totalEsc = lancamentosEsc.reduce((s, r) => s + numeroSeguro(r.total), 0);
-  const totalPropostas = propostasPedido.reduce((s, p) => s + p.itens.reduce((s2, it) => s2 + (Number(it.qtd) || 0) * (Number(it.valorUnit) || 0), 0), 0);
+  const totalPropostas = propostasPedido.reduce((s, p) => s + calcularTotalProposta(p), 0);
   const totalGeral = totalEsc;
 
   const enviar = async () => {
@@ -4307,7 +4371,7 @@ function RelatorioGeralPedido({ pedido, cliente, producaoEsc, propostas, finance
               <ReportRow
                 key={p.id}
                 label={`${p.tipo} — ${new Date(p.criadaEm).toLocaleDateString("pt-BR")}`}
-                value={money(p.itens.reduce((s, it) => s + (Number(it.qtd) || 0) * (Number(it.valorUnit) || 0), 0))}
+                value={money(calcularTotalProposta(p))}
               />
             ))}
           </div>
@@ -4440,20 +4504,35 @@ function ProducaoForm({ initial, equipamentos, isPerfuratriz, isEscavadeira, cli
   }, [form.pedido]);
 
   const propostaDoPedido = (propostas || []).find((p) => String(p.pedido).trim() === String(form.pedido).trim());
-  const totalProposta = propostaDoPedido ? propostaDoPedido.itens.reduce((s, it) => s + (Number(it.qtd) || 0) * (Number(it.valorUnit) || 0), 0) : 0;
+  const totalProposta = propostaDoPedido ? calcularTotalProposta(propostaDoPedido) : 0;
 
   // Antes, "puxar da proposta" jogava os itens dentro de "viagens" — que é
   // EXATAMENTE a mesma lista das cargas da Central de Balança. Isso criava
   // cargas falsas lá (sem volume/placa/motorista de verdade), inflava o
   // total a cada clique repetido (somava de novo por cima) e desalinhava
-  // Financeiro e Fechamento. Agora não mexe mais em "viagens": só preenche
-  // o valor por m³ e a quantidade do lançamento com o total da proposta —
-  // e sempre SUBSTITUI (nunca soma), então clicar de novo não duplica nada.
+  // Financeiro e Fechamento. Agora não mexe mais em "viagens": preenche
+  // direto o metro cúbico, o valor por m³, a bomba, o FCK/Brita/Peça e o
+  // vendedor do lançamento com o que já está na proposta — e sempre
+  // SUBSTITUI (nunca soma), então clicar de novo não duplica nada.
   const puxarDaProposta = () => {
     if (!propostaDoPedido) return;
-    setForm({ ...form, qtdDias: "1", valorDiaria: String(totalProposta.toFixed(2)) });
+    setForm({
+      ...form,
+      qtdDias: propostaDoPedido.volumeConcreto || form.qtdDias,
+      valorDiaria: propostaDoPedido.valorM3 || form.valorDiaria,
+      frete: propostaDoPedido.bomba || form.frete,
+      fck: propostaDoPedido.fck || form.fck,
+      brita: propostaDoPedido.brita || form.brita,
+      slump: propostaDoPedido.slump || form.slump,
+      peca: propostaDoPedido.peca || form.peca,
+      vendedor: propostaDoPedido.vendedor || form.vendedor,
+    });
   };
-  const jaPuxouDaProposta = propostaDoPedido && form.qtdDias === "1" && Number(form.valorDiaria) === Number(totalProposta.toFixed(2)) && totalProposta > 0;
+  const jaPuxouDaProposta =
+    propostaDoPedido &&
+    propostaDoPedido.volumeConcreto &&
+    String(form.qtdDias) === String(propostaDoPedido.volumeConcreto) &&
+    String(form.valorDiaria) === String(propostaDoPedido.valorM3);
   const limparValoresPuxados = () => setForm({ ...form, qtdDias: "", valorDiaria: "" });
 
   return (
@@ -4492,7 +4571,7 @@ function ProducaoForm({ initial, equipamentos, isPerfuratriz, isEscavadeira, cli
           <Field label="Nº do pedido" required hint={matched || fallbackNome ? undefined : form.pedido ? "Nenhum cliente cadastrado com esse pedido" : undefined}>
             <Input value={form.pedido} onChange={set("pedido")} required />
           </Field>
-          <Field label="Data">
+          <Field label="Data de entrega">
             <Input type="date" value={form.data} onChange={set("data")} />
           </Field>
         </div>
@@ -4548,7 +4627,7 @@ function ProducaoForm({ initial, equipamentos, isPerfuratriz, isEscavadeira, cli
               <div className="tl-mono" style={{ fontSize: "10.5px", color: "var(--amber)", textTransform: "uppercase", marginBottom: "2px" }}>
                 Proposta encontrada pra esse pedido
               </div>
-              <div>{propostaDoPedido.itens.length} item(ns) · Total: <strong>{money(totalProposta)}</strong></div>
+              <div>{linhasProposta(propostaDoPedido).length} item(ns) · Total: <strong>{money(totalProposta)}</strong></div>
               {jaPuxouDaProposta && <div style={{ color: "var(--success)", fontSize: "11.5px", marginTop: "2px" }}>✓ Já puxado pra "Metro cúbico" / "Valor metro cúbico" abaixo</div>}
             </div>
             <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
@@ -4580,6 +4659,7 @@ function ProducaoForm({ initial, equipamentos, isPerfuratriz, isEscavadeira, cli
             <Input value={form.brita} onChange={set("brita")} list="lista-brita" />
             <datalist id="lista-brita">
               <option value="Brita 0" />
+              <option value="Brita 0/1" />
               <option value="Brita 1" />
               <option value="Brita 2" />
             </datalist>
@@ -5187,6 +5267,30 @@ function CentralBalancaModule({ producaoEsc, clienteByPedido, onChangeProducaoEs
 /* ------------------------------------------------------------------ */
 /*  Propostas module                                                    */
 /* ------------------------------------------------------------------ */
+// Monta a lista de linhas de uma proposta (concreto + bomba + itens extras)
+// num formato único, usado tanto na tela de visualizar quanto no PDF e no
+// texto do WhatsApp — assim os três lugares nunca ficam desalinhados.
+function linhasProposta(p) {
+  const linhas = [];
+  const volume = Number(p.volumeConcreto) || 0;
+  const valorM3 = Number(p.valorM3) || 0;
+  if (volume > 0 || valorM3 > 0) {
+    const specs = [p.fck, p.brita, p.slump ? `Slump ${p.slump}` : "", p.peca].filter(Boolean).join(" · ");
+    linhas.push({ descricao: specs ? `Concreto — ${specs}` : "Concreto", qtd: volume, valorUnit: valorM3, subtotal: volume * valorM3 });
+  }
+  const bomba = Number(p.bomba) || 0;
+  if (bomba > 0) {
+    linhas.push({ descricao: "Bomba", qtd: 1, valorUnit: bomba, subtotal: bomba });
+  }
+  (p.itens || []).forEach((it) => {
+    linhas.push({ descricao: it.descricao || "Item", qtd: it.qtd, valorUnit: it.valorUnit, subtotal: (Number(it.qtd) || 0) * (Number(it.valorUnit) || 0) });
+  });
+  return linhas;
+}
+function calcularTotalProposta(p) {
+  return linhasProposta(p).reduce((s, l) => s + l.subtotal, 0);
+}
+
 const emptyItem = () => ({ id: uid(), descricao: "", qtd: 1, valorUnit: "" });
 // Observações padrão pra propostas (editável em código)
 const DESCRITIVO_ESCAVADEIRA = `Orçamento válido pelo prazo de 15 dias.
@@ -5197,7 +5301,15 @@ const emptyProposta = () => ({
   id: uid(),
   pedido: "",
   tipo: "Concreto",
-  itens: [emptyItem()],
+  fck: "",
+  brita: "",
+  slump: "",
+  peca: "",
+  volumeConcreto: "",
+  valorM3: "",
+  bomba: "",
+  vendedor: "",
+  itens: [],
   observacao: "",
   enderecoEntrega: "", // local da obra — pode ser diferente do endereço de cobrança do cliente
   descritivo: DESCRITIVO_ESCAVADEIRA, // editável — cada proposta pode ter o texto ajustado
@@ -5207,7 +5319,7 @@ const emptyProposta = () => ({
   motivoPerda: "",
 });
 
-function PropostasModule({ propostas, clienteByPedido, onChange, draft, onDraftHandled }) {
+function PropostasModule({ propostas, clienteByPedido, vendedores, onChange, draft, onDraftHandled }) {
   const [editing, setEditing] = useState(null);
   const [viewing, setViewing] = useState(null);
   const [deleting, setDeleting] = useState(null);
@@ -5289,7 +5401,7 @@ function PropostasModule({ propostas, clienteByPedido, onChange, draft, onDraftH
           columns={["Pedido", "Cliente", "Tipo", "Total", "Status", ""]}
           rows={[...propostasFiltradas].sort((a, b) => (b.criadaEm || "").localeCompare(a.criadaEm || "")).map((p) => {
             const cliente = clienteByPedido.get(String(p.pedido).trim());
-            const total = p.itens.reduce((s, it) => s + (Number(it.qtd) || 0) * (Number(it.valorUnit) || 0), 0);
+            const total = calcularTotalProposta(p);
             const status = p.status || "Aberta";
             const cor = STATUS_PROPOSTA_COR[status];
             return (
@@ -5331,7 +5443,7 @@ function PropostasModule({ propostas, clienteByPedido, onChange, draft, onDraftH
       )}
 
       {editing && (
-        <PropostaForm initial={editing} clienteByPedido={clienteByPedido} onSave={save} onClose={() => setEditing(null)} />
+        <PropostaForm initial={editing} clienteByPedido={clienteByPedido} vendedores={vendedores} onSave={save} onClose={() => setEditing(null)} />
       )}
       {viewing && (
         <PropostaPreview proposta={viewing} cliente={clienteByPedido.get(String(viewing.pedido).trim())} onClose={() => setViewing(null)} />
@@ -5372,7 +5484,7 @@ function BaixaPropostaModal({ baixando, onConfirm, onCancel }) {
   );
 }
 
-function PropostaForm({ initial, clienteByPedido, onSave, onClose }) {
+function PropostaForm({ initial, clienteByPedido, vendedores, onSave, onClose }) {
   const [form, setForm] = useState(initial);
   const [rascunhoRecuperado] = useState(() => !!initial.__rascunho);
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
@@ -5387,7 +5499,7 @@ function PropostaForm({ initial, clienteByPedido, onSave, onClose }) {
   const addItem = () => setForm({ ...form, itens: [...form.itens, emptyItem()] });
   const removeItem = (id) => setForm({ ...form, itens: form.itens.filter((it) => it.id !== id) });
 
-  const total = form.itens.reduce((s, it) => s + (Number(it.qtd) || 0) * (Number(it.valorUnit) || 0), 0);
+  const total = calcularTotalProposta(form);
 
   return (
     <Modal title={initial.pedido ? "Editar proposta" : "Nova proposta"} onClose={() => { limparRascunho("proposta"); onClose(); }} wide>
@@ -5410,6 +5522,60 @@ function PropostaForm({ initial, clienteByPedido, onSave, onClose }) {
             </Select>
           </Field>
         </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+          <Field label="FCK" hint="Ex: FCK 25, FCK 30">
+            <Input value={form.fck} onChange={set("fck")} list="lista-fck-proposta" />
+            <datalist id="lista-fck-proposta">
+              <option value="FCK 15" />
+              <option value="FCK 20" />
+              <option value="FCK 25" />
+              <option value="FCK 30" />
+              <option value="FCK 35" />
+              <option value="FCK 40" />
+            </datalist>
+          </Field>
+          <Field label="Brita" hint="Ex: Brita 0, Brita 1">
+            <Input value={form.brita} onChange={set("brita")} list="lista-brita-proposta" />
+            <datalist id="lista-brita-proposta">
+              <option value="Brita 0" />
+              <option value="Brita 0/1" />
+              <option value="Brita 1" />
+              <option value="Brita 2" />
+            </datalist>
+          </Field>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+          <Field label="Slump" hint="Ex: 7+-1, 10+-2, 12+-2">
+            <Input value={form.slump} onChange={set("slump")} />
+          </Field>
+          <Field label="Peça" hint="Ex: Laje, Piso, Base, Calçada, Sapata">
+            <Input value={form.peca} onChange={set("peca")} list="lista-pecas-proposta" />
+            <datalist id="lista-pecas-proposta">
+              <option value="Laje" /><option value="Piso" /><option value="Base" /><option value="Calçada" /><option value="Sapata" /><option value="Viga" /><option value="Pilar" /><option value="Contrapiso" /><option value="Rampa" /><option value="Pavimentação" />
+            </datalist>
+          </Field>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0 16px" }}>
+          <Field label="Volume do concreto (m³)">
+            <Input type="number" min="0" step="0.1" value={form.volumeConcreto} onChange={set("volumeConcreto")} />
+          </Field>
+          <Field label="Valor por m³ (R$)">
+            <Input type="number" min="0" step="0.01" value={form.valorM3} onChange={set("valorM3")} />
+          </Field>
+          <Field label="Bomba (R$)">
+            <Input type="number" min="0" step="0.01" value={form.bomba} onChange={set("bomba")} />
+          </Field>
+        </div>
+
+        <Field label="Vendedor">
+          <Input value={form.vendedor} onChange={set("vendedor")} list="proposta-lista-vendedores" />
+          <datalist id="proposta-lista-vendedores">
+            {porNome(vendedores || []).map((v) => <option key={v.id} value={v.nome} />)}
+          </datalist>
+        </Field>
 
         <div
           style={{
@@ -5446,24 +5612,21 @@ function PropostaForm({ initial, clienteByPedido, onSave, onClose }) {
         </Field>
 
         <div style={{ marginBottom: "8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span className="tl-mono" style={{ fontSize: "11px", color: "var(--text-muted)", textTransform: "uppercase" }}>Itens da proposta</span>
+          <span className="tl-mono" style={{ fontSize: "11px", color: "var(--text-muted)", textTransform: "uppercase" }}>Itens extras (opcional)</span>
           <Button type="button" size="sm" variant="subtle" icon={Plus} onClick={addItem}>Item</Button>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "18px" }}>
-          {form.itens.map((it) => {
-            const ehConcreto = /fck/i.test(it.descricao || "");
-            return (
+          {form.itens.map((it) => (
             <div key={it.id} style={{ display: "grid", gridTemplateColumns: "2fr 70px 110px 32px", gap: "8px", alignItems: "center" }}>
               <Input placeholder="Descrição do serviço" value={it.descricao} onChange={(e) => setItem(it.id, "descricao", e.target.value)} />
-              <Input type="number" min="0" placeholder={ehConcreto ? "m³" : "Qtd"} value={it.qtd} onChange={(e) => setItem(it.id, "qtd", e.target.value)} />
+              <Input type="number" min="0" placeholder="Qtd" value={it.qtd} onChange={(e) => setItem(it.id, "qtd", e.target.value)} />
               <Input type="number" min="0" step="0.01" placeholder="Valor unit." value={it.valorUnit} onChange={(e) => setItem(it.id, "valorUnit", e.target.value)} />
               <button type="button" onClick={() => removeItem(it.id)} className="tl-focus" style={{ ...iconBtnStyle, color: "var(--danger)" }}>
                 <X size={13} />
               </button>
             </div>
-            );
-          })}
+          ))}
         </div>
 
         <Field label="Observação">
@@ -5500,7 +5663,7 @@ function PropostaForm({ initial, clienteByPedido, onSave, onClose }) {
 }
 
 function PropostaPreview({ proposta, cliente, onClose }) {
-  const total = proposta.itens.reduce((s, it) => s + (Number(it.qtd) || 0) * (Number(it.valorUnit) || 0), 0);
+  const total = calcularTotalProposta(proposta);
   const [gerandoPdf, setGerandoPdf] = useState(false);
   const [avisoPdf, setAvisoPdf] = useState("");
 
@@ -5542,8 +5705,8 @@ function PropostaPreview({ proposta, cliente, onClose }) {
 
     window.alert(`PDF baixado como "${fileName}" (confira a pasta Downloads).\n\nO WhatsApp vai abrir agora só com o texto — anexe esse arquivo baixado na conversa antes de enviar.`);
 
-    const linhas = proposta.itens
-      .map((it) => `• ${it.descricao || "Item"} (x${it.qtd}): ${money((Number(it.qtd) || 0) * (Number(it.valorUnit) || 0))}`)
+    const linhas = linhasProposta(proposta)
+      .map((it) => `• ${it.descricao || "Item"} (x${it.qtd}): ${money(it.subtotal)}`)
       .join("\n");
     const texto =
       `Olá${cliente ? `, ${cliente.nome}` : ""}! Segue a proposta do pedido nº ${proposta.pedido}:\n\n${linhas}\n\n` +
@@ -5588,12 +5751,12 @@ function PropostaPreview({ proposta, cliente, onClose }) {
             </tr>
           </thead>
           <tbody>
-            {proposta.itens.map((it) => (
-              <tr key={it.id}>
+            {linhasProposta(proposta).map((it, idx) => (
+              <tr key={idx}>
                 <td style={previewTd}>{it.descricao || "-"}</td>
                 <td style={{ ...previewTd, textAlign: "center" }}>{it.qtd}</td>
                 <td style={{ ...previewTd, textAlign: "right" }}>{money(it.valorUnit)}</td>
-                <td style={{ ...previewTd, textAlign: "right" }}>{money((Number(it.qtd) || 0) * (Number(it.valorUnit) || 0))}</td>
+                <td style={{ ...previewTd, textAlign: "right" }}>{money(it.subtotal)}</td>
               </tr>
             ))}
           </tbody>
@@ -5620,8 +5783,8 @@ function PropostaPreview({ proposta, cliente, onClose }) {
           icon={Mail}
           onClick={() => {
             const subject = `Proposta nº ${proposta.pedido} - ${PREFS_ATUAL_REF?.nomeEmpresa || "RJL Mix Concreto"}`;
-            const linhas = proposta.itens
-              .map((it) => `- ${it.descricao || "Item"} (x${it.qtd}): ${money((Number(it.qtd) || 0) * (Number(it.valorUnit) || 0))}`)
+            const linhas = linhasProposta(proposta)
+              .map((it) => `- ${it.descricao || "Item"} (x${it.qtd}): ${money(it.subtotal)}`)
               .join("%0D%0A");
             const body =
               `Olá${cliente ? `, ${cliente.nome}` : ""}!%0D%0A%0D%0A` +
@@ -8760,7 +8923,7 @@ function RelatoriosModule({ clientes, producaoEsc, producaoPerf, propostas, manu
   const abertosPerf = producaoPerf.filter((r) => r.status === "EM ABERTO").length;
   const totalMetragem = producaoPerf.reduce((s, r) => s + (Number(r.metragem) || 0), 0);
   const totalPropostas = propostas.reduce(
-    (s, p) => s + p.itens.reduce((si, it) => si + (Number(it.qtd) || 0) * (Number(it.valorUnit) || 0), 0),
+    (s, p) => s + calcularTotalProposta(p),
     0
   );
   const gastoManutencao = manutencoes.filter((m) => m.tipo === "Manutenção").reduce((s, m) => s + (Number(m.valor) || 0), 0);
@@ -11628,9 +11791,13 @@ function CompraMaterialForm({ initial, onSave, onClose }) {
   );
 }
 
-function EstoqueModule({ movimentos, onChange }) {
+function EstoqueModule({ movimentos, onChange, prefs, onPrefsChanged }) {
   const [registrandoSaida, setRegistrandoSaida] = useState(null); // material selecionado
   const [excluindo, setExcluindo] = useState(null); // movimento selecionado pra excluir
+  const minimos = prefs?.estoqueMinimo || {};
+  const setMinimo = (material, valor) => {
+    onPrefsChanged({ ...prefs, estoqueMinimo: { ...minimos, [material]: valor } });
+  };
 
   const saldoPorMaterial = useMemo(() => {
     const mapa = {};
@@ -11663,12 +11830,17 @@ function EstoqueModule({ movimentos, onChange }) {
       <div className="tl-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "12px", marginBottom: "26px" }}>
         {MATERIAIS_ESTOCADOS.map((m) => {
           const saldo = saldoPorMaterial[m] || 0;
+          const minimo = numeroSeguro(minimos[m]);
+          const abaixoDoMinimo = minimo > 0 && saldo <= minimo;
           return (
-            <div key={m} style={{ background: "var(--bg-panel)", border: "1px solid var(--border-soft)", borderRadius: "9px", padding: "16px" }}>
+            <div key={m} style={{ background: "var(--bg-panel)", border: abaixoDoMinimo ? "1px solid var(--danger)" : "1px solid var(--border-soft)", borderRadius: "9px", padding: "16px" }}>
               <div style={{ fontSize: "12.5px", color: "var(--text-muted)", marginBottom: "6px" }}>{m}</div>
               <div className="tl-display" style={{ fontSize: "26px", fontWeight: 800, color: saldo <= 0 ? "var(--danger)" : "var(--text-primary)" }}>
                 {saldo.toFixed(2)} <span style={{ fontSize: "13px", fontWeight: 500, color: "var(--text-faint)" }}>{UNIDADE_POR_MATERIAL[m]}</span>
               </div>
+              {abaixoDoMinimo && (
+                <div style={{ fontSize: "11px", color: "var(--danger)", fontWeight: 600, marginTop: "4px" }}>⚠ Abaixo do mínimo ({minimo} {UNIDADE_POR_MATERIAL[m]})</div>
+              )}
               <button
                 onClick={() => setRegistrandoSaida(m)}
                 className="tl-focus"
@@ -11676,6 +11848,18 @@ function EstoqueModule({ movimentos, onChange }) {
               >
                 Registrar saída/uso
               </button>
+              <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "6px" }}>
+                <label style={{ fontSize: "10.5px", color: "var(--text-faint)", whiteSpace: "nowrap" }}>Avisar abaixo de</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  value={minimos[m] ?? ""}
+                  onChange={(e) => setMinimo(m, e.target.value)}
+                  placeholder="0"
+                  style={{ width: "60px", background: "var(--bg-base)", border: "1px solid var(--border-soft)", borderRadius: "5px", padding: "4px 6px", fontSize: "11.5px", color: "var(--text-primary)" }}
+                />
+              </div>
             </div>
           );
         })}
@@ -13203,7 +13387,7 @@ function BotaoAjudaMascote({ onAbrir }) {
         padding: 0,
       }}
     >
-      <Betoneirinha tamanho={50} />
+      <Betoneirinha tamanho={40} />
     </button>
   );
 }
