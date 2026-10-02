@@ -1,0 +1,14084 @@
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import {
+  LayoutDashboard,
+  Users,
+  UserCheck,
+  Truck,
+  Drill,
+  FileText,
+  Plus,
+  Pencil,
+  Trash2,
+  X,
+  Search,
+  Droplet,
+  Beaker,
+  ShoppingCart,
+  Boxes,
+  Save,
+  Send,
+  Megaphone,
+  Target,
+  AlertTriangle,
+  Loader2,
+  Receipt,
+  RefreshCw,
+  Printer,
+  ChevronRight,
+  Wrench,
+  Home,
+  Camera,
+  Fuel,
+  Eye,
+  EyeOff,
+  MessageCircle,
+  CheckCircle2,
+  MessageSquare,
+  Mail,
+  Ruler,
+  Upload,
+  Wand2,
+  ImageOff,
+  Calendar,
+  Bell,
+  CalendarClock,
+  Truck as TruckIcon,
+  ClipboardCheck,
+  Check,
+  Lock,
+  LogOut,
+  Gauge,
+  BarChart3,
+  Settings,
+  KeyRound,
+  Wallet,
+  TrendingUp,
+  TrendingDown,
+  BarChart2,
+  Calculator,
+  Copy,
+  Download,
+  ListChecks,
+} from "lucide-react";
+
+/* ------------------------------------------------------------------ */
+/*  Fonts + base tokens                                               */
+/* ------------------------------------------------------------------ */
+const FontStyles = () => (
+  <style>{`
+    @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+    .tl-app {
+      --bg-base: #12151A;
+      --bg-panel: #1B1F26;
+      --bg-panel-raised: #232833;
+      --bg-hatch: #1E222A;
+      --border: #2C313C;
+      --border-soft: #23272F;
+      --amber: #E8A63D;
+      --rust: #D2601A;
+      --rust-dim: #7A3A13;
+      --danger: #C1432B;
+      --success: #5E9A6F;
+      --text-primary: #F3F1EA;
+      --text-muted: #9198A6;
+      --text-faint: #5A616F;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-base);
+      color: var(--text-primary);
+      min-height: 100vh;
+      font-size: calc(16px * var(--tl-font-scale, 1));
+    }
+    .tl-app.tl-light {
+      --bg-base: #F6F4EF;
+      --bg-panel: #FFFFFF;
+      --bg-panel-raised: #F1EEE6;
+      --bg-hatch: #ECE8DE;
+      --border: #DEDAD0;
+      --border-soft: #E8E4DA;
+      --amber: #C67F1E;
+      --rust: #B34E12;
+      --rust-dim: #EAC9A6;
+      --danger: #B03A26;
+      --success: #3D7A4E;
+      --text-primary: #201D17;
+      --text-muted: #5E594C;
+      --text-faint: #8D8879;
+    }
+    .tl-display { font-family: 'Barlow Condensed', sans-serif; }
+    .tl-mono { font-family: 'JetBrains Mono', monospace; }
+
+    .tl-app ::selection { background: var(--amber); color: #1a1a1a; }
+    .tl-app *, .tl-app *::before, .tl-app *::after { box-sizing: border-box; }
+
+    .tl-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+    .tl-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .tl-scrollbar::-webkit-scrollbar-thumb { background: #333944; border-radius: 4px; }
+
+    @keyframes tl-fade-in {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .tl-fade-in { animation: tl-fade-in 0.18s ease-out; }
+
+    .tl-focus:focus-visible {
+      outline: 2px solid var(--amber);
+      outline-offset: 2px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .tl-fade-in { animation: none; }
+    }
+
+    /* Impressão: esconde tudo, exceto a área marcada como imprimível */
+    @media print {
+      body * { visibility: hidden; }
+      .tl-print-area, .tl-print-area * { visibility: visible; }
+      .tl-print-area {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+      }
+      /* Toda tela de impressão fica dentro de uma janela (modal) que, na
+         tela, tem rolagem própria — o navegador só imprimia o pedacinho
+         que estava visível ali dentro no momento do clique, cortando o
+         resto. A janela continua com posição fixa (é isso que faz o
+         .tl-print-area, que fica dentro dela, ficar ancorado certinho no
+         topo da folha) — só a rolagem/altura é que é desligada, pra
+         deixar todo o conteúdo aparecer, por maior que seja. */
+      .tl-modal-overlay {
+        overflow: visible !important;
+        height: auto !important;
+        background: none !important;
+        padding: 0 !important;
+      }
+      .tl-modal-box {
+        overflow: visible !important;
+        max-height: none !important;
+        height: auto !important;
+        width: auto !important;
+        max-width: none !important;
+        box-shadow: none !important;
+        border: none !important;
+        animation: none !important;
+      }
+      /* Relatórios usam o tema escuro na tela; força cores claras só na impressão */
+      .tl-print-area:not(#proposta-print) { background: #fff !important; color: #111 !important; }
+      .tl-print-area:not(#proposta-print) * { background: transparent !important; color: #111 !important; border-color: #ccc !important; }
+    }
+
+    .tl-shell { display: flex; min-height: 100vh; }
+    .tl-sidebar { width: 232px; flex-shrink: 0; }
+    .tl-sidebar nav { flex-direction: column; }
+    .tl-nav-btn { width: 100%; }
+    .tl-main { flex: 1; }
+
+    @media (max-width: 760px) {
+      .tl-shell { flex-direction: column; }
+      .tl-sidebar { width: 100%; padding: 12px !important; }
+      .tl-sidebar > div:first-child { padding-bottom: 10px !important; }
+      /* A fileira de abas que rolava pro lado sai do lugar de sempre no
+         celular — vira a barra fixa embaixo (.tl-bottom-nav) renderizada
+         logo depois. Continua igualzinha no computador. */
+      .tl-sidebar nav { display: none !important; }
+      .tl-sidebar > div:last-child { display: none; }
+      .tl-main { padding: 18px 16px 84px !important; }
+    }
+
+    /* Barra fixa de navegação — só aparece no celular (max-width: 760px) */
+    .tl-bottom-nav { display: none; }
+    @media (max-width: 760px) {
+      .tl-bottom-nav {
+        display: flex;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 40;
+        background: var(--bg-panel);
+        border-top: 1px solid var(--border-soft);
+        padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+      }
+    }
+    .tl-bottom-nav button {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      background: none;
+      border: none;
+      padding: 6px 0;
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--text-faint);
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .tl-bottom-nav button.on { color: var(--amber); }
+
+    /* Painel "Mais" — sobe de baixo pra cima no celular, com o resto das abas */
+    .tl-mais-fundo {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      z-index: 90;
+      display: flex;
+      align-items: flex-end;
+    }
+    .tl-mais-painel {
+      background: var(--bg-panel);
+      width: 100%;
+      max-height: 80vh;
+      overflow-y: auto;
+      border-radius: 18px 18px 0 0;
+      padding: 10px 14px calc(18px + env(safe-area-inset-bottom, 0px));
+      border-top: 1px solid var(--border-soft);
+    }
+    .tl-mais-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .tl-mais-grid button {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 14px 10px;
+      border-radius: 12px;
+      border: 1px solid var(--border-soft);
+      background: var(--bg-base);
+      color: var(--text-primary);
+      font-size: 12px;
+      font-weight: 600;
+      text-align: left;
+      cursor: pointer;
+    }
+    .tl-mais-grid button .tl-mais-ic {
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      background: var(--bg-panel-raised);
+      color: var(--amber);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    @keyframes tl-modal-subir {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+    @media (max-width: 760px) {
+      .tl-modal-overlay { align-items: flex-end !important; padding: 0 !important; }
+      .tl-modal-box {
+        border-radius: 16px 16px 0 0 !important;
+        max-height: 92vh !important;
+        animation: tl-modal-subir 0.22s ease-out !important;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .tl-modal-box { animation: none !important; }
+    }
+
+    /* perforated ticket-stub edge, used on pedido badges */
+    .tl-stub {
+      position: relative;
+      background: repeating-linear-gradient(
+        90deg,
+        transparent 0,
+        transparent 3px,
+        var(--bg-base) 3px,
+        var(--bg-base) 4px
+      );
+    }
+  `}</style>
+);
+
+/* ------------------------------------------------------------------ */
+/*  Storage helpers                                                    */
+/* ------------------------------------------------------------------ */
+// Sem logo fixa no código — cada cliente configura a própria em
+// Configurações (campo "logoPersonalizado"). Sem isso, fica vazio.
+const LOGO_PADRAO_DATA_URI = "data:image/png;base64,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";
+// Se a logo personalizada (enviada em Configurações) estiver corrompida
+// ou vazia, cai pra essa logo padrão embutida no código — nunca deixa a
+// tag <img> "quebrada" (ícone de imagem quebrada) aparecer pro usuário.
+const LOGO_DATA_URI = () => PREFS_ATUAL_REF?.logoPersonalizado || LOGO_PADRAO_DATA_URI;
+// Handler pronto pra colar em qualquer <img src={LOGO_DATA_URI()} ...>:
+// se a logo personalizada falhar ao carregar (link quebrado, base64
+// truncado ao salvar, etc.), troca sozinha pra logo padrão em vez de
+// mostrar o ícone de imagem quebrada — não precisa de "onError" repetido
+// em cada uma das telas.
+const onLogoError = (e) => {
+  e.target.onerror = null;
+  e.target.src = LOGO_PADRAO_DATA_URI;
+};
+const LOGO_PNG_DATA_URI = () => PREFS_ATUAL_REF?.logoPngPersonalizado || "data:image/png;base64,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";
+const SEED_DATA = { clientes: [], producaoEsc: [], producaoPerf: [] }; // dados reais removidos por segurança — já migrados pro Firestore há muito tempo
+
+const STORAGE_KEYS = {
+  clientes: "top-locacoes:clientes",
+  producaoEsc: "top-locacoes:producao-escavadeira",
+  propostas: "top-locacoes:propostas",
+  maquinas: "top-locacoes:maquinas",
+  manutencoes: "top-locacoes:manutencoes",
+  agenda: "top-locacoes:agenda",
+  controleDiario: "top-locacoes:controle-diario",
+  security: "top-locacoes:security",
+  appAccess: "top-locacoes:app-access",
+  prefs: "top-locacoes:prefs",
+  financeiro: "top-locacoes:financeiro",
+  operadores: "top-locacoes:operadores",
+  vendedores: "top-locacoes:vendedores",
+  statusClientes: "top-locacoes:status-clientes",
+  despesas: "top-locacoes:despesas",
+  folhaPagamento: "top-locacoes:folha-pagamento",
+  funcionarios: "top-locacoes:funcionarios",
+  motoristas: "top-locacoes:motoristas",
+  caminhoes: "top-locacoes:caminhoes",
+  empresasRetirada: "top-locacoes:empresas-retirada",
+  galeriaDivulgacao: "top-locacoes:galeria-divulgacao",
+  cubicagens: "top-locacoes:cubicagens",
+  comprasMaterial: "top-locacoes:compras-material",
+  movimentosEstoque: "top-locacoes:movimentos-estoque",
+  bombaConcreto: "top-locacoes:bomba-concreto",
+  cartaTraco: "top-locacoes:carta-traco",
+  registrosDiesel: "top-locacoes:registros-diesel",
+  mensagens: "top-locacoes:mensagens",
+  usuarios: "top-locacoes:usuarios",
+  logAcessos: "top-locacoes:log-acessos",
+};
+
+const FINANCEIRO_SEED = []; // dados reais removidos por segurança — já migrados pro Firestore há muito tempo
+
+const MAQUINAS_PADRAO = [];
+
+async function loadCollection(key) {
+  // Importante: se der erro de rede/conexão aqui, a gente PRECISA que o
+  // erro suba pra quem chamou — nunca devolver lista vazia nesse caso.
+  // Se devolvêssemos vazio, o app pensaria "essa área realmente não tem
+  // nada" e em alguns lugares reage a isso regravando dados padrão por
+  // cima do que já existia — apagando tudo sem querer numa falha
+  // passageira de conexão. Lista vazia só pode significar "realmente não
+  // tem nada salvo ainda", nunca "não consegui checar agora".
+  const result = await window.storage.get(key, true);
+  return result ? JSON.parse(result.value) : [];
+}
+
+async function saveCollection(key, data) {
+  try {
+    const json = JSON.stringify(data);
+    // O banco de dados (Firestore) recusa documentos acima de ~1MB. Como
+    // agora TODO lançamento de Produção vira uma conta no Financeiro (não
+    // só os pagos), esse arquivo específico pode crescer bastante — melhor
+    // avisar exatamente isso do que deixar parecer "problema de internet".
+    if (json.length > 900000) {
+      console.error(`Coleção "${key}" está grande demais pra salvar (${(json.length / 1024).toFixed(0)} KB, limite ~900 KB).`);
+      const erro = new Error("TAMANHO_EXCEDIDO");
+      erro.tamanho = json.length;
+      throw erro;
+    }
+    const result = await window.storage.set(key, json, true);
+    return !!result;
+  } catch (e) {
+    console.error("Erro ao salvar", key, e);
+    if (e.message === "TAMANHO_EXCEDIDO") throw e;
+    return false;
+  }
+}
+
+// Registra uma linha no histórico de acesso (login ou exclusão). Busca e
+// salva direto no banco, sem depender de props — pode ser chamada de
+// qualquer lugar do app (inclusive de dentro do ConfirmDelete central).
+async function registrarLog(tipo, detalhe, dadosExcluidos = null) {
+  try {
+    const atual = await loadCollection(STORAGE_KEYS.logAcessos);
+    const entrada = {
+      id: uid(),
+      usuario: USUARIO_ATUAL_REF?.nome || "Desconhecido",
+      tipo,
+      detalhe,
+      dataHora: new Date().toISOString(),
+      dadosExcluidos, // guarda o registro inteiro quando é uma exclusão, pra dar pra ver depois
+    };
+    await saveCollection(STORAGE_KEYS.logAcessos, [...atual, entrada]);
+  } catch (e) {
+    console.error("Falha ao registrar log", e);
+  }
+}
+
+// Junta todas as coleções do sistema num único arquivo JSON e baixa —
+// serve como cópia de segurança manual, feita na hora, sem depender de
+// nenhuma configuração externa.
+async function baixarBlob(blob, nomeArquivo) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = nomeArquivo;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+async function coletarTudoParaBackup() {
+  const chaves = Object.keys(STORAGE_KEYS);
+  const dados = {};
+  for (const chave of chaves) {
+    dados[chave] = await loadCollection(STORAGE_KEYS[chave]);
+  }
+  // Nunca inclui a senha de ninguém no backup, mesmo hasheada.
+  if (dados.usuarios) {
+    dados.usuarios = dados.usuarios.map(({ senhaHash, ...resto }) => resto);
+  }
+  return dados;
+}
+
+async function baixarBackupCompleto() {
+  const dados = await coletarTudoParaBackup();
+  dados._geradoEm = new Date().toISOString();
+  const blob = new Blob([JSON.stringify(dados, null, 2)], { type: "application/json" });
+  const hoje = new Date().toISOString().slice(0, 10);
+  await baixarBlob(blob, `backup-rjl-mix-concreto-${hoje}.json`);
+  await registrarLog("Backup", "Baixou um backup completo do sistema (JSON)");
+}
+
+// Versão em Excel do backup — cada coleção vira uma aba da planilha. Usa a
+// biblioteca "xlsx" carregada só na hora (não pesa o app o tempo todo).
+// No site publicado funciona de verdade; nesta pré-visualização do Claude
+// a biblioteca não está instalada, então cai automaticamente pro JSON.
+async function baixarBackupExcel() {
+  const dados = await coletarTudoParaBackup();
+  try {
+    const XLSX = await import("xlsx");
+    const wb = XLSX.utils.book_new();
+    // Essas áreas sempre viram aba, mesmo vazias — pra nunca parecer que
+    // "sumiram" do backup só porque não tinham nenhum lançamento na hora.
+    const SEMPRE_INCLUIR = new Set(["clientes", "producaoEsc", "producaoPerf", "financeiro", "propostas"]);
+    let algumaAba = false;
+    for (const chave of Object.keys(dados)) {
+      const linhas = dados[chave];
+      if (!Array.isArray(linhas)) continue;
+      if (linhas.length === 0 && !SEMPRE_INCLUIR.has(chave)) continue;
+      const ws = XLSX.utils.json_to_sheet(linhas.length > 0 ? linhas : [{ aviso: "Nenhum lançamento nessa área no momento do backup" }]);
+      XLSX.utils.book_append_sheet(wb, ws, chave.slice(0, 31));
+      algumaAba = true;
+    }
+    if (!algumaAba) throw new Error("Nada pra exportar ainda");
+    const arrayBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    const blob = new Blob([arrayBuffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const hoje = new Date().toISOString().slice(0, 10);
+    await baixarBlob(blob, `backup-rjl-mix-concreto-${hoje}.xlsx`);
+    await registrarLog("Backup", "Baixou um backup completo do sistema (Excel)");
+    return true;
+  } catch (e) {
+    console.error("Backup em Excel indisponível aqui, usando JSON:", e);
+    return false;
+  }
+}
+
+async function savePhotoBlob(id, dataUrl) {
+  try {
+    const result = await window.storage.set(`foto:${id}`, dataUrl, true);
+    return !!result;
+  } catch (e) {
+    console.error("Erro ao salvar foto", e);
+    return false;
+  }
+}
+
+async function loadPhotoBlob(id) {
+  try {
+    const result = await window.storage.get(`foto:${id}`, true);
+    return result ? result.value : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+// Junta todas as fotos de um Tick num único PDF, uma por página, mantendo
+// a proporção de cada imagem. Detecta JPEG/PNG pelo próprio data URL, já
+// que fotos de celular podem vir nos dois formatos.
+
+async function deletePhotoBlob(id) {
+  try {
+    await window.storage.delete(`foto:${id}`, true);
+  } catch (e) {
+    /* ignore */
+  }
+}
+
+async function hashPassword(pw) {
+  const enc = new TextEncoder().encode(pw);
+  const buf = await crypto.subtle.digest("SHA-256", enc);
+  return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+// Antes, essas abas ficavam trancadas por trás de uma segunda senha de
+// administrador. Agora que existe login individual (nome + senha) logo na
+// entrada do sistema, esse cadeado extra virou redundante — quem entra já
+// está identificado. Lista vazia = nenhuma aba exige desbloqueio extra.
+// (A exclusão de itens continua exigindo permissão de administrador,
+// isso é outro mecanismo, separado deste.)
+const PROTECTED_TABS = [];
+// Desativado temporariamente a pedido — o código continua todo pronto,
+// é só trocar para "true" quando formos investigar o problema com calma.
+const SENHA_ATIVADA = true;
+
+// Comprime uma imagem selecionada pelo usuário para caber com folga no limite de armazenamento.
+function compressImage(file, maxDim = 1280, quality = 0.72) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("Falha ao ler arquivo"));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error("Falha ao carregar imagem"));
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > maxDim || height > maxDim) {
+          const scale = maxDim / Math.max(width, height);
+          width = Math.round(width * scale);
+          height = Math.round(height * scale);
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// Gera o PDF da proposta como um Blob. Retorna null se a biblioteca de PDF
+// não estiver disponível neste ambiente (ex.: pré-visualização dentro do
+// Claude), para que quem chamar possa usar um caminho alternativo
+// (imprimir/salvar manualmente). Importante: só tentamos importar a
+// biblioteca no site publicado — tentar isso dentro do Claude pode travar
+// o carregamento do app inteiro, então nem chegamos perto disso aqui.
+// No site publicado (fora do Claude), essa função é substituída por uma
+// versão completa que gera o PDF de verdade com a biblioteca jsPDF.
+// Aqui dentro do Claude, ela sempre retorna null (sem gerar PDF), e quem
+// chama usa "Imprimir" como alternativa — isso evita qualquer risco de
+// travar o app tentando carregar uma biblioteca que não existe aqui.
+async function gerarPdfProposta(proposta, cliente, total) {
+  return null;
+}
+
+// Versão segura do PDF do tick (mesma lógica: no site publicado essa função
+// é substituída por uma versão completa com jsPDF; aqui sempre retorna null).
+
+// Versão segura do PDF do recibo (mesma lógica: real só no site publicado).
+async function gerarPdfRecibo(conta, cliente, numeroRecibo) {
+  return null;
+}
+
+// Versão segura do PDF da ordem de serviço (mesma lógica: real só no site publicado).
+
+// Versão segura do PDF de relatório geral por pedido (mesma lógica: real só no site publicado).
+async function gerarPdfRelatorioGeral(pedido, cliente, lancamentosEsc, propostasPedido, contasPedido, totalGeral) {
+  return null;
+}
+
+// Versão segura do PDF de relatório de inadimplência por cliente (mesma lógica: real só no site publicado).
+async function gerarPdfInadimplenciaCliente(cliente, itens, totalAberto) {
+  return null;
+}
+
+// Versão segura do PDF de relatório de estacas por pedido (mesma lógica: real só no site publicado).
+
+// Versão segura do PDF da folha de pagamento (mesma lógica: real só no site publicado).
+async function gerarPdfFolhaPagamento(mes, itens) {
+  return null;
+}
+
+// Versão segura do PDF de relatório de produção por status (mesma lógica: real só no site publicado).
+async function gerarPdfRelatorioProducaoFinanceiro(titulo, porStatus, totalGeral) {
+  return null;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Small utilities                                                    */
+/* ------------------------------------------------------------------ */
+const uid = () => `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+// No computador (Windows/Mac), o menu nativo de compartilhar geralmente não
+// tem o WhatsApp instalado como opção real, e só confunde. Usamos o menu
+// nativo (que anexa o PDF direto) só em celular, onde o WhatsApp app existe.
+const ehCelular = typeof navigator !== "undefined" && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "");
+
+// Alguns valores vêm de importações de planilha já formatados como texto
+// (ex: "1.600,00"), o que faz Number() direto virar NaN/0. Essa função
+// entende tanto números normais quanto texto no formato brasileiro.
+// Converte texto de valor pra número, reconhecendo tanto o formato
+// brasileiro (1.500,00 — ponto separa milhar, vírgula é decimal) quanto o
+// americano (1,500.00 — o inverso), já que a planilha às vezes mistura os
+// dois dependendo de como cada célula foi formatada no Excel.
+const numeroSeguro = (v) => {
+  if (typeof v === "number") return v;
+  if (v === null || v === undefined || v === "") return 0;
+
+  let limpo = String(v)
+    .replace(/[^\d,.\-]/g, "") // tira "R$", espaços, letras etc.
+    .trim();
+  if (!limpo) return 0;
+
+  const temVirgula = limpo.includes(",");
+  const temPonto = limpo.includes(".");
+
+  if (temVirgula && temPonto) {
+    // Os dois aparecem — o que vier por último é o separador decimal.
+    if (limpo.lastIndexOf(",") > limpo.lastIndexOf(".")) {
+      limpo = limpo.replace(/\./g, "").replace(",", "."); // formato BR
+    } else {
+      limpo = limpo.replace(/,/g, ""); // formato US
+    }
+  } else if (temVirgula) {
+    // Só vírgula: se sobrarem exatos 2 dígitos depois dela, é decimal
+    // (ex: "1500,50"); senão é separador de milhar (ex: "1,500").
+    const partes = limpo.split(",");
+    const ultima = partes[partes.length - 1];
+    limpo = ultima.length === 2 ? partes.slice(0, -1).join("") + "." + ultima : limpo.replace(/,/g, "");
+  } else if (temPonto) {
+    // Só ponto: se o último grupo tiver 3 dígitos, é separador de milhar
+    // (ex: "1.500" = mil e quinhentos); senão é decimal normal (ex: "1.5").
+    const partes = limpo.split(".");
+    const ultima = partes[partes.length - 1];
+    if (partes.length > 2 || ultima.length === 3) {
+      limpo = limpo.replace(/\./g, "");
+    }
+  }
+
+  const convertido = Number(limpo);
+  return isNaN(convertido) ? 0 : convertido;
+};
+
+const money = (v) =>
+  numeroSeguro(v).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+
+const fmtDate = (iso) => {
+  if (!iso) return "-";
+  const normalizado = dataOrdenavel(iso);
+  const d = new Date(normalizado + "T00:00:00");
+  if (isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString("pt-BR");
+};
+
+// Datas às vezes chegam em formato DD/MM/AAAA (de planilha importada) em vez
+// de AAAA-MM-DD (o padrão do sistema) — isso bagunça qualquer ordenação por
+// texto. Essa função sempre devolve AAAA-MM-DD, não importa como a data
+// chegou, pra ordenar corretamente em qualquer lugar do app.
+const dataOrdenavel = (valor) => {
+  const s = String(valor || "").trim();
+  if (!s) return "";
+
+  // AAAA-MM-DD (já no formato certo)
+  const isoMatch = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoMatch) return isoMatch[0];
+
+  // DD/MM/AAAA — ano com 4 dígitos (aceita 1 ou 2 dígitos em dia/mês)
+  const brMatch = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (brMatch) {
+    const [, d, m, y] = brMatch;
+    return `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+  }
+
+  // M/D/AA — ano com 2 dígitos (vem de outro formato de exportação da
+  // planilha, nesse caso é mês/dia, não dia/mês)
+  const usMatch = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2})$/);
+  if (usMatch) {
+    const [, mo, d, y2] = usMatch;
+    return `20${y2}-${mo.padStart(2, "0")}-${d.padStart(2, "0")}`;
+  }
+
+  return s;
+};
+
+// Soma dias a uma data (aceita qualquer formato que dataOrdenavel entenda)
+// e devolve no formato AAAA-MM-DD. Usada pra dar um prazo padrão de
+// pagamento em lançamentos que não têm vencimento explícito (ex: produção,
+// onde só existe a data do serviço, não uma data de cobrança).
+const adicionarDias = (dataStr, dias) => {
+  const iso = dataOrdenavel(dataStr);
+  if (!iso || iso.length < 10) return "";
+  const d = new Date(`${iso}T00:00:00`);
+  if (isNaN(d.getTime())) return "";
+  d.setDate(d.getDate() + dias);
+  return d.toISOString().slice(0, 10);
+};
+
+// Ordena uma lista de cadastros (máquinas, operadores, motoristas...) em
+// ordem alfabética pelo campo "nome" — ou pelo próprio valor, se for uma
+// lista de strings (como equipamentosEsc/Perf). Usada em todos os
+// dropdowns e cadastros pra ficar mais fácil de achar o que procura.
+const porNome = (arr) =>
+  [...(arr || [])].sort((a, b) =>
+    String(typeof a === "string" ? a : a?.nome || "").localeCompare(String(typeof b === "string" ? b : b?.nome || ""), "pt-BR", { sensitivity: "base" })
+  );
+
+const STATUS_STYLES = {
+  Ativo: { bg: "#2B4F3A", fg: "#7BC492" },
+  "EM ABERTO": { bg: "#52431D", fg: "#F0B958" },
+  "CONCLUÍDO": { bg: "#2B4F3A", fg: "#7BC492" },
+  Inativo: { bg: "#363D49", fg: "#AEB5C2" },
+  Potencial: { bg: "#532B2B", fg: "#E88886" },
+  PAGO: { bg: "#2B4F3A", fg: "#7BC492" },
+  BOLETO: { bg: "#2C3F55", fg: "#8CBCE8" },
+  PIX: { bg: "#3D2B54", fg: "#CBA6F2" },
+  CANCELADO: { bg: "#532B2B", fg: "#E88886" },
+  ATRASADO: { bg: "#532B2B", fg: "#E88886" },
+};
+
+// Só os status que fazem sentido pra um lançamento de Produção ou de
+// Bomba — antes esses campos usavam TODAS as chaves de STATUS_STYLES
+// (compartilhado com o status de Cliente), então apareciam opções como
+// "Ativo", "Potencial" e "ATRASADO" pra escolher manualmente, sem
+// nenhuma lógica de data por trás.
+const STATUS_PRODUCAO = ["EM ABERTO", "BOLETO", "PIX", "PAGO", "CANCELADO"];
+
+// Lista inicial de status de cliente — depois disso, quem administra pode
+// adicionar/remover pela tela de Configurações, sem precisar de mim.
+const STATUS_CLIENTES_PADRAO = [
+  { id: "st1", nome: "Ativo" },
+  { id: "st2", nome: "EM ABERTO" },
+  { id: "st3", nome: "CONCLUÍDO" },
+  { id: "st4", nome: "Inativo" },
+];
+
+function StatusBadge({ status }) {
+  const s = STATUS_STYLES[status] || { bg: "#262b34", fg: "#9198A6" };
+  return (
+    <span
+      className="tl-mono"
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "5px",
+        background: s.bg,
+        color: s.fg,
+        fontSize: "11px",
+        fontWeight: 600,
+        letterSpacing: "0.04em",
+        padding: "3px 9px",
+        borderRadius: "999px",
+        whiteSpace: "nowrap",
+      }}
+    >
+      <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: s.fg, flexShrink: 0 }} />
+      {status || "SEM STATUS"}
+    </span>
+  );
+}
+
+function PedidoStub({ n }) {
+  return (
+    <div
+      className="tl-stub tl-display"
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "6px",
+        background: "var(--bg-panel-raised)",
+        border: "1px solid var(--border)",
+        borderLeft: "3px solid var(--amber)",
+        borderRadius: "3px",
+        padding: "3px 10px 3px 8px",
+        fontSize: "18px",
+        fontWeight: 700,
+        color: "var(--text-primary)",
+        lineHeight: 1,
+      }}
+    >
+      <span style={{ color: "var(--text-faint)", fontSize: "11px" }}>Nº</span>
+      {n}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Generic UI atoms                                                   */
+/* ------------------------------------------------------------------ */
+function Field({ label, required, children, hint }) {
+  return (
+    <label style={{ display: "block", marginBottom: "14px" }}>
+      <span
+        className="tl-mono"
+        style={{
+          display: "block",
+          fontSize: "11px",
+          letterSpacing: "0.06em",
+          color: "var(--text-muted)",
+          marginBottom: "6px",
+          textTransform: "uppercase",
+        }}
+      >
+        {label} {required && <span style={{ color: "var(--rust)" }}>*</span>}
+      </span>
+      {children}
+      {hint && (
+        <span
+          style={{
+            display: "block",
+            fontSize: "11.5px",
+            color: "var(--text-faint)",
+            marginTop: "4px",
+          }}
+        >
+          {hint}
+        </span>
+      )}
+    </label>
+  );
+}
+
+const inputStyle = {
+  width: "100%",
+  boxSizing: "border-box",
+  background: "var(--bg-base)",
+  border: "1px solid var(--border)",
+  borderRadius: "5px",
+  padding: "9px 11px",
+  color: "var(--text-primary)",
+  fontSize: "14px",
+  fontFamily: "Inter, sans-serif",
+};
+
+function Input(props) {
+  return <input {...props} className="tl-focus" style={{ ...inputStyle, ...(props.style || {}) }} />;
+}
+function Select(props) {
+  return (
+    <select {...props} className="tl-focus" style={{ ...inputStyle, ...(props.style || {}) }}>
+      {props.children}
+    </select>
+  );
+}
+function TextArea(props) {
+  return (
+    <textarea
+      {...props}
+      className="tl-focus"
+      style={{ ...inputStyle, resize: "vertical", minHeight: "70px", ...(props.style || {}) }}
+    />
+  );
+}
+
+function Button({ variant = "primary", size = "md", icon: Icon, children, ...rest }) {
+  const variants = {
+    primary: { bg: "var(--rust)", fg: "#fff", border: "var(--rust)" },
+    ghost: { bg: "transparent", fg: "var(--text-muted)", border: "var(--border)" },
+    danger: { bg: "transparent", fg: "var(--danger)", border: "#4a2620" },
+    subtle: { bg: "var(--bg-panel-raised)", fg: "var(--text-primary)", border: "var(--border)" },
+  };
+  const v = variants[variant];
+  const pad = size === "sm" ? "6px 10px" : "9px 16px";
+  return (
+    <button
+      {...rest}
+      className="tl-focus"
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "6px",
+        background: v.bg,
+        color: v.fg,
+        border: `1px solid ${v.border}`,
+        borderRadius: "5px",
+        padding: pad,
+        fontSize: size === "sm" ? "12.5px" : "13.5px",
+        fontWeight: 600,
+        cursor: "pointer",
+        transition: "filter 0.12s ease",
+        opacity: rest.disabled ? 0.5 : 1,
+      }}
+      onMouseEnter={(e) => !rest.disabled && (e.currentTarget.style.filter = "brightness(1.15)")}
+      onMouseLeave={(e) => (e.currentTarget.style.filter = "none")}
+    >
+      {Icon && <Icon size={size === "sm" ? 13 : 15} />}
+      {children}
+    </button>
+  );
+}
+
+function Modal({ title, onClose, children, wide }) {
+  return (
+    <div
+      className="tl-modal-overlay"
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(8,9,11,0.72)",
+        backdropFilter: "blur(2px)",
+        zIndex: 50,
+        display: "flex",
+        alignItems: "flex-start",
+        justifyContent: "center",
+        padding: "5vh 16px",
+        overflowY: "auto",
+      }}
+      onClick={onClose}
+    >
+      <div
+        className="tl-fade-in tl-scrollbar tl-modal-box"
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: "var(--bg-panel)",
+          border: "1px solid var(--border)",
+          borderRadius: "10px",
+          width: "100%",
+          maxWidth: wide ? "720px" : "480px",
+          boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "16px 20px",
+            borderBottom: "1px solid var(--border-soft)",
+          }}
+        >
+          <h3 className="tl-display" style={{ fontSize: "20px", fontWeight: 700, letterSpacing: "0.01em" }}>
+            {title}
+          </h3>
+          <button
+            onClick={onClose}
+            className="tl-focus"
+            style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "4px" }}
+          >
+            <X size={18} />
+          </button>
+        </div>
+        <div style={{ padding: "20px" }}>{children}</div>
+      </div>
+    </div>
+  );
+}
+
+// Exibe uma foto salva localmente (usado em Divulgação, Manutenção, Controle
+// Diário) — componente genérico de visualização de foto, reaproveitado em
+// vários lugares do sistema.
+function FotoVisualGrande({ id }) {
+  const [src, setSrc] = useState(null);
+  useEffect(() => {
+    let ativo = true;
+    loadPhotoBlob(id).then((v) => { if (ativo) setSrc(v); });
+    return () => { ativo = false; };
+  }, [id]);
+  if (!src) {
+    return <div style={{ width: "100%", aspectRatio: "1", display: "flex", alignItems: "center", justifyContent: "center" }}><Loader2 size={16} style={{ color: "var(--text-faint)" }} /></div>;
+  }
+  return <img src={src} alt="" style={{ width: "100%", aspectRatio: "1", objectFit: "cover", display: "block" }} />;
+}
+
+function FotoThumb({ id, onRemove }) {
+  const [src, setSrc] = useState(null);
+  useEffect(() => {
+    let ativo = true;
+    loadPhotoBlob(id).then((v) => { if (ativo) setSrc(v); });
+    return () => { ativo = false; };
+  }, [id]);
+  return (
+    <div style={{ position: "relative", width: "72px", height: "72px", flexShrink: 0 }}>
+      <div style={{ width: "100%", height: "100%", borderRadius: "6px", overflow: "hidden", border: "1px solid var(--border-soft)", background: "var(--bg-panel-raised)" }}>
+        {src ? <img src={src} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <Loader2 size={14} style={{ margin: "28px auto", display: "block", color: "var(--text-faint)" }} />}
+      </div>
+      <button
+        type="button"
+        onClick={onRemove}
+        className="tl-focus"
+        style={{ position: "absolute", top: "-6px", right: "-6px", background: "var(--danger)", border: "none", borderRadius: "50%", width: "20px", height: "20px", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+      >
+        <X size={12} />
+      </button>
+    </div>
+  );
+}
+
+// Campo de upload de foto(s), usado em Manutenção e Controle Diário —
+// tira/anexa foto e salva localmente via savePhotoBlob.
+function FotosUpload({ fotos, onChange }) {
+  const [enviando, setEnviando] = useState(false);
+  const fileRef = React.useRef(null);
+
+  const adicionarFotos = async (fileList) => {
+    setEnviando(true);
+    const novasIds = [];
+    for (const file of Array.from(fileList)) {
+      try {
+        const dataUrl = await compressImage(file);
+        const id = uid();
+        const ok = await savePhotoBlob(id, dataUrl);
+        if (ok) novasIds.push(id);
+      } catch (e) {
+        console.error("Falha ao processar foto", e);
+      }
+    }
+    onChange([...(fotos || []), ...novasIds]);
+    setEnviando(false);
+  };
+
+  const removerFoto = async (id) => {
+    await deletePhotoBlob(id);
+    onChange((fotos || []).filter((f) => f !== id));
+  };
+
+  return (
+    <div style={{ marginBottom: "18px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+        <span className="tl-mono" style={{ fontSize: "11px", color: "var(--text-muted)", textTransform: "uppercase" }}>Fotos</span>
+        <Button type="button" size="sm" variant="subtle" icon={Camera} disabled={enviando} onClick={() => fileRef.current?.click()}>
+          {enviando ? "Enviando..." : "Tirar / adicionar foto"}
+        </Button>
+      </div>
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        multiple
+        capture="environment"
+        style={{ display: "none" }}
+        onChange={(e) => e.target.files?.length && adicionarFotos(e.target.files)}
+      />
+      {(fotos || []).length > 0 && (
+        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+          {fotos.map((id) => (
+            <FotoThumb key={id} id={id} onRemove={() => removerFoto(id)} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function EmptyState({ icon: Icon, title, hint }) {
+  return (
+    <div style={{ padding: "48px 24px", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: "14px" }}>
+      <div style={{ width: "58px", height: "58px", borderRadius: "50%", background: "var(--bg-panel-raised)", border: "1px solid var(--border-soft)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <Icon size={24} style={{ color: "var(--amber)" }} />
+      </div>
+      <div>
+        <p className="tl-display" style={{ fontSize: "17px", fontWeight: 700, color: "var(--text-muted)", marginBottom: "5px" }}>
+          {title}
+        </p>
+        {hint && <p style={{ fontSize: "13px", color: "var(--text-faint)", maxWidth: "340px", margin: "0 auto", lineHeight: 1.5 }}>{hint}</p>}
+      </div>
+    </div>
+  );
+}
+
+// Guardado fora de qualquer componente para que ConfirmDelete (usado em
+// todas as abas) sempre tenha acesso à senha de administrador mais atual,
+// sem precisar repassar essa prop em cada uma das ~15 telas que excluem algo.
+let ADMIN_HASH_REF = "";
+
+// Guarda quem está logado agora, pra qualquer parte do app (inclusive o
+// ConfirmDelete central e o registrarLog) saber sem precisar de props.
+let USUARIO_ATUAL_REF = null;
+
+// Guarda os dados da empresa (nome, CNPJ, endereço) configurados em
+// Configurações, pra qualquer gerador de PDF usar sem precisar propagar
+// "prefs" como prop através de vários componentes intermediários.
+let PREFS_ATUAL_REF = {};
+
+function ConfirmDelete({ label, dados, onConfirm, onCancel }) {
+  const [senha, setSenha] = useState("");
+  const [erro, setErro] = useState("");
+  const [verificando, setVerificando] = useState(false);
+
+  // Se já existe sistema de usuários, a permissão é decidida por quem está
+  // logado (ninguém digita senha de novo — já entrou com a própria). Se o
+  // app ainda estiver no modelo antigo de senha única, cai nesse fallback.
+  const temUsuarios = !!USUARIO_ATUAL_REF;
+  const podeExcluir = temUsuarios ? !!USUARIO_ATUAL_REF?.admin : true;
+  const exigirSenha = !temUsuarios && !!ADMIN_HASH_REF;
+
+  const confirmar = async (e) => {
+    e.preventDefault();
+    if (!exigirSenha) {
+      if (temUsuarios) await registrarLog("Exclusão", label, dados || null);
+      onConfirm();
+      return;
+    }
+    setVerificando(true);
+    const hash = await hashPassword(senha);
+    setVerificando(false);
+    if (hash === ADMIN_HASH_REF) {
+      onConfirm();
+    } else {
+      setErro("Senha incorreta.");
+    }
+  };
+
+  if (temUsuarios && !podeExcluir) {
+    return (
+      <Modal title="Sem permissão" onClose={onCancel}>
+        <div style={{ display: "flex", gap: "12px", marginBottom: "20px" }}>
+          <Lock size={20} style={{ color: "var(--danger)", flexShrink: 0, marginTop: "2px" }} />
+          <p style={{ fontSize: "14px", color: "var(--text-muted)", lineHeight: 1.5 }}>
+            Só administradores podem excluir itens. Peça pra um administrador fazer isso, ou entre com uma conta de administrador.
+          </p>
+        </div>
+        <div style={{ display: "flex", justifyContent: "flex-end" }}>
+          <Button variant="ghost" onClick={onCancel}>Entendi</Button>
+        </div>
+      </Modal>
+    );
+  }
+
+  return (
+    <Modal title="Confirmar exclusão" onClose={onCancel}>
+      <form onSubmit={confirmar}>
+        <div style={{ display: "flex", gap: "12px", marginBottom: "16px" }}>
+          <AlertTriangle size={20} style={{ color: "var(--danger)", flexShrink: 0, marginTop: "2px" }} />
+          <p style={{ fontSize: "14px", color: "var(--text-muted)", lineHeight: 1.5 }}>
+            Tem certeza que deseja excluir <strong style={{ color: "var(--text-primary)" }}>{label}</strong>? Essa ação não pode ser desfeita.
+          </p>
+        </div>
+
+        {exigirSenha && (
+          <Field label="Senha de administrador" hint="Necessária para confirmar qualquer exclusão">
+            <Input type="password" autoFocus value={senha} onChange={(e) => setSenha(e.target.value)} required />
+          </Field>
+        )}
+        {erro && <p style={{ fontSize: "12.5px", color: "var(--danger)", marginTop: "-8px", marginBottom: "12px" }}>{erro}</p>}
+
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
+          <Button type="button" variant="ghost" onClick={onCancel}>Cancelar</Button>
+          <Button type="submit" disabled={verificando} style={{ background: "var(--danger)", borderColor: "var(--danger)" }}>
+            {verificando ? "Verificando..." : "Excluir"}
+          </Button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function PasswordGate({ hasPassword, onClose, onSubmit, onReset }) {
+  const [mode, setMode] = useState("login"); // 'login' | 'reset'
+  const [pw, setPw] = useState("");
+  const [pw2, setPw2] = useState("");
+  const [error, setError] = useState("");
+  const [checking, setChecking] = useState(false);
+
+  const creating = !hasPassword || mode === "reset";
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    if (creating) {
+      if (pw.length < 4) {
+        setError("Use pelo menos 4 caracteres.");
+        return;
+      }
+      if (pw !== pw2) {
+        setError("As senhas não coincidem.");
+        return;
+      }
+    }
+    setChecking(true);
+    const ok = mode === "reset" ? await onReset(pw) : await onSubmit(pw);
+    setChecking(false);
+    if (!ok) setError("Senha incorreta.");
+  };
+
+  return (
+    <Modal title={creating ? (mode === "reset" ? "Redefinir senha" : "Criar senha de acesso") : "Área protegida"} onClose={onClose}>
+      <form onSubmit={handleSubmit}>
+        <div style={{ display: "flex", gap: "12px", marginBottom: "16px" }}>
+          <Lock size={20} style={{ color: "var(--amber)", flexShrink: 0, marginTop: "2px" }} />
+          <p style={{ fontSize: "13.5px", color: "var(--text-muted)", lineHeight: 1.5 }}>
+            {mode === "reset"
+              ? "Defina uma senha nova. Ela substitui a anterior para toda a equipe."
+              : hasPassword
+              ? "Essa área é protegida por senha. Digite a senha para continuar."
+              : "Esta é a primeira vez acessando uma área protegida. Defina uma senha — ela vai valer para Clientes, Produção, Controle Diário e Configurações."}
+          </p>
+        </div>
+
+        <Field label={creating ? "Nova senha" : "Senha"}>
+          <Input type="password" autoFocus value={pw} onChange={(e) => setPw(e.target.value)} required />
+        </Field>
+        {creating && (
+          <Field label="Confirmar senha">
+            <Input type="password" value={pw2} onChange={(e) => setPw2(e.target.value)} required />
+          </Field>
+        )}
+
+        {error && (
+          <p style={{ fontSize: "12.5px", color: "var(--danger)", marginTop: "-8px", marginBottom: "14px" }}>{error}</p>
+        )}
+
+        {hasPassword && mode === "login" && (
+          <button
+            type="button"
+            onClick={() => { setMode("reset"); setError(""); setPw(""); setPw2(""); }}
+            style={{ background: "none", border: "none", color: "var(--text-faint)", fontSize: "12px", cursor: "pointer", padding: 0, marginBottom: "14px", textDecoration: "underline" }}
+          >
+            Esqueceu a senha? Redefinir agora
+          </button>
+        )}
+        {mode === "reset" && (
+          <button
+            type="button"
+            onClick={() => { setMode("login"); setError(""); setPw(""); setPw2(""); }}
+            style={{ background: "none", border: "none", color: "var(--text-faint)", fontSize: "12px", cursor: "pointer", padding: 0, marginBottom: "14px", textDecoration: "underline" }}
+          >
+            Voltar para digitar a senha
+          </button>
+        )}
+
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
+          <Button type="button" variant="ghost" onClick={onClose}>Cancelar</Button>
+          <Button type="submit" disabled={checking}>{creating ? "Salvar e entrar" : "Entrar"}</Button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function AppLoginGate({ onSubmit }) {
+  const [pw, setPw] = useState("");
+  const [error, setError] = useState("");
+  const [checking, setChecking] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setChecking(true);
+    const ok = await onSubmit(pw);
+    setChecking(false);
+    if (!ok) setError("Senha incorreta.");
+  };
+
+  return (
+    <div style={{ width: "100%", maxWidth: "360px", padding: "0 20px", textAlign: "center" }}>
+      <style>{`
+        @keyframes tlLogoLoginPulse {
+          0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(232,166,61,0)); }
+          50% { transform: scale(1.06); filter: drop-shadow(0 0 14px rgba(232,166,61,0.5)); }
+        }
+      `}</style>
+      <img
+        src={LOGO_DATA_URI()} onError={onLogoError}
+        alt="Logo"
+        style={{
+          width: "128px",
+          height: "128px",
+          borderRadius: "22px",
+          margin: "0 auto 20px",
+          display: "block",
+          background: "#F5F2E9",
+          animation: "tlLogoLoginPulse 3.5s ease-in-out infinite",
+        }}
+      />
+      <div className="tl-display" style={{ fontSize: "24px", fontWeight: 800, color: "var(--text-primary)", marginBottom: "4px" }}>
+        {PREFS_ATUAL_REF?.nomeEmpresa || "RJL Mix Concreto"}
+      </div>
+      <p style={{ fontSize: "13px", color: "var(--text-muted)", marginBottom: "24px" }}>
+        Acesso restrito à equipe. Digite a senha do sistema.
+      </p>
+      <form onSubmit={handleSubmit} style={{ textAlign: "left" }}>
+        <Field label="Senha de acesso">
+          <Input type="password" autoFocus value={pw} onChange={(e) => setPw(e.target.value)} required />
+        </Field>
+        {error && (
+          <p style={{ fontSize: "12.5px", color: "var(--danger)", marginTop: "-8px", marginBottom: "14px" }}>{error}</p>
+        )}
+        <Button type="submit" disabled={checking} style={{ width: "100%", justifyContent: "center" }}>
+          {checking ? "Verificando..." : "Entrar"}
+        </Button>
+      </form>
+    </div>
+  );
+}
+
+function UsuarioLoginGate({ usuarios, onLogin, onCriarPrimeiroAdmin }) {
+  const semUsuarios = usuarios.length === 0;
+  const [nome, setNome] = useState(semUsuarios ? "" : usuarios[0]?.nome || "");
+  const [senha, setSenha] = useState("");
+  const [senha2, setSenha2] = useState("");
+  const [error, setError] = useState("");
+  const [checking, setChecking] = useState(false);
+  const [mostrarSenha, setMostrarSenha] = useState(false);
+  const [capsLockAtivo, setCapsLockAtivo] = useState(false);
+
+  const detectarCapsLock = (e) => {
+    if (typeof e.getModifierState === "function") {
+      setCapsLockAtivo(e.getModifierState("CapsLock"));
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    if (semUsuarios) {
+      if (!nome.trim()) {
+        setError("Digite seu nome.");
+        return;
+      }
+      if (senha.length < 4) {
+        setError("Use pelo menos 4 caracteres na senha.");
+        return;
+      }
+      if (senha !== senha2) {
+        setError("As senhas não coincidem.");
+        return;
+      }
+      setChecking(true);
+      await onCriarPrimeiroAdmin(nome.trim(), senha);
+      setChecking(false);
+      return;
+    }
+    setChecking(true);
+    const ok = await onLogin(nome, senha);
+    setChecking(false);
+    if (!ok) setError("Senha incorreta.");
+  };
+
+  return (
+    <div style={{ width: "100%", maxWidth: "360px", padding: "0 20px", textAlign: "center" }}>
+      <style>{`
+        @keyframes tlLogoLoginPulse {
+          0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(232,166,61,0)); }
+          50% { transform: scale(1.06); filter: drop-shadow(0 0 14px rgba(232,166,61,0.5)); }
+        }
+      `}</style>
+      <img
+        src={LOGO_DATA_URI()} onError={onLogoError}
+        alt="Logo"
+        style={{
+          width: "128px",
+          height: "128px",
+          borderRadius: "22px",
+          margin: "0 auto 20px",
+          display: "block",
+          background: "#F5F2E9",
+          animation: "tlLogoLoginPulse 3.5s ease-in-out infinite",
+        }}
+      />
+      <div className="tl-display" style={{ fontSize: "24px", fontWeight: 800, color: "var(--text-primary)", marginBottom: "4px" }}>
+        {PREFS_ATUAL_REF?.nomeEmpresa || "RJL Mix Concreto"}
+      </div>
+      <p style={{ fontSize: "13px", color: "var(--text-muted)", marginBottom: "24px" }}>
+        {semUsuarios ? "Primeiro acesso — crie o usuário administrador." : "Escolha seu nome e digite sua senha."}
+      </p>
+      <form onSubmit={handleSubmit} style={{ textAlign: "left" }}>
+        {semUsuarios ? (
+          <Field label="Seu nome">
+            <Input autoFocus value={nome} onChange={(e) => setNome(e.target.value)} required />
+          </Field>
+        ) : (
+          <Field label="Usuário">
+            <Select value={nome} onChange={(e) => setNome(e.target.value)} required>
+              {usuarios.map((u) => (
+                <option key={u.id} value={u.nome}>{u.nome}</option>
+              ))}
+            </Select>
+          </Field>
+        )}
+        <Field label="Senha">
+          <div style={{ position: "relative" }}>
+            <Input
+              type={mostrarSenha ? "text" : "password"}
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+              onKeyUp={detectarCapsLock}
+              onKeyDown={detectarCapsLock}
+              required
+              autoFocus={!semUsuarios}
+              style={{ paddingRight: "38px" }}
+            />
+            <button
+              type="button"
+              onClick={() => setMostrarSenha(!mostrarSenha)}
+              className="tl-focus"
+              style={{ position: "absolute", right: "8px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--text-faint)", padding: "4px" }}
+              title={mostrarSenha ? "Esconder senha" : "Mostrar senha"}
+            >
+              {mostrarSenha ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
+        </Field>
+        {capsLockAtivo && (
+          <p style={{ fontSize: "12px", color: "var(--amber)", marginTop: "-8px", marginBottom: "12px" }}>
+            ⚠️ Caps Lock está ativado — isso pode fazer sua senha ficar diferente do que você imagina.
+          </p>
+        )}
+        {semUsuarios && (
+          <Field label="Confirmar senha">
+            <Input type={mostrarSenha ? "text" : "password"} value={senha2} onChange={(e) => setSenha2(e.target.value)} required />
+          </Field>
+        )}
+        {error && (
+          <p style={{ fontSize: "12.5px", color: "var(--danger)", marginTop: "-8px", marginBottom: "14px" }}>{error}</p>
+        )}
+        <Button type="submit" disabled={checking} style={{ width: "100%", justifyContent: "center" }}>
+          {checking ? "Verificando..." : semUsuarios ? "Criar e entrar" : "Entrar"}
+        </Button>
+      </form>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Nav shell                                                          */
+/* ------------------------------------------------------------------ */
+const NAV_ITEMS = [
+  { id: "dashboard", label: "Painel", icon: LayoutDashboard },
+  { id: "mensagens", label: "Mensagens", icon: MessageSquare },
+  { id: "clientes", label: "Clientes", icon: Users },
+  { id: "divulgacao", label: "Divulgação", icon: Megaphone },
+  { id: "producaoEsc", label: "Produção-Concreto", icon: Truck },
+  { id: "bombaConcreto", label: "Bomba de Concreto", icon: Droplet },
+  { id: "centralBalanca", label: "Central de Balança", icon: Gauge },
+  { id: "propostas", label: "Propostas", icon: FileText },
+  { id: "manutencao", label: "Manutenção", icon: Wrench },
+  { id: "agenda", label: "Agenda", icon: Calendar },
+  { id: "controleDiario", label: "Controle Diário", icon: Gauge },
+  { id: "financeiro", label: "Financeiro", icon: Wallet },
+  { id: "calculadora", label: "Cubicagem de Concretagem", icon: Calculator },
+  { id: "compraMaterial", label: "Compra de Material", icon: ShoppingCart },
+  { id: "cartaTraco", label: "Carta Traço", icon: Beaker },
+  { id: "diesel", label: "Diesel", icon: Fuel },
+  { id: "estoque", label: "Estoque de Materiais", icon: Boxes },
+  { id: "despesas", label: "Despesas Fixas", icon: Home },
+  { id: "folhaPagamento", label: "Folha de Pagamento", icon: UserCheck },
+  { id: "relatorios", label: "Relatório Geral", icon: BarChart3 },
+  { id: "configuracoes", label: "Configurações", icon: Settings },
+];
+// "Modo campo": um link separado (?campo=1 na URL) pra quem só precisa
+// pesar carga e lançar bomba no local da obra — sem o menu inteiro do
+// escritório atrapalhando num celular. É o MESMO site, o MESMO login e o
+// MESMO banco de dados — só esconde as outras abas enquanto esse link
+// estiver ativo. Pra usar: manda pro pessoal de campo o link do site com
+// "?campo=1" no final (ex: https://seusite.vercel.app/?campo=1).
+const ABAS_MODO_CAMPO = ["centralBalanca", "bombaConcreto"];
+
+// No celular, a barra de baixo mostra só essas — o resto entra dentro do
+// botão "Mais". No computador não é usado (continua a fileira normal).
+const ABAS_BARRA_CELULAR = ["dashboard", "clientes", "centralBalanca", "financeiro"];
+function estaEmModoCampo() {
+  try {
+    return new URLSearchParams(window.location.search).get("campo") === "1";
+  } catch (e) {
+    return false;
+  }
+}
+
+export default function App() {
+  // Link separado pra equipe de campo: adicione ?campo=1 no fim do endereço
+  // do site e compartilhe esse link com quem só precisa lançar abastecimento,
+  // tick de carregamento e apontamento diário — sem ver clientes, financeiro
+  // ou qualquer outra área.
+  const campoMode = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("campo") === "1";
+  const modoCampo = useMemo(() => estaEmModoCampo(), []);
+  const [tab, setTab] = useState(() => {
+    if (modoCampo) return "centralBalanca";
+    // Lembra em qual página a pessoa estava — assim atualizar (F5) não
+    // manda de volta pro Painel toda vez. Dura só enquanto a aba do
+    // navegador estiver aberta (fecha e abre de novo, começa do Painel).
+    try {
+      const salva = sessionStorage.getItem("tl-aba-atual");
+      if (salva && NAV_ITEMS.some((item) => item.id === salva)) return salva;
+    } catch (e) {}
+    return "dashboard";
+  });
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem("tl-aba-atual", tab);
+    } catch (e) {}
+  }, [tab]);
+  const [loading, setLoading] = useState(true);
+  // Guarda a última versão confirmada de cada "gaveta" de dados (o que
+  // veio do banco por último) — usado antes de salvar, pra detectar se
+  // alguém mais mudou algo enquanto essa pessoa estava editando, evitando
+  // que um salve por cima do outro sem perceber.
+  const lastSyncedRef = useRef({});
+  const persistQueueRef = useRef({});
+  const [loadError, setLoadError] = useState("");
+  const [clientes, setClientes] = useState([]);
+  const [producaoEsc, setProducaoEsc] = useState([]);
+  const producaoPerf = []; // removido nesta versão (usina de concreto não usa perfuratriz)
+  const [propostas, setPropostas] = useState([]);
+  const [maquinas, setMaquinas] = useState([]);
+  const [manutencoes, setManutencoes] = useState([]);
+  const fotos = []; // removido nesta versão
+  const [agenda, setAgenda] = useState([]);
+  const ticks = []; // removido nesta versão
+  const [controleDiario, setControleDiario] = useState([]);
+  const [financeiro, setFinanceiro] = useState([]);
+  const [operadores, setOperadores] = useState([]);
+  const [vendedores, setVendedores] = useState([]);
+  const [statusClientes, setStatusClientes] = useState([]);
+  const checklists = []; // removido nesta versão
+  const ordensServico = []; // removido nesta versão
+  const estacas = []; // removido nesta versão
+  const [despesas, setDespesas] = useState([]);
+  const [folhaPagamento, setFolhaPagamento] = useState([]);
+  const [funcionarios, setFuncionarios] = useState([]);
+  const [motoristas, setMotoristas] = useState([]);
+  const [caminhoes, setCaminhoes] = useState([]);
+  const [empresasRetirada, setEmpresasRetirada] = useState([]);
+  const [galeriaDivulgacao, setGaleriaDivulgacao] = useState([]);
+  const [cubicagens, setCubicagens] = useState([]);
+  const [comprasMaterial, setComprasMaterial] = useState([]);
+  const [movimentosEstoque, setMovimentosEstoque] = useState([]);
+  const [bombaConcreto, setBombaConcreto] = useState([]);
+  const [cartaTraco, setCartaTraco] = useState([]);
+  const [registrosDiesel, setRegistrosDiesel] = useState([]);
+  const [mensagens, setMensagens] = useState([]);
+  const [usuarios, setUsuarios] = useState([]);
+  const [logAcessos, setLogAcessos] = useState([]);
+  const [usuarioAtual, setUsuarioAtual] = useState(null);
+
+  // Assim que os dados terminarem de carregar, tenta voltar sozinho pro
+  // usuário que já tinha feito login antes — sem isso, atualizar a página
+  // (F5) sempre voltava pra tela de login, mesmo já tendo entrado.
+  useEffect(() => {
+    if (loading || usuarioAtual || usuarios.length === 0) return;
+    try {
+      const nomeSalvo = localStorage.getItem("tl-usuario-logado");
+      if (nomeSalvo) {
+        const usuario = usuarios.find((u) => u.nome === nomeSalvo && u.ativo !== false);
+        if (usuario) setUsuarioAtual(usuario);
+      }
+    } catch (e) {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, usuarios]);
+  const [security, setSecurity] = useState(null);
+  const [unlocked, setUnlocked] = useState(false);
+  const [pendingTab, setPendingTab] = useState(null);
+  const [pendingAction, setPendingAction] = useState(null);
+  const [appSecurity, setAppSecurity] = useState(null);
+  const [appUnlocked, setAppUnlocked] = useState(false);
+  const [prefs, setPrefs] = useState({ theme: "dark", fontScale: 1 });
+  const [saveError, setSaveError] = useState("");
+
+  const [importBanner, setImportBanner] = useState(false);
+  const [atualizando, setAtualizando] = useState(false);
+
+  // O app carrega os dados uma vez quando a página abre. Se alguém (por
+  // exemplo, um funcionário no Modo Campo) lançar algo novo depois disso,
+  // essa tela não saberia sozinha — por isso, a cada 45 segundos, a gente
+  // busca de novo só as coleções que mudam com mais frequência no dia a
+  // dia, sem precisar recarregar a página inteira.
+  const atualizarDadosRecentes = useCallback(async () => {
+    try {
+      const [mn, cd, ag, fn, pe] = await Promise.all([
+        loadCollection(STORAGE_KEYS.manutencoes),
+        loadCollection(STORAGE_KEYS.controleDiario),
+        loadCollection(STORAGE_KEYS.agenda),
+        loadCollection(STORAGE_KEYS.financeiro),
+        loadCollection(STORAGE_KEYS.producaoEsc),
+      ]);
+      setManutencoes(mn);
+      setControleDiario(cd);
+      setAgenda(ag);
+      setFinanceiro(fn);
+      setProducaoEsc(pe);
+    } catch (e) {
+      console.error("[BlackMix] Falha na atualização automática", e);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (loading) return;
+    const intervalId = setInterval(atualizarDadosRecentes, 20000);
+    return () => clearInterval(intervalId);
+  }, [loading, atualizarDadosRecentes]);
+
+  useEffect(() => {
+    let terminou = false;
+    const travouTimeout = setTimeout(() => {
+      if (!terminou) setLoadError("Está demorando demais pra carregar. Provavelmente é um problema de conexão com o banco de dados — verifique sua internet e recarregue a página. Se persistir, avise o administrador.");
+    }, 12000);
+
+    (async () => {
+     try {
+      console.log("[BlackMix] App: iniciando carregamento de todas as coleções...");
+      let [c, pe, pr, mq, mn, ag, cd, fn, op, vd, us, lg, sc, dsp, flh, func, mtr, cam, empR, galDiv, msgs, cub, comprMat, movEst, bombaC, cTraco, rDiesel] = await Promise.all([
+        loadCollection(STORAGE_KEYS.clientes),
+        loadCollection(STORAGE_KEYS.producaoEsc),
+        loadCollection(STORAGE_KEYS.propostas),
+        loadCollection(STORAGE_KEYS.maquinas),
+        loadCollection(STORAGE_KEYS.manutencoes),
+        loadCollection(STORAGE_KEYS.agenda),
+        loadCollection(STORAGE_KEYS.controleDiario),
+        loadCollection(STORAGE_KEYS.financeiro),
+        loadCollection(STORAGE_KEYS.operadores),
+        loadCollection(STORAGE_KEYS.vendedores),
+        loadCollection(STORAGE_KEYS.usuarios),
+        loadCollection(STORAGE_KEYS.logAcessos),
+        loadCollection(STORAGE_KEYS.statusClientes),
+        loadCollection(STORAGE_KEYS.despesas),
+        loadCollection(STORAGE_KEYS.folhaPagamento),
+        loadCollection(STORAGE_KEYS.funcionarios),
+        loadCollection(STORAGE_KEYS.motoristas),
+        loadCollection(STORAGE_KEYS.caminhoes),
+        loadCollection(STORAGE_KEYS.empresasRetirada),
+        loadCollection(STORAGE_KEYS.galeriaDivulgacao),
+        loadCollection(STORAGE_KEYS.mensagens),
+        loadCollection(STORAGE_KEYS.cubicagens),
+        loadCollection(STORAGE_KEYS.comprasMaterial),
+        loadCollection(STORAGE_KEYS.movimentosEstoque),
+        loadCollection(STORAGE_KEYS.bombaConcreto),
+        loadCollection(STORAGE_KEYS.cartaTraco),
+        loadCollection(STORAGE_KEYS.registrosDiesel),
+      ]);
+
+      try {
+        const sec = await window.storage.get(STORAGE_KEYS.security, true);
+        setSecurity(sec ? JSON.parse(sec.value) : { passwordHash: "" });
+      } catch (e) {
+        setSecurity({ passwordHash: "" });
+      }
+
+      try {
+        const appSec = await window.storage.get(STORAGE_KEYS.appAccess, true);
+        setAppSecurity(appSec ? JSON.parse(appSec.value) : { passwordHash: "" });
+      } catch (e) {
+        setAppSecurity({ passwordHash: "" });
+      }
+
+      try {
+        const pr = await window.storage.get(STORAGE_KEYS.prefs, true);
+        if (pr) setPrefs(JSON.parse(pr.value));
+      } catch (e) {
+        /* mantém padrão */
+      }
+
+      if (mq.length === 0) {
+        mq = MAQUINAS_PADRAO;
+        await saveCollection(STORAGE_KEYS.maquinas, mq);
+      }
+
+      if (fn.length === 0 && FINANCEIRO_SEED.length > 0) {
+        fn = FINANCEIRO_SEED;
+        await saveCollection(STORAGE_KEYS.financeiro, fn);
+      }
+
+      if (sc.length === 0) {
+        sc = STATUS_CLIENTES_PADRAO;
+        await saveCollection(STORAGE_KEYS.statusClientes, sc);
+      }
+
+      setClientes(c);
+      setProducaoEsc(pe);
+      setPropostas(pr);
+      setMaquinas(mq);
+      setManutencoes(mn);
+      setAgenda(ag);
+      setControleDiario(cd);
+      setFinanceiro(fn);
+      setOperadores(op);
+      setVendedores(vd);
+      setUsuarios(us);
+      setLogAcessos(lg);
+      setStatusClientes(sc);
+      setDespesas(dsp);
+      setFolhaPagamento(flh);
+      setFuncionarios(func);
+      setMotoristas(mtr);
+      setCaminhoes(cam);
+      setEmpresasRetirada(empR);
+      setGaleriaDivulgacao(galDiv);
+      setMensagens(msgs);
+      setCubicagens(cub);
+      setComprasMaterial(comprMat);
+      setMovimentosEstoque(movEst);
+      setBombaConcreto(bombaC);
+      setCartaTraco(cTraco);
+      setRegistrosDiesel(rDiesel);
+
+      lastSyncedRef.current = {
+        [STORAGE_KEYS.clientes]: JSON.stringify(c),
+        [STORAGE_KEYS.producaoEsc]: JSON.stringify(pe),
+        [STORAGE_KEYS.propostas]: JSON.stringify(pr),
+        [STORAGE_KEYS.maquinas]: JSON.stringify(mq),
+        [STORAGE_KEYS.manutencoes]: JSON.stringify(mn),
+        [STORAGE_KEYS.agenda]: JSON.stringify(ag),
+        [STORAGE_KEYS.controleDiario]: JSON.stringify(cd),
+        [STORAGE_KEYS.financeiro]: JSON.stringify(fn),
+        [STORAGE_KEYS.operadores]: JSON.stringify(op),
+        [STORAGE_KEYS.vendedores]: JSON.stringify(vd),
+        [STORAGE_KEYS.usuarios]: JSON.stringify(us),
+        [STORAGE_KEYS.statusClientes]: JSON.stringify(sc),
+        [STORAGE_KEYS.despesas]: JSON.stringify(dsp),
+        [STORAGE_KEYS.folhaPagamento]: JSON.stringify(flh),
+        [STORAGE_KEYS.funcionarios]: JSON.stringify(func),
+        [STORAGE_KEYS.motoristas]: JSON.stringify(mtr),
+        [STORAGE_KEYS.caminhoes]: JSON.stringify(cam),
+        [STORAGE_KEYS.empresasRetirada]: JSON.stringify(empR),
+        [STORAGE_KEYS.galeriaDivulgacao]: JSON.stringify(galDiv),
+        [STORAGE_KEYS.mensagens]: JSON.stringify(msgs),
+        [STORAGE_KEYS.cubicagens]: JSON.stringify(cub),
+        [STORAGE_KEYS.comprasMaterial]: JSON.stringify(comprMat),
+        [STORAGE_KEYS.movimentosEstoque]: JSON.stringify(movEst),
+        [STORAGE_KEYS.bombaConcreto]: JSON.stringify(bombaC),
+        [STORAGE_KEYS.cartaTraco]: JSON.stringify(cTraco),
+        [STORAGE_KEYS.registrosDiesel]: JSON.stringify(rDiesel),
+      };
+
+      console.log("[BlackMix] App: todas as coleções carregadas com sucesso!");
+      terminou = true;
+      clearTimeout(travouTimeout);
+      setLoading(false);
+     } catch (e) {
+      console.error("[BlackMix] App: ERRO no carregamento:", e);
+      terminou = true;
+      clearTimeout(travouTimeout);
+      setLoadError("Não consegui carregar os dados — verifique sua internet e recarregue a página. Se persistir, avise o administrador (erro: " + (e?.message || "desconhecido") + ").");
+     }
+    })();
+  }, []);
+
+  // Salva sempre em fila, uma ação de cada vez, por área (key). Antes disso,
+  // duas ações rápidas na MESMA área (ex.: dois cliques seguidos, dois campos
+  // salvando quase juntos) podiam disparar o aviso de "alguém mais salvou"
+  // sem ninguém mais ter mexido em nada — a segunda ação conferia o banco
+  // antes da primeira terminar de salvar. Enfileirando, a segunda ação só
+  // começa a conferir depois que a primeira já terminou e atualizou a
+  // referência do que foi salvo por último.
+  const persist = useCallback((key, setter, next) => {
+    const anterior = persistQueueRef.current[key] || Promise.resolve();
+    const vez = anterior.then(() => persistUmaVez(key, setter, next));
+    persistQueueRef.current[key] = vez.catch(() => {});
+    return vez;
+  }, []);
+
+  // Antes disso, cada salvamento conferia se "alguém mais" tinha mexido
+  // nessa mesma área desde a última vez, e recusava salvar se achasse
+  // diferença — pra nunca sobrescrever o trabalho de outra pessoa sem
+  // avisar. Na prática, essa conferência causava mais problema do que
+  // resolvia: como ela busca no banco de novo antes de cada salvamento,
+  // qualquer oscilação de internet, aba antiga aberta ou pequena demora
+  // fazia ela recusar salvamentos legítimos — inclusive de uma pessoa
+  // sozinha, sem ninguém mais mexendo em nada, que é exatamente o "não
+  // está salvando" que você relatou. Tirei essa conferência: agora salva
+  // direto, sempre. Se duas pessoas editarem a MESMA conta/lançamento no
+  // mesmíssimo segundo, prevalece quem salvar por último — é a forma mais
+  // simples e mais confiável pra várias pessoas usarem ao mesmo tempo sem
+  // trombar uma na outra.
+  const persistUmaVez = useCallback(async (key, setter, next) => {
+    try {
+      setter(next);
+      const ok = await saveCollection(key, next);
+      if (ok) {
+        lastSyncedRef.current[key] = JSON.stringify(next);
+        return true;
+      } else {
+        setSaveError("Não consegui salvar agora — verifique sua internet e tente de novo. Se continuar, me avise.");
+        setTimeout(() => setSaveError(""), 8000);
+        return false;
+      }
+    } catch (e) {
+      if (e.message === "TAMANHO_EXCEDIDO") {
+        setSaveError(
+          `Essa área de dados (${key.replace("top-locacoes:", "")}) ficou grande demais pra salvar de uma vez (${(e.tamanho / 1024).toFixed(0)} KB) — isso é um limite técnico do banco de dados, não é sua internet. Me avise pra eu resolver isso na estrutura do sistema.`
+        );
+      } else {
+        setSaveError("Não consegui salvar agora — verifique sua internet e tente de novo. Se continuar, me avise.");
+        setTimeout(() => setSaveError(""), 8000);
+      }
+      return false;
+    }
+  }, []);
+
+  const [propostaDraft, setPropostaDraft] = useState(null);
+  // Quando uma proposta é marcada como "Fechada" (ganhou), isso guarda o
+  // pedido pra abrir sozinho um lançamento novo em Produção, já indo
+  // direto pra lá.
+  const [producaoDraft, setProducaoDraft] = useState(null);
+
+  const [avisoPermissao, setAvisoPermissao] = useState("");
+  const [tourAberto, setTourAberto] = useState(false);
+
+  const handleNavClick = (id) => {
+    const temUsuarios = usuarios.length > 0;
+    if (temUsuarios) {
+      if (PROTECTED_TABS.includes(id) && !usuarioAtual?.admin) {
+        setAvisoPermissao("Essa área é só para administradores.");
+        setTimeout(() => setAvisoPermissao(""), 4000);
+        return;
+      }
+      setTab(id);
+      return;
+    }
+    // Compatibilidade com o modelo antigo (senha única), enquanto não há usuários cadastrados
+    if (SENHA_ATIVADA && PROTECTED_TABS.includes(id) && !unlocked) {
+      setPendingTab(id);
+    } else {
+      setTab(id);
+    }
+  };
+
+  const requireAdmin = (action) => {
+    const temUsuarios = usuarios.length > 0;
+    if (temUsuarios) {
+      if (usuarioAtual?.admin) {
+        action();
+      } else {
+        setAvisoPermissao("Essa ação é só para administradores.");
+        setTimeout(() => setAvisoPermissao(""), 4000);
+      }
+      return;
+    }
+    if (!SENHA_ATIVADA || unlocked) {
+      action();
+    } else {
+      setPendingAction(() => action);
+    }
+  };
+
+  useEffect(() => {
+    ADMIN_HASH_REF = security?.passwordHash || "";
+  }, [security]);
+
+  useEffect(() => {
+    USUARIO_ATUAL_REF = usuarioAtual;
+  }, [usuarioAtual]);
+
+  useEffect(() => {
+    PREFS_ATUAL_REF = prefs || {};
+  }, [prefs]);
+
+  useEffect(() => {
+    if (usuarioAtual && usuarioAtual.tourVisto === false) {
+      setTourAberto(true);
+    }
+  }, [usuarioAtual]);
+
+  const fecharTour = () => {
+    setTourAberto(false);
+    if (usuarioAtual && !usuarioAtual.tourVisto) {
+      const atualizado = { ...usuarioAtual, tourVisto: true };
+      setUsuarioAtual(atualizado);
+      persist(STORAGE_KEYS.usuarios, setUsuarios, usuarios.map((u) => (u.id === atualizado.id ? atualizado : u)));
+    }
+  };
+
+  const clienteByPedido = useMemo(() => {
+    const map = new Map();
+    clientes.forEach((c) => {
+      if (c.pedido) map.set(String(c.pedido).trim(), c);
+    });
+    return map;
+  }, [clientes]);
+
+  // Espelha TODO lançamento de Produção como conta a receber no Financeiro
+  // — não só os pagos. Assim "Em aberto" e "Atrasado" aparecem certinho na
+  // aba A Receber também, e não só dentro de Produção. O status de cada um
+  // fica sempre sincronizado com o que está na Produção.
+  useEffect(() => {
+    if (loading) return;
+    const mapaStatus = { "EM ABERTO": "Pendente", BOLETO: "Boleto", PIX: "Pix", PAGO: "Pago" };
+    const todos = [
+      ...producaoEsc.map((r) => ({ ...r, tipoEquip: "Escavadeira" })),
+    ];
+    const existentesPorProducaoId = new Map(financeiro.filter((c) => c.producaoId).map((c) => [c.producaoId, c]));
+
+    let mudou = false;
+    const semSincronizados = financeiro.filter((c) => !c.producaoId);
+    const sincronizados = todos.map((r) => {
+      const statusFin = mapaStatus[String(r.status || "").trim().toUpperCase()] || "Pendente";
+      const existente = existentesPorProducaoId.get(r.id);
+      const contaDesejada = {
+        id: existente?.id || uid(),
+        producaoId: r.id,
+        tipo: "Receber",
+        descricao: `Concreto — ${r.equipamento || "-"}`,
+        fornecedor: r.cliente || "",
+        pedido: r.pedido || "",
+        valor: numeroSeguro(r.total),
+        // Data em que o serviço foi realizado — diferente do vencimento
+        // (que é a data limite pra pagar). Serve de referência mesmo
+        // quando ainda não venceu.
+        dataServico: r.data || "",
+        // Vencimento = data do serviço + 30 dias (prazo padrão de
+        // pagamento) na PRIMEIRA vez que a conta é criada — não a data do
+        // serviço em si, senão todo trabalho recém-feito já nasceria
+        // "atrasado" antes mesmo de vencer. Depois que a conta já existe,
+        // vencimento também vira campo só do Financeiro (mesma razão do
+        // "valor pago" acima): se você mudar a data de vencimento na tela
+        // "editar conta", ela tem que continuar do jeito que você deixou,
+        // não voltar sozinha pra "data do serviço + 30 dias".
+        vencimento: existente ? (existente.vencimento || adicionarDias(r.data, 30) || r.data || "") : (adicionarDias(r.data, 30) || r.data || ""),
+        dataPagamento: statusFin === "Pago" ? r.data || "" : "",
+        status: statusFin,
+        formaPagamento: r.formaPagamento || existente?.formaPagamento || "",
+        // "Valor pago" e "data prevista pro próximo pagamento" são só do
+        // Financeiro — quem edita isso é a tela "editar conta", não a
+        // Produção. O bug era pegar aqui de "r.valorPago" (um campo que a
+        // Produção quase nunca preenche), o que APAGAVA o valor pago toda
+        // vez que esse sincronismo rodava (a cada mudança em Produção, e
+        // também ao recarregar a página) — por isso parecia que editar a
+        // conta "não salvava": salvava sim, mas era sobrescrito de volta
+        // segundos depois. Agora preserva o que já estava salvo na conta.
+        valorPago: existente ? (existente.valorPago ?? "") : (r.valorPago || ""),
+        dataProximoPagamento: existente ? (existente.dataProximoPagamento ?? "") : (r.dataProximoPagamento || ""),
+      };
+      if (
+        !existente ||
+        existente.status !== contaDesejada.status ||
+        existente.valor !== contaDesejada.valor ||
+        existente.pedido !== contaDesejada.pedido ||
+        existente.dataServico !== contaDesejada.dataServico
+      ) {
+        mudou = true;
+      }
+      return contaDesejada;
+    });
+
+    if (mudou || existentesPorProducaoId.size !== todos.length) {
+      persist(STORAGE_KEYS.financeiro, setFinanceiro, [...semSincronizados, ...sincronizados]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [producaoEsc, producaoPerf, loading]);
+
+  // Lista de equipamentos pro formulário de "Novo lançamento" — junta os
+  // nomes cadastrados em Configurações → Cadastros → Máquinas com a lista
+  // original padrão e com qualquer equipamento já usado em lançamentos
+  // antigos, pra nada se perder. Assim, pra adicionar mais opções, basta
+  // cadastrar a máquina nova em Configurações — sem precisar mexer em código.
+  // A lista de equipamentos do dropdown vem só do cadastro de Máquinas
+  // (Configurações → Cadastros → Máquinas) — sem lista fixa escondida no
+  // código. Pra adicionar ou remover uma opção, é só mexer lá.
+  const equipamentosEsc = useMemo(() => porNome(maquinas.map((m) => m.nome)), [maquinas]);
+  const equipamentosPerf = useMemo(() => porNome(maquinas.map((m) => m.nome)), [maquinas]);
+
+  if (loading) {
+    return (
+      <div className={`tl-app ${prefs.theme === "light" ? "tl-light" : ""}`} style={{ "--tl-font-scale": prefs.fontScale || 1, display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh" }}>
+        <FontStyles />
+        <div style={{ textAlign: "center", color: "var(--text-muted)" }}>
+          <img src={LOGO_DATA_URI()} onError={onLogoError} alt="Logo" style={{ width: "84px", height: "84px", borderRadius: "16px", margin: "0 auto 18px", display: "block", background: "#F5F2E9" }} />
+          <div className="tl-display" style={{ fontSize: "26px", fontWeight: 800, color: "var(--text-primary)", letterSpacing: "0.01em" }}>
+            {PREFS_ATUAL_REF?.nomeEmpresa || "RJL Mix Concreto"}
+          </div>
+          <div className="tl-mono" style={{ fontSize: "10.5px", color: "var(--text-faint)", marginTop: "4px", letterSpacing: "0.06em", marginBottom: "20px" }}>
+            CONSOLE OPERACIONAL
+          </div>
+          {loadError ? (
+            <>
+              <p style={{ marginTop: "10px", fontSize: "13px", color: "var(--danger)", maxWidth: "320px", lineHeight: 1.5 }}>{loadError}</p>
+              <Button style={{ marginTop: "14px" }} onClick={() => window.location.reload()}>Recarregar página</Button>
+            </>
+          ) : (
+            <>
+              <BetoneiraAndando />
+              <p style={{ marginTop: "6px", fontSize: "13px" }}>Carregando dados...</p>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (campoMode) {
+    return (
+      <div className={`tl-app ${prefs.theme === "light" ? "tl-light" : ""}`} style={{ "--tl-font-scale": prefs.fontScale || 1 }}>
+        <FontStyles />
+        <CampoShell
+          maquinas={maquinas}
+          manutencoes={manutencoes}
+          controleDiario={controleDiario}
+          onChangeManutencoes={(next) => persist(STORAGE_KEYS.manutencoes, setManutencoes, next)}
+          onChangeControleDiario={(next) => persist(STORAGE_KEYS.controleDiario, setControleDiario, next)}
+        />
+      </div>
+    );
+  }
+
+  if (!usuarioAtual) {
+    return (
+      <div className={`tl-app ${prefs.theme === "light" ? "tl-light" : ""}`} style={{ "--tl-font-scale": prefs.fontScale || 1, display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh" }}>
+        <FontStyles />
+        <UsuarioLoginGate
+          usuarios={usuarios}
+          onLogin={async (nome, senha) => {
+            const usuario = usuarios.find((u) => u.nome === nome);
+            if (!usuario) return false;
+            const hash = await hashPassword(senha);
+            if (hash === usuario.senhaHash) {
+              setUsuarioAtual(usuario);
+              try {
+                localStorage.setItem("tl-usuario-logado", usuario.nome);
+              } catch (e) {}
+              await registrarLog("Login", usuario.nome);
+              return true;
+            }
+            return false;
+          }}
+          onCriarPrimeiroAdmin={async (nome, senha) => {
+            const hash = await hashPassword(senha);
+            const novoUsuario = { id: uid(), nome, senhaHash: hash, admin: true, ativo: true, tourVisto: false };
+            await persist(STORAGE_KEYS.usuarios, setUsuarios, [novoUsuario]);
+            setUsuarioAtual(novoUsuario);
+            try {
+              localStorage.setItem("tl-usuario-logado", novoUsuario.nome);
+            } catch (e) {}
+            await registrarLog("Login", novoUsuario.nome);
+          }}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className={`tl-app ${prefs.theme === "light" ? "tl-light" : ""}`} style={{ "--tl-font-scale": prefs.fontScale || 1 }}>
+      <FontStyles />
+      {saveError && (
+        <div
+          style={{
+            position: "fixed",
+            top: "12px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 999,
+            background: "var(--danger)",
+            color: "#fff",
+            padding: "10px 18px",
+            borderRadius: "8px",
+            fontSize: "13px",
+            fontWeight: 600,
+            boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
+            maxWidth: "90vw",
+            textAlign: "center",
+          }}
+        >
+          ⚠️ {saveError}
+        </div>
+      )}
+      {avisoPermissao && (
+        <div
+          style={{
+            position: "fixed",
+            top: "12px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 999,
+            background: "var(--amber)",
+            color: "#1a1a1a",
+            padding: "10px 18px",
+            borderRadius: "8px",
+            fontSize: "13px",
+            fontWeight: 600,
+            boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
+            maxWidth: "90vw",
+            textAlign: "center",
+          }}
+        >
+          🔒 {avisoPermissao}
+        </div>
+      )}
+      <BotaoAjudaMascote onAbrir={() => setTourAberto(true)} />
+      {!campoMode && (
+        <button
+          onClick={async () => {
+            setAtualizando(true);
+            await atualizarDadosRecentes();
+            setAtualizando(false);
+          }}
+          className="tl-focus"
+          title="Atualizar dados agora (tick, agenda, manutenção, financeiro)"
+          disabled={atualizando}
+          style={{
+            position: "fixed",
+            bottom: "20px",
+            right: "92px",
+            zIndex: 900,
+            width: "44px",
+            height: "44px",
+            borderRadius: "50%",
+            background: "var(--bg-panel)",
+            border: "1px solid var(--border)",
+            boxShadow: "0 6px 20px rgba(0,0,0,0.3)",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <RefreshCw size={17} style={{ color: "var(--text-muted)", animation: atualizando ? "spin 1s linear infinite" : "none" }} />
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        </button>
+      )}
+      {tourAberto && <MascoteTour onFechar={fecharTour} />}
+      <div className="tl-shell">
+        <Sidebar
+          tab={tab}
+          setTab={handleNavClick}
+          locked={usuarios.length > 0 ? !usuarioAtual?.admin : !unlocked}
+          usuarioAtual={usuarioAtual}
+          naoLidas={contarNaoLidas(mensagens, usuarioAtual?.nome || "")}
+          prefs={prefs}
+          clientes={clientes}
+          producaoEsc={producaoEsc}
+          bombaConcreto={bombaConcreto}
+          propostas={propostas}
+          agenda={agenda}
+          movimentosEstoque={movimentosEstoque}
+          financeiro={financeiro}
+          onLogout={() => {
+            setUsuarioAtual(null);
+            try {
+              localStorage.removeItem("tl-usuario-logado");
+            } catch (e) {}
+          }}
+        />
+        <main className="tl-scrollbar tl-main" style={{ overflowY: "auto", padding: "28px 32px 60px", maxWidth: "1180px" }}>
+          {tab === "mensagens" && (
+            <MensagensModule
+              mensagens={mensagens}
+              usuarios={usuarios}
+              usuarioAtual={usuarioAtual}
+              onChange={(next) => persist(STORAGE_KEYS.mensagens, setMensagens, next)}
+            />
+          )}
+          {tab === "dashboard" && (
+            <Dashboard
+              clientes={clientes}
+              producaoEsc={producaoEsc}
+              producaoPerf={producaoPerf}
+              propostas={propostas}
+              agenda={agenda}
+              financeiro={financeiro}
+              movimentosEstoque={movimentosEstoque}
+              prefs={prefs}
+              goTo={setTab}
+            />
+          )}
+          {tab === "clientes" && (
+            <ClientesModule
+              clientes={clientes}
+              onChange={(next) => persist(STORAGE_KEYS.clientes, setClientes, next)}
+              statusClientes={statusClientes}
+              producaoEsc={producaoEsc}
+              producaoPerf={producaoPerf}
+              ticks={ticks}
+              prefs={prefs}
+            />
+          )}
+          {tab === "divulgacao" && (
+            <DivulgacaoModule
+              clientes={clientes}
+              prefs={prefs}
+              onPrefsChanged={async (next) => {
+                setPrefs(next);
+                await window.storage.set(STORAGE_KEYS.prefs, JSON.stringify(next), true);
+              }}
+              galeria={galeriaDivulgacao}
+              onChangeGaleria={(next) => persist(STORAGE_KEYS.galeriaDivulgacao, setGaleriaDivulgacao, next)}
+            />
+          )}
+          {tab === "producaoEsc" && (
+            <ProducaoModule
+              title="Produção-Concreto"
+              icon={Truck}
+              tipo="Escavadeira"
+              equipamentos={equipamentosEsc}
+              records={producaoEsc}
+              seedRecords={SEED_DATA.producaoEsc}
+              clienteByPedido={clienteByPedido}
+              operadores={operadores}
+              vendedores={vendedores}
+              motoristas={motoristas}
+              caminhoes={caminhoes}
+              empresasRetirada={empresasRetirada}
+              propostas={propostas}
+              todasProducaoEsc={producaoEsc}
+              todasProducaoPerf={producaoPerf}
+              financeiro={financeiro}
+              ticks={ticks}
+              onChange={(next) => persist(STORAGE_KEYS.producaoEsc, setProducaoEsc, next)}
+              onGerarProposta={(record) => {
+                setPropostaDraft({ pedido: record.pedido, tipo: "Concreto" });
+                setTab("propostas");
+              }}
+              draft={producaoDraft}
+              onDraftHandled={() => setProducaoDraft(null)}
+            />
+          )}
+          {tab === "propostas" && (
+            <PropostasModule
+              propostas={propostas}
+              clientes={clientes}
+              clienteByPedido={clienteByPedido}
+              vendedores={vendedores}
+              onChange={(next) => persist(STORAGE_KEYS.propostas, setPropostas, next)}
+              draft={propostaDraft}
+              onDraftHandled={() => setPropostaDraft(null)}
+              onGanhou={(proposta) => {
+                setProducaoDraft({ pedido: proposta.pedido });
+                setTab("producaoEsc");
+              }}
+            />
+          )}
+          {tab === "manutencao" && (
+            <ManutencaoModule
+              maquinas={maquinas}
+              manutencoes={manutencoes}
+              onChangeMaquinas={(next) => persist(STORAGE_KEYS.maquinas, setMaquinas, next)}
+              onChangeManutencoes={(next) => persist(STORAGE_KEYS.manutencoes, setManutencoes, next)}
+            />
+          )}
+          {tab === "agenda" && (
+            <AgendaModule
+              agenda={agenda}
+              maquinas={maquinas}
+              clienteByPedido={clienteByPedido}
+              producaoEsc={producaoEsc}
+              producaoPerf={producaoPerf}
+              onChange={(next) => persist(STORAGE_KEYS.agenda, setAgenda, next)}
+            />
+          )}
+          {tab === "controleDiario" && (
+            <ControleDiarioModule
+              registros={controleDiario}
+              maquinas={maquinas}
+              onChange={(next) => persist(STORAGE_KEYS.controleDiario, setControleDiario, next)}
+              isAdmin={unlocked}
+              requireAdmin={requireAdmin}
+            />
+          )}
+          {tab === "financeiro" && (
+            <FinanceiroModule
+              contas={financeiro}
+              clientes={clientes}
+              clienteByPedido={clienteByPedido}
+              producaoEsc={producaoEsc}
+              producaoPerf={[]}
+              onChangeProducaoEsc={(next) => persist(STORAGE_KEYS.producaoEsc, setProducaoEsc, next)}
+              onChangeProducaoPerf={() => {}}
+              despesas={despesas}
+              onChangeDespesas={(next) => persist(STORAGE_KEYS.despesas, setDespesas, next)}
+              onChange={(next) => persist(STORAGE_KEYS.financeiro, setFinanceiro, next)}
+              propostas={propostas}
+            />
+          )}
+          {tab === "calculadora" && (
+            <CalculadoraModule
+              cubicagens={cubicagens}
+              clienteByPedido={clienteByPedido}
+              onChange={(next) => persist(STORAGE_KEYS.cubicagens, setCubicagens, next)}
+            />
+          )}
+          {tab === "compraMaterial" && (
+            <CompraMaterialModule
+              compras={comprasMaterial}
+              despesas={despesas}
+              movimentos={movimentosEstoque}
+              onChangeCompras={(next) => persist(STORAGE_KEYS.comprasMaterial, setComprasMaterial, next)}
+              onChangeDespesas={(next) => persist(STORAGE_KEYS.despesas, setDespesas, next)}
+              onChangeMovimentos={(next) => persist(STORAGE_KEYS.movimentosEstoque, setMovimentosEstoque, next)}
+            />
+          )}
+          {tab === "cartaTraco" && (
+            <CartaTracoModule
+              cartaTraco={cartaTraco}
+              onChange={(next) => persist(STORAGE_KEYS.cartaTraco, setCartaTraco, next)}
+            />
+          )}
+          {tab === "diesel" && (
+            <DieselModule
+              registros={registrosDiesel}
+              onChange={(next) => persist(STORAGE_KEYS.registrosDiesel, setRegistrosDiesel, next)}
+            />
+          )}
+          {tab === "estoque" && (
+            <EstoqueModule
+              movimentos={movimentosEstoque}
+              onChange={(next) => persist(STORAGE_KEYS.movimentosEstoque, setMovimentosEstoque, next)}
+              prefs={prefs}
+              onPrefsChanged={async (next) => {
+                setPrefs(next);
+                await window.storage.set(STORAGE_KEYS.prefs, JSON.stringify(next), true);
+              }}
+            />
+          )}
+          {tab === "bombaConcreto" && (
+            <BombaConcretoModule
+              registros={bombaConcreto}
+              clienteByPedido={clienteByPedido}
+              onChange={(next) => persist(STORAGE_KEYS.bombaConcreto, setBombaConcreto, next)}
+            />
+          )}
+          {tab === "centralBalanca" && (
+            <CentralBalancaModule
+              producaoEsc={producaoEsc}
+              clienteByPedido={clienteByPedido}
+              onChangeProducaoEsc={(next) => persist(STORAGE_KEYS.producaoEsc, setProducaoEsc, next)}
+              cartaTraco={cartaTraco}
+              movimentosEstoque={movimentosEstoque}
+              onChangeMovimentosEstoque={(next) => persist(STORAGE_KEYS.movimentosEstoque, setMovimentosEstoque, next)}
+              financeiro={financeiro}
+              onChangeFinanceiro={(next) => persist(STORAGE_KEYS.financeiro, setFinanceiro, next)}
+            />
+          )}
+          {tab === "despesas" && (
+            <DespesasModule
+              despesas={despesas}
+              onChange={(next) => persist(STORAGE_KEYS.despesas, setDespesas, next)}
+              financeiro={financeiro}
+              onChangeFinanceiro={(next) => persist(STORAGE_KEYS.financeiro, setFinanceiro, next)}
+            />
+          )}
+          {tab === "folhaPagamento" && (
+            <FolhaPagamentoModule
+              folha={folhaPagamento}
+              onChange={(next) => persist(STORAGE_KEYS.folhaPagamento, setFolhaPagamento, next)}
+              financeiro={financeiro}
+              onChangeFinanceiro={(next) => persist(STORAGE_KEYS.financeiro, setFinanceiro, next)}
+              funcionarios={funcionarios}
+            />
+          )}
+          {tab === "relatorios" && (
+            <RelatoriosModule
+              clientes={clientes}
+              producaoEsc={producaoEsc}
+              producaoPerf={producaoPerf}
+              propostas={propostas}
+              manutencoes={manutencoes}
+              ticks={ticks}
+              controleDiario={controleDiario}
+              agenda={agenda}
+              maquinas={maquinas}
+              financeiro={financeiro}
+              goTo={handleNavClick}
+            />
+          )}
+          {tab === "configuracoes" && (
+            <ConfiguracoesModule
+              onPasswordChanged={async (newHash) => {
+                const newSecurity = { passwordHash: newHash };
+                await window.storage.set(STORAGE_KEYS.security, JSON.stringify(newSecurity), true);
+                setSecurity(newSecurity);
+              }}
+              onAppPasswordChanged={async (newHash) => {
+                const newAppSecurity = { passwordHash: newHash };
+                await window.storage.set(STORAGE_KEYS.appAccess, JSON.stringify(newAppSecurity), true);
+                setAppSecurity(newAppSecurity);
+              }}
+              prefs={prefs}
+              onPrefsChanged={async (next) => {
+                setPrefs(next);
+                await window.storage.set(STORAGE_KEYS.prefs, JSON.stringify(next), true);
+              }}
+              maquinas={maquinas}
+              onChangeMaquinas={(next) => persist(STORAGE_KEYS.maquinas, setMaquinas, next)}
+              operadores={operadores}
+              onChangeOperadores={(next) => persist(STORAGE_KEYS.operadores, setOperadores, next)}
+              vendedores={vendedores}
+              onChangeVendedores={(next) => persist(STORAGE_KEYS.vendedores, setVendedores, next)}
+              usuarios={usuarios}
+              onChangeUsuarios={(next) => persist(STORAGE_KEYS.usuarios, setUsuarios, next)}
+              logAcessos={logAcessos}
+              onChangeLogAcessos={(next) => persist(STORAGE_KEYS.logAcessos, setLogAcessos, next)}
+              clientes={clientes}
+              onChangeClientes={(next) => persist(STORAGE_KEYS.clientes, setClientes, next)}
+              producaoEsc={producaoEsc}
+              onChangeProducaoEsc={(next) => persist(STORAGE_KEYS.producaoEsc, setProducaoEsc, next)}
+              producaoPerf={[]}
+              onChangeProducaoPerf={() => {}}
+              statusClientes={statusClientes}
+              onChangeStatusClientes={(next) => persist(STORAGE_KEYS.statusClientes, setStatusClientes, next)}
+              financeiro={financeiro}
+              onChangeFinanceiro={(next) => persist(STORAGE_KEYS.financeiro, setFinanceiro, next)}
+              manutencoes={manutencoes}
+              onChangeManutencoes={(next) => persist(STORAGE_KEYS.manutencoes, setManutencoes, next)}
+              agenda={agenda}
+              onChangeAgenda={(next) => persist(STORAGE_KEYS.agenda, setAgenda, next)}
+              funcionarios={funcionarios}
+              onChangeFuncionarios={(next) => persist(STORAGE_KEYS.funcionarios, setFuncionarios, next)}
+              motoristas={motoristas}
+              onChangeMotoristas={(next) => persist(STORAGE_KEYS.motoristas, setMotoristas, next)}
+              caminhoes={caminhoes}
+              onChangeCaminhoes={(next) => persist(STORAGE_KEYS.caminhoes, setCaminhoes, next)}
+              empresasRetirada={empresasRetirada}
+              onChangeEmpresasRetirada={(next) => persist(STORAGE_KEYS.empresasRetirada, setEmpresasRetirada, next)}
+              requireAdmin={requireAdmin}
+            />
+          )}
+        </main>
+      </div>
+      {(pendingTab || pendingAction) && (
+        <PasswordGate
+          hasPassword={!!security?.passwordHash}
+          onClose={() => { setPendingTab(null); setPendingAction(null); }}
+          onSubmit={async (pw) => {
+            const grant = () => {
+              setUnlocked(true);
+              if (pendingTab) { setTab(pendingTab); setPendingTab(null); }
+              if (pendingAction) { pendingAction(); setPendingAction(null); }
+            };
+            if (!security?.passwordHash) {
+              const hash = await hashPassword(pw);
+              const newSecurity = { passwordHash: hash };
+              await window.storage.set(STORAGE_KEYS.security, JSON.stringify(newSecurity), true);
+              setSecurity(newSecurity);
+              grant();
+              return true;
+            }
+            const hash = await hashPassword(pw);
+            if (hash === security.passwordHash) {
+              grant();
+              return true;
+            }
+            return false;
+          }}
+          onReset={async (pw) => {
+            const hash = await hashPassword(pw);
+            const newSecurity = { passwordHash: hash };
+            await window.storage.set(STORAGE_KEYS.security, JSON.stringify(newSecurity), true);
+            setSecurity(newSecurity);
+            setUnlocked(true);
+            if (pendingTab) { setTab(pendingTab); setPendingTab(null); }
+            if (pendingAction) { pendingAction(); setPendingAction(null); }
+            return true;
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Sidebar                                                             */
+/* ------------------------------------------------------------------ */
+function Sidebar({ tab, setTab, locked, usuarioAtual, onLogout, naoLidas, prefs, clientes, producaoEsc, bombaConcreto, propostas, agenda, movimentosEstoque, financeiro }) {
+  const modoCampo = estaEmModoCampo();
+  // Duas portas pro mesmo lugar: o link "?campo=1" (sem login) e agora
+  // também o papel "Campo" de um usuário logado — os dois escondem tudo
+  // menos Central de Balança e Bomba de Concreto.
+  const emVisaoCampo = modoCampo || !!usuarioAtual?.campo;
+  const itensVisiveis = NAV_ITEMS.filter((item) => !emVisaoCampo || ABAS_MODO_CAMPO.includes(item.id));
+  const itensBarra = emVisaoCampo ? itensVisiveis : itensVisiveis.filter((item) => ABAS_BARRA_CELULAR.includes(item.id));
+  const itensMais = itensVisiveis.filter((item) => !ABAS_BARRA_CELULAR.includes(item.id));
+
+  const [maisAberto, setMaisAberto] = useState(false);
+  const [buscaGlobal, setBuscaGlobal] = useState("");
+  const [sinoAberto, setSinoAberto] = useState(false);
+
+  const irPara = (id) => {
+    setTab(id);
+    setMaisAberto(false);
+  };
+
+  const resultadosBusca = useMemo(() => {
+    const termo = buscaGlobal.trim().toLowerCase();
+    if (termo.length < 2) return [];
+    const out = [];
+    (clientes || []).forEach((c) => {
+      if (c.nome?.toLowerCase().includes(termo) || String(c.pedido || "").toLowerCase().includes(termo)) {
+        out.push({ tipo: "Cliente", label: c.nome, sub: `Pedido ${c.pedido || "-"}`, tab: "clientes" });
+      }
+    });
+    (producaoEsc || []).forEach((r) => {
+      if (String(r.pedido || "").toLowerCase().includes(termo)) {
+        out.push({ tipo: "Produção", label: `Pedido ${r.pedido}`, sub: r.equipamento || "-", tab: "producaoEsc" });
+      }
+    });
+    (bombaConcreto || []).forEach((r) => {
+      if (String(r.pedido || "").toLowerCase().includes(termo)) {
+        out.push({ tipo: "Bomba", label: `Pedido ${r.pedido}`, sub: r.empresa || "-", tab: "bombaConcreto" });
+      }
+    });
+    (propostas || []).forEach((p) => {
+      if (String(p.pedido || "").toLowerCase().includes(termo)) {
+        out.push({ tipo: "Proposta", label: `Pedido ${p.pedido}`, sub: p.fck || p.tipo || "-", tab: "propostas" });
+      }
+    });
+    return out.slice(0, 8);
+  }, [buscaGlobal, clientes, producaoEsc, bombaConcreto, propostas]);
+
+  const irParaResultado = (r) => {
+    setTab(r.tab);
+    setBuscaGlobal("");
+    setMaisAberto(false);
+  };
+
+  const hojeISOSino = new Date().toISOString().slice(0, 10);
+  const compromissosAtrasadosSino = (agenda || []).filter((a) => a.data && a.data.slice(0, 10) < hojeISOSino && a.status !== "Concluído").length;
+  const estoqueMinimoSino = prefs?.estoqueMinimo || {};
+  const saldoEstoqueSino = useMemo(() => {
+    const mapa = {};
+    (MATERIAIS_ESTOCADOS || []).forEach((m) => (mapa[m] = 0));
+    (movimentosEstoque || []).forEach((mv) => {
+      if (!(mv.material in mapa)) return;
+      mapa[mv.material] += mv.tipo === "Entrada" ? Number(mv.quantidade) || 0 : -(Number(mv.quantidade) || 0);
+    });
+    return mapa;
+  }, [movimentosEstoque]);
+  const materiaisBaixosSino = (MATERIAIS_ESTOCADOS || []).filter((m) => Number(estoqueMinimoSino[m]) > 0 && (saldoEstoqueSino[m] || 0) < Number(estoqueMinimoSino[m]));
+  const contasAtrasadasSino = (financeiro || []).filter((c) => {
+    if (c.status === "Cancelado" || c.status === "Pago") return false;
+    const pago = c.valorPago !== "" && c.valorPago !== undefined && c.valorPago !== null ? numeroSeguro(c.valorPago) : 0;
+    const falta = Math.max(0, numeroSeguro(c.valor) - pago);
+    return falta > 0.005 && c.vencimento && c.vencimento.slice(0, 10) < hojeISOSino;
+  }).length;
+  const avisosSino = [
+    naoLidas > 0 && { label: `${naoLidas} mensagem${naoLidas > 1 ? "ns" : ""} não lida${naoLidas > 1 ? "s" : ""}`, tab: "mensagens" },
+    compromissosAtrasadosSino > 0 && { label: `${compromissosAtrasadosSino} compromisso${compromissosAtrasadosSino > 1 ? "s" : ""} atrasado${compromissosAtrasadosSino > 1 ? "s" : ""}`, tab: "agenda" },
+    materiaisBaixosSino.length > 0 && { label: `Estoque baixo: ${materiaisBaixosSino.join(", ")}`, tab: "estoque" },
+    contasAtrasadasSino > 0 && { label: `${contasAtrasadasSino} conta${contasAtrasadasSino > 1 ? "s" : ""} atrasada${contasAtrasadasSino > 1 ? "s" : ""} no Financeiro`, tab: "financeiro" },
+  ].filter(Boolean);
+
+  return (
+    <>
+    <aside
+      className="tl-sidebar"
+      style={{
+        borderRight: "1px solid var(--border-soft)",
+        background: "var(--bg-panel)",
+        padding: "22px 14px",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <div style={{ padding: "4px 10px 22px", display: "flex", alignItems: "center", gap: "10px" }}>
+        <style>{`
+          @keyframes tlLogoPulse {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(232,166,61,0)); }
+            50% { transform: scale(1.05); filter: drop-shadow(0 0 6px rgba(232,166,61,0.45)); }
+          }
+        `}</style>
+        <img
+          src={LOGO_DATA_URI()} onError={onLogoError}
+          alt="Logo"
+          style={{ width: "58px", height: "58px", borderRadius: "9px", flexShrink: 0, background: "#F5F2E9", objectFit: "contain" }}
+        />
+        <div>
+          <div className="tl-display" style={{ fontSize: "17px", fontWeight: 800, letterSpacing: "0.01em", lineHeight: 1.2 }}>
+            {prefs?.nomeEmpresa || "RJL Mix Concreto"}
+          </div>
+          <div className="tl-mono" style={{ fontSize: "9.5px", color: "var(--text-faint)", marginTop: "4px", letterSpacing: "0.05em" }}>
+            CONSOLE OPERACIONAL
+          </div>
+        </div>
+        {!emVisaoCampo && (
+          <div style={{ position: "relative", marginLeft: "auto", flexShrink: 0 }}>
+            <button
+              onClick={() => setSinoAberto((v) => !v)}
+              className="tl-focus"
+              style={{ position: "relative", background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "6px" }}
+              title="Avisos"
+            >
+              <Bell size={19} />
+              {avisosSino.length > 0 && (
+                <span style={{ position: "absolute", top: "2px", right: "2px", width: "8px", height: "8px", borderRadius: "50%", background: "var(--danger)", border: "1.5px solid var(--bg-panel)" }} />
+              )}
+            </button>
+            {sinoAberto && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "calc(100% + 4px)",
+                  right: 0,
+                  width: "260px",
+                  background: "var(--bg-panel-raised)",
+                  border: "1px solid var(--border)",
+                  borderRadius: "8px",
+                  boxShadow: "0 12px 28px rgba(0,0,0,0.35)",
+                  zIndex: 60,
+                  overflow: "hidden",
+                }}
+              >
+                {avisosSino.length === 0 ? (
+                  <div style={{ padding: "16px 14px", fontSize: "12px", color: "var(--text-faint)", textAlign: "center" }}>Nenhum aviso por enquanto</div>
+                ) : (
+                  avisosSino.map((a, i) => (
+                    <button
+                      key={i}
+                      onClick={() => { setTab(a.tab); setSinoAberto(false); }}
+                      className="tl-focus"
+                      style={{ display: "block", width: "100%", textAlign: "left", background: "none", border: "none", borderTop: i > 0 ? "1px solid var(--border-soft)" : "none", padding: "10px 12px", fontSize: "12.5px", color: "var(--text-primary)", cursor: "pointer" }}
+                    >
+                      {a.label}
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+      {!emVisaoCampo && (
+        <div style={{ position: "relative", padding: "0 10px 14px" }}>
+          <div style={{ position: "relative" }}>
+            <Search size={14} style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", color: "var(--text-faint)", pointerEvents: "none" }} />
+            <input
+              value={buscaGlobal}
+              onChange={(e) => setBuscaGlobal(e.target.value)}
+              placeholder="Buscar cliente ou pedido..."
+              className="tl-focus"
+              style={{
+                width: "100%",
+                background: "var(--bg-base)",
+                border: "1px solid var(--border-soft)",
+                borderRadius: "7px",
+                padding: "8px 10px 8px 30px",
+                fontSize: "12.5px",
+                color: "var(--text-primary)",
+              }}
+            />
+          </div>
+          {resultadosBusca.length > 0 && (
+            <div
+              style={{
+                position: "absolute",
+                top: "calc(100% - 8px)",
+                left: "10px",
+                right: "10px",
+                background: "var(--bg-panel-raised)",
+                border: "1px solid var(--border)",
+                borderRadius: "8px",
+                boxShadow: "0 12px 28px rgba(0,0,0,0.35)",
+                zIndex: 60,
+                overflow: "hidden",
+              }}
+            >
+              {resultadosBusca.map((r, i) => (
+                <button
+                  key={i}
+                  onClick={() => irParaResultado(r)}
+                  className="tl-focus"
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    textAlign: "left",
+                    background: "none",
+                    border: "none",
+                    borderTop: i > 0 ? "1px solid var(--border-soft)" : "none",
+                    padding: "8px 12px",
+                    cursor: "pointer",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
+                    <span style={{ fontSize: "12.5px", fontWeight: 600, color: "var(--text-primary)" }}>{r.label}</span>
+                    <span className="tl-mono" style={{ fontSize: "9px", color: "var(--amber)", textTransform: "uppercase" }}>{r.tipo}</span>
+                  </div>
+                  <div style={{ fontSize: "11px", color: "var(--text-faint)" }}>{r.sub}</div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+      <nav style={{ display: "flex", gap: "2px" }}>
+        {itensVisiveis.map((item) => {
+          const active = tab === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => setTab(item.id)}
+              className="tl-focus tl-nav-btn"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+                padding: "9px 12px",
+                borderRadius: "6px",
+                border: "none",
+                background: active ? "var(--bg-panel-raised)" : "transparent",
+                borderLeft: active ? "3px solid var(--amber)" : "3px solid transparent",
+                color: active ? "var(--text-primary)" : "var(--text-muted)",
+                fontSize: "13.5px",
+                fontWeight: active ? 600 : 500,
+                textAlign: "left",
+                cursor: "pointer",
+              }}
+            >
+              <item.icon size={16} />
+              {item.label}
+              {item.id === "mensagens" && naoLidas > 0 && (
+                <span style={{ marginLeft: "auto", background: "var(--danger)", color: "#fff", borderRadius: "10px", padding: "1px 6px", fontSize: "10.5px", fontWeight: 700, flexShrink: 0 }}>
+                  {naoLidas}
+                </span>
+              )}
+              {SENHA_ATIVADA && locked && PROTECTED_TABS.includes(item.id) && (
+                <Lock size={11} style={{ marginLeft: "auto", color: "var(--text-faint)", flexShrink: 0 }} />
+              )}
+            </button>
+          );
+        })}
+      </nav>
+      <div style={{ marginTop: "auto", padding: "10px", fontSize: "11px", color: "var(--text-faint)", lineHeight: 1.5 }}>
+        Dados compartilhados com toda a equipe. Alterações salvam automaticamente.
+      </div>
+      {usuarioAtual && (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px", borderTop: "1px solid var(--border-soft)", marginTop: "6px" }}>
+          <span style={{ fontSize: "12.5px", fontWeight: 600, color: "var(--text-muted)" }}>{usuarioAtual.nome}</span>
+          <button
+            onClick={onLogout}
+            className="tl-focus"
+            style={{ background: "none", border: "none", color: "var(--text-faint)", fontSize: "11.5px", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px" }}
+            title="Sair da conta"
+          >
+            <LogOut size={13} /> Sair
+          </button>
+        </div>
+      )}
+    </aside>
+    {itensMais.length > 0 && (
+      <nav className="tl-bottom-nav">
+        {itensBarra.map((item) => (
+          <button key={item.id} className={tab === item.id ? "on" : ""} onClick={() => irPara(item.id)}>
+            <item.icon size={19} />
+            {item.label === "Produção-Concreto" ? "Produção" : item.label}
+          </button>
+        ))}
+        <button className={maisAberto ? "on" : ""} onClick={() => setMaisAberto(true)}>
+          <span style={{ fontSize: "21px", lineHeight: "19px", fontWeight: 700 }}>⋯</span>
+          Mais
+        </button>
+      </nav>
+    )}
+    {itensMais.length === 0 && (
+      <nav className="tl-bottom-nav">
+        {itensBarra.map((item) => (
+          <button key={item.id} className={tab === item.id ? "on" : ""} onClick={() => irPara(item.id)}>
+            <item.icon size={19} />
+            {item.label}
+          </button>
+        ))}
+      </nav>
+    )}
+    {maisAberto && (
+      <div className="tl-mais-fundo" onClick={(e) => { if (e.target === e.currentTarget) setMaisAberto(false); }}>
+        <div className="tl-mais-painel">
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 4px" }}>
+            <span className="tl-display" style={{ fontSize: "15px", fontWeight: 700, color: "var(--text-primary)" }}>Mais opções</span>
+            <button onClick={() => setMaisAberto(false)} className="tl-focus" style={{ background: "none", border: "none", color: "var(--text-faint)", cursor: "pointer", padding: "4px" }}>
+              <X size={18} />
+            </button>
+          </div>
+          {!emVisaoCampo && avisosSino.length > 0 && (
+            <div style={{ padding: "0 4px 10px", display: "flex", flexDirection: "column", gap: "6px" }}>
+              {avisosSino.map((a, i) => (
+                <button
+                  key={i}
+                  onClick={() => irPara(a.tab)}
+                  className="tl-focus"
+                  style={{ display: "flex", alignItems: "center", gap: "8px", background: "var(--bg-base)", border: "1px solid var(--border-soft)", borderRadius: "8px", padding: "9px 12px", fontSize: "12.5px", color: "var(--text-primary)", cursor: "pointer", textAlign: "left" }}
+                >
+                  <Bell size={13} style={{ color: "var(--danger)", flexShrink: 0 }} />
+                  {a.label}
+                </button>
+              ))}
+            </div>
+          )}
+          {!emVisaoCampo && (
+            <div style={{ position: "relative", padding: "4px 4px 10px" }}>
+              <div style={{ position: "relative" }}>
+                <Search size={14} style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", color: "var(--text-faint)", pointerEvents: "none" }} />
+                <input
+                  value={buscaGlobal}
+                  onChange={(e) => setBuscaGlobal(e.target.value)}
+                  placeholder="Buscar cliente ou pedido..."
+                  className="tl-focus"
+                  style={{ width: "100%", background: "var(--bg-base)", border: "1px solid var(--border-soft)", borderRadius: "7px", padding: "9px 10px 9px 30px", fontSize: "13px", color: "var(--text-primary)" }}
+                />
+              </div>
+              {resultadosBusca.length > 0 && (
+                <div style={{ marginTop: "8px", border: "1px solid var(--border-soft)", borderRadius: "8px", overflow: "hidden" }}>
+                  {resultadosBusca.map((r, i) => (
+                    <button
+                      key={i}
+                      onClick={() => irParaResultado(r)}
+                      className="tl-focus"
+                      style={{ display: "block", width: "100%", textAlign: "left", background: "var(--bg-base)", border: "none", borderTop: i > 0 ? "1px solid var(--border-soft)" : "none", padding: "9px 12px", cursor: "pointer" }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
+                        <span style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-primary)" }}>{r.label}</span>
+                        <span className="tl-mono" style={{ fontSize: "9px", color: "var(--amber)", textTransform: "uppercase" }}>{r.tipo}</span>
+                      </div>
+                      <div style={{ fontSize: "11.5px", color: "var(--text-faint)" }}>{r.sub}</div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          <div className="tl-mais-grid">
+            {itensMais.map((item) => (
+              <button key={item.id} onClick={() => irPara(item.id)}>
+                <span className="tl-mais-ic"><item.icon size={16} /></span>
+                {item.label}
+                {item.id === "mensagens" && naoLidas > 0 && (
+                  <span style={{ background: "var(--danger)", color: "#fff", borderRadius: "10px", padding: "1px 6px", fontSize: "10.5px", fontWeight: 700 }}>{naoLidas}</span>
+                )}
+              </button>
+            ))}
+          </div>
+          {usuarioAtual && (
+            <button
+              onClick={() => { setMaisAberto(false); onLogout(); }}
+              className="tl-focus"
+              style={{ marginTop: "14px", width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", background: "none", border: "1px solid var(--border-soft)", borderRadius: "10px", padding: "10px", color: "var(--text-muted)", fontSize: "13px", cursor: "pointer" }}
+            >
+              <LogOut size={14} /> Sair ({usuarioAtual.nome})
+            </button>
+          )}
+        </div>
+      </div>
+    )}
+    </>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Dashboard                                                           */
+/* ------------------------------------------------------------------ */
+function Dashboard({ clientes, producaoEsc, producaoPerf, propostas, agenda, financeiro, movimentosEstoque, prefs, goTo }) {
+  // Conta PEDIDOS únicos em aberto, não lançamentos — um mesmo pedido pode
+  // ter vários lançamentos (ex: vários dias de serviço), e isso não pode
+  // contar como "vários pedidos" separados.
+  const abertos = new Set(
+    [...producaoEsc, ...producaoPerf]
+      .filter((r) => r.status === "EM ABERTO" && r.pedido)
+      .map((r) => String(r.pedido).trim())
+  ).size;
+  const hojeISO = new Date().toISOString().slice(0, 10);
+  const compromissosHoje = (agenda || []).filter((a) => dataOrdenavel(a.data) === hojeISO && a.status !== "Concluído");
+  const compromissosAtrasados = (agenda || []).filter((a) => a.data && dataOrdenavel(a.data) < hojeISO && a.status !== "Concluído");
+  const [mesFechamento, setMesFechamento] = useState(null);
+
+  const amanhaISO = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+  const contasVencendo = (financeiro || []).filter(
+    (c) => (c.status === "Pendente" || c.status === "Boleto") && (dataOrdenavel(c.vencimento) === hojeISO || dataOrdenavel(c.vencimento) === amanhaISO)
+  );
+  const contasVencendoHoje = contasVencendo.filter((c) => dataOrdenavel(c.vencimento) === hojeISO);
+  const contasAPagarVencendo = contasVencendo.filter((c) => c.tipo === "Pagar");
+  const contasAReceberVencendo = contasVencendo.filter((c) => c.tipo === "Receber");
+
+  const faturamentoMensal = useMemo(() => {
+    const map = new Map();
+    [...producaoEsc, ...producaoPerf].forEach((r) => {
+      if (!r.data) return;
+      const mes = r.data.slice(0, 7);
+      map.set(mes, (map.get(mes) || 0) + (Number(r.total) || 0));
+    });
+    return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0])).slice(-6);
+  }, [producaoEsc, producaoPerf]);
+
+  // Materiais que já chegaram (ou passaram) do estoque mínimo que você
+  // definiu na tela de Estoque de Materiais.
+  const materiaisEmFalta = useMemo(() => {
+    const minimos = prefs?.estoqueMinimo || {};
+    const saldoPorMaterial = {};
+    MATERIAIS_ESTOCADOS.forEach((m) => (saldoPorMaterial[m] = 0));
+    (movimentosEstoque || []).forEach((mv) => {
+      if (!(mv.material in saldoPorMaterial)) return;
+      saldoPorMaterial[mv.material] += mv.tipo === "Entrada" ? Number(mv.quantidade) || 0 : -(Number(mv.quantidade) || 0);
+    });
+    return MATERIAIS_ESTOCADOS.filter((m) => numeroSeguro(minimos[m]) > 0 && saldoPorMaterial[m] <= numeroSeguro(minimos[m]));
+  }, [movimentosEstoque, prefs]);
+
+  const stats = [
+    { label: "Clientes cadastrados", value: clientes.length, icon: Users, go: "clientes" },
+    { label: "Pedidos em aberto", value: abertos, icon: AlertTriangle, go: "producaoEsc" },
+    { label: "Propostas emitidas", value: propostas.length, icon: FileText, go: "propostas" },
+  ];
+
+  return (
+    <div className="tl-fade-in">
+      <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "22px" }}>
+        <style>{`
+          @keyframes tlLogoPainelPulse {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.06) rotate(-1.5deg); }
+          }
+        `}</style>
+        <img
+          src={LOGO_DATA_URI()} onError={onLogoError}
+          alt="Logo"
+          style={{
+            width: "84px",
+            height: "84px",
+            borderRadius: "16px",
+            background: "#F5F2E9",
+            boxShadow: "0 6px 20px rgba(232,166,61,0.25)",
+            animation: "tlLogoPainelPulse 4s ease-in-out infinite",
+          }}
+        />
+        <div>
+          <div className="tl-display" style={{ fontSize: "26px", fontWeight: 800, lineHeight: 1 }}>
+            {PREFS_ATUAL_REF?.nomeEmpresa || "RJL Mix Concreto"}
+          </div>
+          <div className="tl-mono" style={{ fontSize: "11px", color: "var(--text-faint)", marginTop: "6px", letterSpacing: "0.05em" }}>
+            CONSOLE OPERACIONAL
+          </div>
+        </div>
+      </div>
+
+      <PageHeader eyebrow="Visão geral" title="Painel operacional" />
+
+      <button
+        onClick={() => goTo("relatorios")}
+        className="tl-focus"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: "12px",
+          width: "100%",
+          textAlign: "left",
+          background: "var(--bg-panel)",
+          border: "1px solid var(--border-soft)",
+          borderRadius: "9px",
+          padding: "12px 16px",
+          marginBottom: "16px",
+          cursor: "pointer",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <BarChart3 size={16} style={{ color: "var(--amber)" }} />
+          <span style={{ fontSize: "13px" }}>Novo: análises de inadimplência, rentabilidade por máquina, comparativo mensal e produtividade por operador</span>
+        </div>
+        <ChevronRight size={15} style={{ color: "var(--text-faint)" }} />
+      </button>
+
+      {(compromissosHoje.length > 0 || compromissosAtrasados.length > 0) && (
+        <button
+          onClick={() => goTo("agenda")}
+          className="tl-focus"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            width: "100%",
+            textAlign: "left",
+            background: "#3A2F13",
+            border: "1px solid #5A4A1F",
+            borderRadius: "9px",
+            padding: "14px 16px",
+            marginBottom: "20px",
+            cursor: "pointer",
+          }}
+        >
+          <Bell size={18} style={{ color: "var(--amber)", flexShrink: 0 }} />
+          <div style={{ fontSize: "13px", color: "#E8A63D" }}>
+            {compromissosHoje.length > 0 && <strong>{compromissosHoje.length} compromisso{compromissosHoje.length > 1 ? "s" : ""} hoje</strong>}
+            {compromissosHoje.length > 0 && compromissosAtrasados.length > 0 && " · "}
+            {compromissosAtrasados.length > 0 && <strong>{compromissosAtrasados.length} atrasado{compromissosAtrasados.length > 1 ? "s" : ""}</strong>}
+            {" "}— clique para ver a agenda
+          </div>
+        </button>
+      )}
+
+      {contasVencendo.length > 0 && (
+        <button
+          onClick={() => goTo("financeiro")}
+          className="tl-focus"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            width: "100%",
+            textAlign: "left",
+            background: "#3A1E1E",
+            border: "1px solid #5A2F2F",
+            borderRadius: "9px",
+            padding: "14px 16px",
+            marginBottom: "20px",
+            cursor: "pointer",
+          }}
+        >
+          <Wallet size={18} style={{ color: "var(--danger)", flexShrink: 0 }} />
+          <div style={{ fontSize: "13px", color: "#D6706F" }}>
+            <strong>
+              {contasVencendo.length} conta{contasVencendo.length > 1 ? "s" : ""} vencendo {contasVencendoHoje.length > 0 ? "hoje" : "amanhã"}
+            </strong>
+            {contasAReceberVencendo.length > 0 && ` · ${contasAReceberVencendo.length} a receber`}
+            {contasAPagarVencendo.length > 0 && ` · ${contasAPagarVencendo.length} a pagar`}
+            {" "}— clique para ver o financeiro
+          </div>
+        </button>
+      )}
+
+      {materiaisEmFalta.length > 0 && (
+        <button
+          onClick={() => goTo("estoque")}
+          className="tl-focus"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            width: "100%",
+            textAlign: "left",
+            background: "#3A1E1E",
+            border: "1px solid #5A2F2F",
+            borderRadius: "9px",
+            padding: "14px 16px",
+            marginBottom: "20px",
+            cursor: "pointer",
+          }}
+        >
+          <Boxes size={18} style={{ color: "var(--danger)", flexShrink: 0 }} />
+          <div style={{ fontSize: "13px", color: "#D6706F" }}>
+            <strong>{materiaisEmFalta.length} material{materiaisEmFalta.length > 1 ? "is" : ""} no estoque mínimo</strong>
+            {": "}{materiaisEmFalta.join(", ")}
+            {" "}— clique para ver o estoque
+          </div>
+        </button>
+      )}
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "14px", marginBottom: "34px" }}>
+        {stats.map((s) => (
+          <button
+            key={s.label}
+            onClick={() => goTo(s.go)}
+            className="tl-focus"
+            style={{
+              textAlign: "left",
+              background: "var(--bg-panel)",
+              border: "1px solid var(--border-soft)",
+              borderRadius: "9px",
+              padding: "18px",
+              cursor: "pointer",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+              <s.icon size={17} style={{ color: "var(--amber)" }} />
+              <ChevronRight size={14} style={{ color: "var(--text-faint)" }} />
+            </div>
+            <div className="tl-display" style={{ fontSize: "30px", fontWeight: 700, marginTop: "10px" }}>
+              {s.value}
+            </div>
+            <div style={{ fontSize: "12.5px", color: "var(--text-muted)", marginTop: "2px" }}>{s.label}</div>
+          </button>
+        ))}
+      </div>
+
+      <div style={{ marginBottom: "26px" }}>
+        <h4 className="tl-mono" style={{ fontSize: "11.5px", letterSpacing: "0.05em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: "10px" }}>
+          Faturamento por mês (Produção)
+        </h4>
+        <div style={{ background: "var(--bg-panel)", border: "1px solid var(--border-soft)", borderRadius: "9px", padding: "18px" }}>
+          <GraficoBarras
+            series={[{ nome: "Faturamento", cor: "var(--amber)", dados: faturamentoMensal.map(([mes, valor]) => ({ label: mes, valor })) }]}
+            onBarClick={(mes) => setMesFechamento(mes)}
+          />
+        </div>
+      </div>
+
+      <div style={{ marginBottom: "26px" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
+          <h4 className="tl-mono" style={{ fontSize: "11.5px", letterSpacing: "0.05em", color: "var(--text-muted)", textTransform: "uppercase" }}>
+            Calendário de máquinas
+          </h4>
+          <Button size="sm" variant="subtle" onClick={() => goTo("agenda")}>Abrir agenda completa</Button>
+        </div>
+        <div style={{ background: "var(--bg-panel)", border: "1px solid var(--border-soft)", borderRadius: "9px", padding: "16px" }}>
+          <CalendarioMensal agenda={agenda} producaoEsc={producaoEsc} producaoPerf={producaoPerf} compacto />
+        </div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "16px" }}>
+        <RecentList title="Últimos pedidos" records={producaoEsc.slice(-5).reverse()} financeiro={financeiro} />
+      </div>
+
+      {mesFechamento && (
+        <FechamentoMensalModal
+          mes={mesFechamento}
+          producaoEsc={producaoEsc}
+          producaoPerf={producaoPerf}
+          financeiro={financeiro}
+          clientes={clientes}
+          onClose={() => setMesFechamento(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+function FechamentoMensalModal({ mes, producaoEsc, producaoPerf, financeiro, clientes, onClose }) {
+  const lancamentos = useMemo(() => {
+    const esc = producaoEsc.filter((r) => (r.data || "").slice(0, 7) === mes).map((r) => ({ ...r, tipoEquip: "Escavadeira" }));
+    return esc.sort((a, b) => dataOrdenavel(a.data).localeCompare(dataOrdenavel(b.data)));
+  }, [mes, producaoEsc]);
+
+  const totalFaturado = lancamentos.reduce((s, r) => s + numeroSeguro(r.total), 0);
+  const totalRecebido = lancamentos.filter((r) => String(r.status || "").toUpperCase() === "PAGO").reduce((s, r) => s + numeroSeguro(r.total), 0);
+  const totalAberto = totalFaturado - totalRecebido;
+
+  const porCliente = useMemo(() => {
+    const mapa = new Map();
+    lancamentos.forEach((r) => {
+      const nome = r.cliente || "Cliente não identificado";
+      mapa.set(nome, (mapa.get(nome) || 0) + numeroSeguro(r.total));
+    });
+    return [...mapa.entries()].sort((a, b) => b[1] - a[1]);
+  }, [lancamentos]);
+
+  const nomeMes = new Date(`${mes}-01T00:00:00`).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+
+  return (
+    <Modal title={`Fechamento — ${nomeMes}`} onClose={onClose} wide>
+      <div className="tl-print-area" style={{ background: "#fff", color: "#1a1a1a", borderRadius: "6px", padding: "28px", fontFamily: "Inter, sans-serif" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", borderBottom: "2px solid #1a1a1a", paddingBottom: "14px", marginBottom: "20px" }}>
+          <img src={LOGO_DATA_URI()} onError={onLogoError} alt="" style={{ width: "44px", height: "44px", borderRadius: "6px" }} />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "19px" }}>{PREFS_ATUAL_REF?.nomeEmpresa || "RJL Mix Concreto"}</div>
+            <div style={{ fontSize: "11px", color: "#555" }}>{[PREFS_ATUAL_REF?.cnpjEmpresa ? `CNPJ: ${PREFS_ATUAL_REF.cnpjEmpresa}` : "", PREFS_ATUAL_REF?.enderecoEmpresa || ""].filter(Boolean).join(" — ") || "Dados da empresa em Configurações"}</div>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "17px", textTransform: "capitalize" }}>FECHAMENTO — {nomeMes}</div>
+          </div>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px", marginBottom: "20px" }}>
+          <div style={{ background: "#f5f5f5", borderRadius: "6px", padding: "10px 12px" }}>
+            <div style={{ fontSize: "10.5px", color: "#777" }}>FATURADO NO MÊS</div>
+            <div style={{ fontSize: "16px", fontWeight: 700 }}>{money(totalFaturado)}</div>
+          </div>
+          <div style={{ background: "#f5f5f5", borderRadius: "6px", padding: "10px 12px" }}>
+            <div style={{ fontSize: "10.5px", color: "#777" }}>RECEBIDO</div>
+            <div style={{ fontSize: "16px", fontWeight: 700, color: "#2e7d32" }}>{money(totalRecebido)}</div>
+          </div>
+          <div style={{ background: "#f5f5f5", borderRadius: "6px", padding: "10px 12px" }}>
+            <div style={{ fontSize: "10.5px", color: "#777" }}>EM ABERTO</div>
+            <div style={{ fontSize: "16px", fontWeight: 700, color: "#c77700" }}>{money(totalAberto)}</div>
+          </div>
+        </div>
+
+        <strong style={{ fontSize: "13.5px" }}>Por cliente ({porCliente.length})</strong>
+        {porCliente.map(([nome, valor]) => (
+          <ReportRow key={nome} label={nome} value={money(valor)} />
+        ))}
+
+        <div style={{ marginTop: "18px" }}>
+          <strong style={{ fontSize: "13.5px" }}>Todos os lançamentos ({lancamentos.length})</strong>
+          {lancamentos.map((r) => (
+            <ReportRow
+              key={r.id}
+              label={`${fmtDate(r.data)} — ${r.cliente || "-"} (${r.tipoEquip}, ${r.equipamento || "-"}) · ${r.status}`}
+              value={money(r.total)}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "16px" }}>
+        <Button variant="ghost" onClick={onClose}>Fechar</Button>
+        <Button icon={Printer} onClick={() => window.print()}>Imprimir</Button>
+      </div>
+    </Modal>
+  );
+}
+
+function RecentList({ title, records, financeiro }) {
+  return (
+    <div style={{ background: "var(--bg-panel)", border: "1px solid var(--border-soft)", borderRadius: "9px", padding: "16px" }}>
+      <h4 className="tl-mono" style={{ fontSize: "11.5px", letterSpacing: "0.05em", color: "var(--text-muted)", marginBottom: "12px", textTransform: "uppercase" }}>
+        {title}
+      </h4>
+      {records.length === 0 ? (
+        <p style={{ fontSize: "13px", color: "var(--text-faint)" }}>Nenhum registro ainda.</p>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          {records.map((r) => (
+            <div key={r.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "13px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0 }}>
+                <span className="tl-mono" style={{ color: "var(--amber)", fontWeight: 600 }}>#{r.pedido}</span>
+                <span style={{ color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {r.cliente || "—"}
+                </span>
+              </div>
+              {(() => { const st = statusFinanceiroEfetivo(r, financeiro); return <FinStatusBadge status={st.status} atrasada={st.atrasada} />; })()}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const emptyMensagem = () => ({ id: uid(), de: "", para: "", texto: "", dataHora: new Date().toISOString(), lidaPor: [] });
+
+// Contador de mensagens não lidas pra um usuário — usado tanto dentro do
+// módulo quanto no selo (badge) do menu lateral, sem precisar abrir a tela.
+function contarNaoLidas(mensagens, meuNome) {
+  return (mensagens || []).filter((m) => m.de !== meuNome && (m.para === meuNome || m.para === "TODOS") && !(m.lidaPor || []).includes(meuNome)).length;
+}
+
+function MensagensModule({ mensagens, usuarios, usuarioAtual, onChange }) {
+  const [conversaAtiva, setConversaAtiva] = useState(null); // nome do outro usuário, ou "TODOS"
+  const [texto, setTexto] = useState("");
+  const meuNome = usuarioAtual?.nome || "";
+
+  const outrosUsuarios = useMemo(
+    () => [...(usuarios || [])].filter((u) => u.nome !== meuNome).sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR")),
+    [usuarios, meuNome]
+  );
+
+  const mensagensDaConversa = (participante) => {
+    return mensagens
+      .filter((m) => {
+        if (participante === "TODOS") return m.para === "TODOS";
+        return (m.de === meuNome && m.para === participante) || (m.de === participante && m.para === meuNome);
+      })
+      .sort((a, b) => (a.dataHora || "").localeCompare(b.dataHora || ""));
+  };
+
+  const naoLidasDe = (participante) => mensagensDaConversa(participante).filter((m) => m.de !== meuNome && !(m.lidaPor || []).includes(meuNome)).length;
+
+  const abrirConversa = (participante) => {
+    setConversaAtiva(participante);
+    const pendentes = mensagensDaConversa(participante).filter((m) => m.de !== meuNome && !(m.lidaPor || []).includes(meuNome));
+    if (pendentes.length > 0) {
+      const idsParaMarcar = new Set(pendentes.map((m) => m.id));
+      onChange(mensagens.map((m) => (idsParaMarcar.has(m.id) ? { ...m, lidaPor: [...(m.lidaPor || []), meuNome] } : m)));
+    }
+  };
+
+  const enviar = (e) => {
+    e.preventDefault();
+    if (!texto.trim() || !conversaAtiva) return;
+    const nova = { id: uid(), de: meuNome, para: conversaAtiva, texto: texto.trim(), dataHora: new Date().toISOString(), lidaPor: [meuNome] };
+    onChange([...mensagens, nova]);
+    setTexto("");
+  };
+
+  const listaConversa = conversaAtiva ? mensagensDaConversa(conversaAtiva) : [];
+
+  return (
+    <div className="tl-fade-in">
+      <PageHeader eyebrow="Equipe" title="Mensagens" />
+      <div style={{ display: "flex", gap: "0", border: "1px solid var(--border-soft)", borderRadius: "10px", overflow: "hidden", height: "68vh", minHeight: "420px" }}>
+        <div style={{ width: "230px", flexShrink: 0, borderRight: "1px solid var(--border-soft)", background: "var(--bg-panel)", overflowY: "auto" }}>
+          <button
+            onClick={() => abrirConversa("TODOS")}
+            className="tl-focus"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              width: "100%",
+              padding: "12px 14px",
+              border: "none",
+              borderBottom: "1px solid var(--border-soft)",
+              background: conversaAtiva === "TODOS" ? "var(--bg-panel-raised)" : "transparent",
+              cursor: "pointer",
+              textAlign: "left",
+            }}
+          >
+            <span style={{ display: "flex", alignItems: "center", gap: "8px", fontWeight: 600, fontSize: "13.5px" }}>
+              <Megaphone size={14} style={{ color: "var(--amber)" }} /> Avisos gerais
+            </span>
+            {naoLidasDe("TODOS") > 0 && (
+              <span style={{ background: "var(--danger)", color: "#fff", borderRadius: "10px", padding: "1px 7px", fontSize: "11px", fontWeight: 700 }}>
+                {naoLidasDe("TODOS")}
+              </span>
+            )}
+          </button>
+          {outrosUsuarios.map((u) => (
+            <button
+              key={u.id}
+              onClick={() => abrirConversa(u.nome)}
+              className="tl-focus"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                width: "100%",
+                padding: "12px 14px",
+                border: "none",
+                borderBottom: "1px solid var(--border-soft)",
+                background: conversaAtiva === u.nome ? "var(--bg-panel-raised)" : "transparent",
+                cursor: "pointer",
+                textAlign: "left",
+              }}
+            >
+              <span style={{ fontSize: "13.5px", fontWeight: 500 }}>{u.nome}</span>
+              {naoLidasDe(u.nome) > 0 && (
+                <span style={{ background: "var(--danger)", color: "#fff", borderRadius: "10px", padding: "1px 7px", fontSize: "11px", fontWeight: 700 }}>
+                  {naoLidasDe(u.nome)}
+                </span>
+              )}
+            </button>
+          ))}
+          {outrosUsuarios.length === 0 && (
+            <p style={{ fontSize: "12px", color: "var(--text-faint)", padding: "12px 14px" }}>Só você tem conta cadastrada por enquanto — cadastre outros usuários em Configurações pra poder conversar com eles.</p>
+          )}
+        </div>
+
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", background: "var(--bg-base)" }}>
+          {!conversaAtiva ? (
+            <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <EmptyState icon={MessageSquare} title="Escolha uma conversa" hint="Clica em alguém na lista ao lado, ou em 'Avisos gerais' pra mandar recado pra todo mundo." />
+            </div>
+          ) : (
+            <>
+              <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--border-soft)", fontWeight: 600, fontSize: "14px" }}>
+                {conversaAtiva === "TODOS" ? "Avisos gerais (todo mundo vê)" : conversaAtiva}
+              </div>
+              <div style={{ flex: 1, overflowY: "auto", padding: "14px 16px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                {listaConversa.length === 0 ? (
+                  <p style={{ fontSize: "12.5px", color: "var(--text-faint)", textAlign: "center", marginTop: "20px" }}>Nenhuma mensagem ainda — manda a primeira!</p>
+                ) : (
+                  listaConversa.map((m) => {
+                    const minha = m.de === meuNome;
+                    return (
+                      <div key={m.id} style={{ display: "flex", flexDirection: "column", alignItems: minha ? "flex-end" : "flex-start" }}>
+                        <div
+                          style={{
+                            maxWidth: "72%",
+                            background: minha ? "var(--accent)" : "var(--bg-panel)",
+                            color: minha ? "var(--accent-text)" : "var(--text-primary)",
+                            border: minha ? "none" : "1px solid var(--border-soft)",
+                            borderRadius: "10px",
+                            padding: "8px 12px",
+                            fontSize: "13.5px",
+                            wordBreak: "break-word",
+                          }}
+                        >
+                          {conversaAtiva === "TODOS" && !minha && <div style={{ fontSize: "11px", fontWeight: 700, opacity: 0.75, marginBottom: "2px" }}>{m.de}</div>}
+                          {m.texto}
+                        </div>
+                        <span style={{ fontSize: "10.5px", color: "var(--text-faint)", marginTop: "2px" }}>{new Date(m.dataHora).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</span>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+              <form onSubmit={enviar} style={{ display: "flex", gap: "8px", padding: "12px 16px", borderTop: "1px solid var(--border-soft)" }}>
+                <Input value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Escreva uma mensagem..." style={{ flex: 1 }} />
+                <Button type="submit" icon={Send} disabled={!texto.trim()}>Enviar</Button>
+              </form>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PageHeader({ eyebrow, title, action }) {
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "22px" }}>
+      <div>
+        <div className="tl-mono" style={{ fontSize: "11px", color: "var(--amber)", letterSpacing: "0.08em", marginBottom: "4px" }}>
+          {eyebrow}
+        </div>
+        <h1 className="tl-display" style={{ fontSize: "32px", fontWeight: 700 }}>
+          {title}
+        </h1>
+      </div>
+      {action}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Clientes module                                                     */
+/* ------------------------------------------------------------------ */
+// Monta o endereço completo do cliente (rua, número, bairro, complemento,
+// CEP) numa única linha pronta pra mostrar — usado em Produção, Propostas
+// e Ordem de Serviço, sempre que o pedido bater com um cliente cadastrado.
+function enderecoCompleto(cliente) {
+  if (!cliente) return "";
+  const partes = [];
+  if (cliente.endereco) partes.push(cliente.numero ? `${cliente.endereco}, ${cliente.numero}` : cliente.endereco);
+  if (cliente.bairro) partes.push(cliente.bairro);
+  if (cliente.complemento) partes.push(cliente.complemento);
+  if (cliente.cep) partes.push(`CEP ${cliente.cep}`);
+  return partes.join(" — ");
+}
+
+// Calcula o total de um lançamento de Produção genérico (mesma fórmula do
+// formulário de edição) — usado pra conferir se o "valor pago" salvo bate
+// com o que deveria ser, mesmo fora do formulário.
+// Subtotal de uma carga/viagem — volume × valor por m³. A bomba dessa carga
+// entra à parte, direto (não é multiplicada pelo volume).
+function subtotalCarga(v) {
+  return (Number(v.volume) || 0) * (Number(v.valor) || 0);
+}
+
+// Recalcula "metro cúbico" e "total" de um lançamento a partir das cargas
+// que ele tem — usada tanto ao editar o lançamento quanto ao editar as
+// cargas direto pela Central de Balança, pra nunca ficar desalinhado.
+function recalcularComCargas(record) {
+  const viagens = record.viagens || [];
+  const viagensTotal = viagens.reduce((s, v) => s + subtotalCarga(v) + (Number(v.valorBomba) || 0), 0);
+  const volumeCargas = viagens.reduce((s, v) => s + (Number(v.volume) || 0), 0);
+  const temCargasComValor = viagens.some((v) => numeroSeguro(v.valor) > 0 || numeroSeguro(v.valorBomba) > 0);
+  const metroCubicoEfetivo = volumeCargas > 0 ? volumeCargas : Number(record.qtdDias) || 0;
+  return {
+    ...record,
+    qtdDias: volumeCargas > 0 ? metroCubicoEfetivo : record.qtdDias,
+    total: temCargasComValor
+      ? viagensTotal + (Number(record.frete) || 0)
+      : metroCubicoEfetivo * (Number(record.valorDiaria) || 0) + (Number(record.frete) || 0) + viagensTotal,
+  };
+}
+
+function calcularTotalProducao(r) {
+  const viagens = r.viagens || [];
+  const viagensTotal = viagens.reduce((s, v) => s + subtotalCarga(v) + (Number(v.valorBomba) || 0), 0);
+  const temCargasComValor = viagens.some((v) => (Number(v.valor) || 0) > 0 || (Number(v.valorBomba) || 0) > 0);
+  if (temCargasComValor) return viagensTotal + (Number(r.frete) || 0);
+  return (Number(r.qtdDias) || 0) * (Number(r.valorDiaria) || 0) + (Number(r.frete) || 0) + viagensTotal;
+}
+
+// Monta a conta do Financeiro correspondente a um lançamento de Produção —
+// a mesma fórmula usada na sincronização automática, reaproveitada aqui
+// pra deixar a importação em massa já com o Financeiro pronto na hora,
+// sem depender do processo de sincronização rodar depois em segundo plano.
+function gerarContaFinanceiraDeProducao(r, tipoEquip) {
+  const mapaStatus = { "EM ABERTO": "Pendente", BOLETO: "Boleto", PIX: "Pix", PAGO: "Pago" };
+  const statusFin = mapaStatus[String(r.status || "").trim().toUpperCase()] || "Pendente";
+  return {
+    id: uid(),
+    producaoId: r.id,
+    tipo: "Receber",
+    descricao: `Concreto — ${r.equipamento || "-"}`,
+    fornecedor: r.cliente || "",
+    pedido: r.pedido || "",
+    valor: numeroSeguro(r.total),
+    dataServico: r.data || "",
+    vencimento: adicionarDias(r.data, 30) || r.data || "",
+    dataPagamento: statusFin === "Pago" ? r.data || "" : "",
+    status: statusFin,
+    formaPagamento: r.formaPagamento || "",
+    valorPago: r.valorPago || "",
+    dataProximoPagamento: r.dataProximoPagamento || "",
+  };
+}
+
+const emptyCliente = () => ({
+  id: uid(),
+  pedido: "",
+  nome: "",
+  empresa: "",
+  cpf: "",
+  telefone: "",
+  email: "",
+  endereco: "", // usado como Endereço de Cobrança
+  cep: "",
+  numero: "",
+  bairro: "",
+  complemento: "",
+  municipio: "",
+  uf: "",
+  inscricaoEstadual: "",
+  enderecoEntrega: "", // obra/local de entrega, quando diferente da cobrança
+  coordenadasObra: "", // "latitude, longitude" da obra, colado do Google Maps
+  distanciaKm: "", // calculado 1 vez e guardado aqui — evita chamada paga repetida
+  distanciaTexto: "",
+  duracaoTexto: "",
+  status: "EM ABERTO",
+  observacao: "",
+});
+
+// Lê um texto tipo "-23.668, -46.447" e devolve {lat, lng}, ou null se não
+// deu pra entender. Aceita com ou sem espaço depois da vírgula.
+function parseCoordenadas(texto) {
+  const partes = String(texto || "").split(",").map((p) => parseFloat(p.trim()));
+  if (partes.length !== 2 || partes.some((n) => Number.isNaN(n))) return null;
+  return { lat: partes[0], lng: partes[1] };
+}
+
+// Carrega o script do Google Maps uma única vez (reaproveita se outra
+// parte da tela já tiver carregado antes) e devolve a distância de
+// estrada real entre dois pontos, usando o Distance Matrix.
+function carregarGoogleMaps(apiKey) {
+  if (window.google?.maps) return Promise.resolve(window.google);
+  if (!window.__googleMapsPromise) {
+    window.__googleMapsPromise = new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}`;
+      script.async = true;
+      script.onload = () => resolve(window.google);
+      script.onerror = () => reject(new Error("Não consegui carregar o Google Maps"));
+      document.head.appendChild(script);
+    });
+  }
+  return window.__googleMapsPromise;
+}
+async function calcularDistanciaRodoviaria(origem, destino, apiKey) {
+  const google = await carregarGoogleMaps(apiKey);
+  return new Promise((resolve, reject) => {
+    const service = new google.maps.DistanceMatrixService();
+    service.getDistanceMatrix(
+      { origins: [origem], destinations: [destino], travelMode: google.maps.TravelMode.DRIVING },
+      (response, status) => {
+        if (status !== "OK") { reject(new Error("Não consegui calcular a distância (chave inválida ou sem cota)")); return; }
+        const el = response.rows?.[0]?.elements?.[0];
+        if (!el || el.status !== "OK") { reject(new Error("Não achei uma rota entre esses dois pontos")); return; }
+        resolve({ km: el.distance.value / 1000, distanciaTexto: el.distance.text, duracaoTexto: el.duration.text });
+      }
+    );
+  });
+}
+
+// Máscaras: aplica pontuação de CPF/CNPJ e telefone brasileiro enquanto digita.
+function formatarCpfCnpj(valor) {
+  const d = (valor || "").replace(/\D/g, "").slice(0, 14);
+  if (d.length <= 11) {
+    return d
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+  }
+  return d
+    .replace(/(\d{2})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1/$2")
+    .replace(/(\d{4})(\d{1,2})$/, "$1-$2");
+}
+function formatarTelefone(valor) {
+  const d = (valor || "").replace(/\D/g, "").slice(0, 11);
+  if (d.length <= 10) {
+    return d.replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{4})(\d{1,4})$/, "$1-$2");
+  }
+  return d.replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{5})(\d{1,4})$/, "$1-$2");
+}
+function formatarCep(valor) {
+  const d = (valor || "").replace(/\D/g, "").slice(0, 8);
+  return d.replace(/(\d{5})(\d{1,3})$/, "$1-$2");
+}
+
+function ClientesModule({ clientes, onChange, statusClientes, producaoEsc, producaoPerf, ticks, prefs }) {
+  const [query, setQuery] = useState("");
+  const [filtroStatus, setFiltroStatus] = useState("todos");
+  const [editing, setEditing] = useState(null);
+  const [deleting, setDeleting] = useState(null);
+
+  const hojeISO = new Date().toISOString().slice(0, 10);
+
+  const proximoPedido = useMemo(() => {
+    const numeros = clientes.map((c) => parseInt(c.pedido, 10)).filter((n) => !isNaN(n));
+    return numeros.length ? String(Math.max(...numeros) + 1) : "1";
+  }, [clientes]);
+
+  // Última data de atividade de cada cliente (pelo nome) — olha o
+  // lançamento de Produção mais recente vinculado a ele, em qualquer um
+  // dos pedidos que já teve. Usado pro alerta de "sumido há mais de 1 mês".
+  const ultimaAtividadePorNome = useMemo(() => {
+    const mapa = new Map();
+    [...(producaoEsc || []), ...(producaoPerf || [])].forEach((r) => {
+      if (!r.cliente || !r.data) return;
+      const chave = r.cliente.trim().toLowerCase();
+      const dataAtual = dataOrdenavel(r.data);
+      if (!dataAtual) return;
+      if (!mapa.has(chave) || dataAtual > mapa.get(chave)) mapa.set(chave, dataAtual);
+    });
+    return mapa;
+  }, [producaoEsc, producaoPerf]);
+
+  const diasSemPedido = (nome) => {
+    const ultima = ultimaAtividadePorNome.get((nome || "").trim().toLowerCase());
+    if (!ultima) return null;
+    const dias = Math.floor((new Date(hojeISO) - new Date(ultima)) / 86400000);
+    return dias;
+  };
+
+  const clientesParados = useMemo(() => {
+    // Só considera clientes com status "Ativo" — sem sentido alertar sobre
+    // quem já está marcado como inativo/concluído.
+    const nomesUnicos = [...new Set(clientes.filter((c) => c.status === "Ativo").map((c) => c.nome))];
+    return nomesUnicos
+      .map((nome) => {
+        const registros = clientes.filter((c) => c.nome === nome && c.status === "Ativo");
+        // Abre o cadastro mais recente (maior número de pedido) quando a
+        // pessoa clicar — é o mais provável de ser o contato certo hoje.
+        const maisRecente = [...registros].sort((a, b) => (parseInt(b.pedido, 10) || 0) - (parseInt(a.pedido, 10) || 0))[0];
+        return { nome, dias: diasSemPedido(nome), registros, maisRecente };
+      })
+      .filter((c) => c.dias !== null && c.dias > 30)
+      .sort((a, b) => b.dias - a.dias);
+  }, [clientes, ultimaAtividadePorNome]);
+
+  const filtered = clientes.filter((c) => {
+    const q = query.toLowerCase();
+    const bateBusca =
+      String(c.pedido).toLowerCase().includes(q) ||
+      c.nome?.toLowerCase().includes(q) ||
+      c.empresa?.toLowerCase().includes(q) ||
+      c.telefone?.toLowerCase().includes(q);
+    const bateStatus = filtroStatus === "todos" || c.status === filtroStatus;
+    return bateBusca && bateStatus;
+  });
+
+  const save = (record) => {
+    const exists = clientes.some((c) => c.id === record.id);
+    onChange(exists ? clientes.map((c) => (c.id === record.id ? record : c)) : [...clientes, record]);
+    setEditing(null);
+  };
+
+  const remove = (id) => {
+    onChange(clientes.filter((c) => c.id !== id));
+    setDeleting(null);
+  };
+
+  const duplicar = (c) => {
+    setEditing({ ...c, id: uid(), pedido: proximoPedido });
+  };
+
+  // "Dar baixa" num cliente parado — marca como Inativo (some do alerta
+  // sozinho, já que ele só lista clientes com status Ativo).
+  const darBaixaParado = (registros) => {
+    const idsParaBaixar = new Set(registros.map((r) => r.id));
+    onChange(clientes.map((c) => (idsParaBaixar.has(c.id) ? { ...c, status: "Inativo" } : c)));
+  };
+
+  return (
+    <div className="tl-fade-in">
+      <PageHeader
+        eyebrow="Cadastro"
+        title="Clientes"
+        action={<Button icon={Plus} onClick={() => setEditing(abrirNovoRegistro("cliente", emptyCliente, { pedido: proximoPedido }))}>Novo cliente</Button>}
+      />
+
+      {clientesParados.length > 0 && (
+        <div style={{ background: "var(--bg-panel)", border: "1px solid #E8A63D", borderRadius: "9px", padding: "14px 18px", marginBottom: "18px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px", color: "var(--amber)", fontWeight: 700, fontSize: "13px" }}>
+            <AlertTriangle size={15} /> {clientesParados.length} cliente(s) sem pedido há mais de 1 mês
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+            {clientesParados.slice(0, 8).map((c) => (
+              <div key={c.nome} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px", fontSize: "12.5px", color: "var(--text-muted)" }}>
+                <button
+                  onClick={() => setEditing(c.maisRecente)}
+                  className="tl-focus"
+                  style={{ background: "none", border: "none", padding: 0, cursor: "pointer", textAlign: "left", color: "var(--text-primary)", fontWeight: 700, textDecoration: "underline", textDecorationColor: "var(--border-soft)" }}
+                >
+                  {c.nome}
+                </button>
+                <span style={{ flex: 1 }}>— {c.dias} dias sem novo pedido</span>
+                <button
+                  onClick={() => darBaixaParado(c.registros)}
+                  className="tl-focus"
+                  style={{ background: "none", border: "1px solid var(--border-soft)", borderRadius: "5px", padding: "3px 9px", fontSize: "11.5px", color: "var(--text-muted)", cursor: "pointer", whiteSpace: "nowrap" }}
+                  title="Marca como Inativo e tira do aviso"
+                >
+                  Dar baixa
+                </button>
+              </div>
+            ))}
+            {clientesParados.length > 8 && (
+              <div style={{ fontSize: "12px", color: "var(--text-faint)" }}>e mais {clientesParados.length - 8}...</div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div style={{ display: "flex", gap: "10px", alignItems: "center", marginBottom: "18px", flexWrap: "wrap" }}>
+        <div style={{ position: "relative", maxWidth: "320px", flex: 1, minWidth: "220px" }}>
+          <Search size={15} style={{ position: "absolute", left: "11px", top: "50%", transform: "translateY(-50%)", color: "var(--text-faint)" }} />
+          <Input placeholder="Buscar por pedido, nome, empresa ou telefone" value={query} onChange={(e) => setQuery(e.target.value)} style={{ paddingLeft: "32px" }} />
+        </div>
+        <Select value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value)} style={{ width: "170px" }}>
+          <option value="todos">Todo status</option>
+          {statusClientes.map((s) => (
+            <option key={s.id} value={s.nome}>{s.nome}</option>
+          ))}
+        </Select>
+      </div>
+
+      {filtered.length === 0 ? (
+        <EmptyState icon={Users} title="Nenhum cliente encontrado" hint="Cadastre o primeiro cliente para começar." />
+      ) : (
+        <Table
+          columns={["Pedido", "Nome", "Telefone", "Status", ""]}
+          rows={[...filtered].sort((a, b) => (parseInt(b.pedido, 10) || 0) - (parseInt(a.pedido, 10) || 0)).map((c) => (
+            <tr key={c.id} style={rowStyle}>
+              <td style={tdStyle}><PedidoStub n={c.pedido} /></td>
+              <td style={{ ...tdStyle, fontWeight: 500 }}>
+                {c.nome}
+                {c.empresa && <div style={{ fontSize: "11.5px", color: "var(--text-muted)", fontWeight: 400 }}>{c.empresa}</div>}
+              </td>
+              <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{c.telefone || "-"}</td>
+              <td style={tdStyle}><StatusBadge status={c.status} /></td>
+              <td style={{ ...tdStyle, textAlign: "right" }}>
+                <div style={{ display: "inline-flex", gap: "4px" }}>
+                  <button onClick={() => duplicar(c)} className="tl-focus" style={iconBtnStyle} title="Duplicar cliente (novo pedido)">
+                    <Copy size={14} />
+                  </button>
+                  <RowActions onEdit={() => setEditing(c)} onDelete={() => setDeleting(c)} />
+                </div>
+              </td>
+            </tr>
+          ))}
+        />
+      )}
+
+      {editing && <ClienteForm initial={editing} onSave={save} onClose={() => setEditing(null)} statusClientes={statusClientes} prefs={prefs} />}
+      {deleting && (
+        <ConfirmDelete label={`o cliente "${deleting.nome}"`} dados={deleting} onConfirm={() => remove(deleting.id)} onCancel={() => setDeleting(null)} />
+      )}
+    </div>
+  );
+}
+
+// Envia o portfólio (ou qualquer mensagem) pra lista de clientes, um de
+// cada vez, direto pelo WhatsApp — o WhatsApp não permite disparo em massa
+// automático, então cada envio abre uma conversa e a pessoa confirma o
+// clique manualmente, como o próprio WhatsApp exige.
+const MENSAGEM_DIVULGACAO_PADRAO =
+  () => `Olá! Aqui é da ${PREFS_ATUAL_REF?.nomeEmpresa || "nossa empresa"} 🚛🏗️. Trabalhamos com concreto usinado de alta qualidade, entregue direto na sua obra, com FCK sob medida pro seu projeto. Confira nosso portfólio:\n{link}\n\nQualquer dúvida ou orçamento, é só chamar!`;
+
+function DivulgacaoModule({ clientes, prefs, onPrefsChanged, galeria, onChangeGaleria }) {
+  const [subTab, setSubTab] = useState("mensagem");
+  const [linkPortfolio, setLinkPortfolio] = useState(prefs.linkPortfolio || "");
+  const [mensagem, setMensagem] = useState(prefs.mensagemDivulgacao || MENSAGEM_DIVULGACAO_PADRAO());
+  const [busca, setBusca] = useState("");
+  const [enviados, setEnviados] = useState(() => new Set(prefs.divulgacaoEnviados || []));
+  const [selecionados, setSelecionados] = useState(new Set());
+  const [fila, setFila] = useState(null); // null | { lista: [...clientes], indice: 0 }
+
+  const salvarConfig = (camposExtras = {}) => {
+    onPrefsChanged({ ...prefs, linkPortfolio, mensagemDivulgacao: mensagem, ...camposExtras });
+  };
+
+  const clientesComTelefone = useMemo(() => {
+    const q = busca.trim().toLowerCase();
+    return clientes
+      .filter((c) => c.telefone)
+      .filter((c) => !q || c.nome?.toLowerCase().includes(q) || c.empresa?.toLowerCase().includes(q))
+      .sort((a, b) => (a.nome || "").localeCompare(b.nome || "", "pt-BR"));
+  }, [clientes, busca]);
+
+  const marcarEnviado = (clienteId) => {
+    const novosEnviados = new Set(enviados);
+    novosEnviados.add(clienteId);
+    setEnviados(novosEnviados);
+    salvarConfig({ divulgacaoEnviados: [...novosEnviados] });
+  };
+
+  const abrirWhatsapp = (cliente) => {
+    const texto = mensagem.replaceAll("{link}", linkPortfolio || "");
+    const limpo = (cliente.telefone || "").replace(/\D/g, "");
+    if (!limpo) return;
+    const numeroFinal = limpo.startsWith("55") ? limpo : `55${limpo}`;
+    window.open(`https://wa.me/${numeroFinal}?text=${encodeURIComponent(texto)}`, "_blank");
+  };
+
+  const enviar = (cliente) => {
+    abrirWhatsapp(cliente);
+    marcarEnviado(cliente.id);
+  };
+
+  const toggleSelecionado = (id) => {
+    setSelecionados((s) => {
+      const novo = new Set(s);
+      if (novo.has(id)) novo.delete(id);
+      else novo.add(id);
+      return novo;
+    });
+  };
+
+  const selecionarTodosVisiveis = () => {
+    setSelecionados((s) => {
+      const novo = new Set(s);
+      clientesComTelefone.forEach((c) => novo.add(c.id));
+      return novo;
+    });
+  };
+
+  const iniciarFila = () => {
+    const lista = clientesComTelefone.filter((c) => selecionados.has(c.id));
+    if (lista.length === 0) return;
+    setFila({ lista, indice: 0 });
+  };
+
+  const enviarDaFilaEAvancar = () => {
+    const atual = fila.lista[fila.indice];
+    abrirWhatsapp(atual);
+    marcarEnviado(atual.id);
+    if (fila.indice + 1 < fila.lista.length) {
+      setFila({ ...fila, indice: fila.indice + 1 });
+    } else {
+      setFila(null);
+      setSelecionados(new Set());
+    }
+  };
+
+  return (
+    <div className="tl-fade-in">
+      <PageHeader eyebrow="Marketing" title="Divulgação" />
+      <p style={{ fontSize: "13px", color: "var(--text-muted)", marginTop: "-14px", marginBottom: "20px", maxWidth: "560px" }}>
+        Manda o portfólio pra sua lista de clientes pelo WhatsApp. Marca vários e manda numa fila rápida — o WhatsApp não deixa abrir tudo de uma vez (é assim pra evitar spam), então cada clique já abre o próximo.
+      </p>
+
+      <div style={{ display: "flex", gap: "4px", marginBottom: "20px", background: "var(--bg-panel)", border: "1px solid var(--border-soft)", borderRadius: "8px", padding: "4px" }}>
+        {[
+          { id: "mensagem", label: "Mensagem e envio" },
+          { id: "galeria", label: `Galeria (${galeria.length})` },
+        ].map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setSubTab(t.id)}
+            className="tl-focus"
+            style={{
+              flex: 1,
+              padding: "9px 12px",
+              borderRadius: "6px",
+              border: "none",
+              cursor: "pointer",
+              fontSize: "13.5px",
+              fontWeight: 600,
+              background: subTab === t.id ? "var(--accent)" : "transparent",
+              color: subTab === t.id ? "var(--accent-text)" : "var(--text-muted)",
+            }}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {subTab === "galeria" ? (
+        <GaleriaDivulgacaoSection galeria={galeria} onChange={onChangeGaleria} />
+      ) : (
+        <>
+      <div style={{ background: "var(--bg-panel)", border: "1px solid var(--border-soft)", borderRadius: "10px", padding: "18px", marginBottom: "20px" }}>
+        <Field label="Link do portfólio" hint="Cole aqui o link do Google Drive, site, etc.">
+          <Input value={linkPortfolio} onChange={(e) => setLinkPortfolio(e.target.value)} onBlur={() => salvarConfig()} placeholder="https://drive.google.com/..." />
+        </Field>
+        <Field label="Mensagem" hint='Onde escrever "{link}" no texto, o link acima entra sozinho'>
+          <TextArea value={mensagem} onChange={(e) => setMensagem(e.target.value)} onBlur={() => salvarConfig()} rows={5} />
+        </Field>
+      </div>
+
+      {fila && (
+        <div style={{ background: "#1F3A2E", border: "1px solid #2C4F3D", borderRadius: "10px", padding: "18px", marginBottom: "20px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+            <strong style={{ color: "#6FCF97", fontSize: "13px" }}>Enviando {fila.indice + 1} de {fila.lista.length}</strong>
+            <button onClick={() => setFila(null)} className="tl-focus" style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: "12px", cursor: "pointer" }}>
+              Parar
+            </button>
+          </div>
+          <div style={{ fontSize: "15px", fontWeight: 700, marginBottom: "4px" }}>{fila.lista[fila.indice].nome}</div>
+          <div style={{ fontSize: "12.5px", color: "var(--text-muted)", marginBottom: "14px" }} className="tl-mono">{fila.lista[fila.indice].telefone}</div>
+          <Button onClick={enviarDaFilaEAvancar} icon={MessageCircle} style={{ width: "100%", justifyContent: "center" }}>
+            {fila.indice + 1 < fila.lista.length ? "Enviar e ir pro próximo" : "Enviar (último)"}
+          </Button>
+        </div>
+      )}
+
+      <div style={{ display: "flex", gap: "10px", alignItems: "center", marginBottom: "16px", flexWrap: "wrap" }}>
+        <div style={{ position: "relative", maxWidth: "320px", flex: 1, minWidth: "220px" }}>
+          <Search size={15} style={{ position: "absolute", left: "11px", top: "50%", transform: "translateY(-50%)", color: "var(--text-faint)" }} />
+          <Input placeholder="Buscar cliente ou empresa" value={busca} onChange={(e) => setBusca(e.target.value)} style={{ paddingLeft: "32px" }} />
+        </div>
+        <Button variant="ghost" size="sm" onClick={selecionarTodosVisiveis}>Selecionar todos</Button>
+        {selecionados.size > 0 && (
+          <>
+            <Button variant="ghost" size="sm" onClick={() => setSelecionados(new Set())}>Limpar seleção</Button>
+            <Button size="sm" icon={Send} onClick={iniciarFila}>Enviar pra {selecionados.size} selecionado{selecionados.size === 1 ? "" : "s"}</Button>
+          </>
+        )}
+      </div>
+
+      {clientesComTelefone.length === 0 ? (
+        <EmptyState icon={Megaphone} title="Nenhum cliente com telefone encontrado" hint="Cadastre o telefone dos clientes pra poder enviar." />
+      ) : (
+        <Table
+          columns={["", "Cliente", "Telefone", ""]}
+          rows={clientesComTelefone.map((c) => (
+            <tr key={c.id} style={rowStyle}>
+              <td style={tdStyle}>
+                <input type="checkbox" checked={selecionados.has(c.id)} onChange={() => toggleSelecionado(c.id)} style={{ width: "16px", height: "16px", cursor: "pointer" }} />
+              </td>
+              <td style={{ ...tdStyle, fontWeight: 500 }}>
+                {c.nome}
+                {c.empresa && <div style={{ fontSize: "11.5px", color: "var(--text-muted)", fontWeight: 400 }}>{c.empresa}</div>}
+              </td>
+              <td style={{ ...tdStyle, color: "var(--text-muted)" }} className="tl-mono">{c.telefone}</td>
+              <td style={{ ...tdStyle, textAlign: "right" }}>
+                <button
+                  onClick={() => enviar(c)}
+                  className="tl-focus"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    background: enviados.has(c.id) ? "var(--bg-panel-raised)" : "#1F3A2E",
+                    color: enviados.has(c.id) ? "var(--text-muted)" : "#6FCF97",
+                    border: enviados.has(c.id) ? "1px solid var(--border-soft)" : "1px solid #2C4F3D",
+                    borderRadius: "6px",
+                    padding: "6px 12px",
+                    fontSize: "12.5px",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }}
+                >
+                  {enviados.has(c.id) ? <Check size={13} /> : <MessageCircle size={13} />}
+                  {enviados.has(c.id) ? "Enviado" : "Enviar"}
+                </button>
+              </td>
+            </tr>
+          ))}
+        />
+      )}
+        </>
+      )}
+    </div>
+  );
+}
+
+// Galeria de fotos pra divulgação — guarda cada foto separadamente (não
+// tudo num documento só), pra nunca esbarrar no limite de tamanho do
+// banco de dados mesmo com várias fotos guardadas.
+function GaleriaDivulgacaoSection({ galeria, onChange }) {
+  const [enviando, setEnviando] = useState(false);
+  const [viewing, setViewing] = useState(null);
+  const [viewingSrc, setViewingSrc] = useState(null);
+  const [deleting, setDeleting] = useState(null);
+  const fileRef = useRef(null);
+
+  const handleFiles = async (fileList) => {
+    setEnviando(true);
+    const novas = [];
+    for (const file of Array.from(fileList)) {
+      try {
+        const dataUrl = await compressImage(file);
+        const id = uid();
+        const ok = await savePhotoBlob(id, dataUrl);
+        if (ok) novas.push({ id, nome: file.name, criadoEm: new Date().toISOString() });
+      } catch (e) {
+        console.error("Falha ao processar foto", e);
+      }
+    }
+    onChange([...novas, ...galeria]);
+    setEnviando(false);
+    if (fileRef.current) fileRef.current.value = "";
+  };
+
+  useEffect(() => {
+    if (viewing) {
+      loadPhotoBlob(viewing.id).then(setViewingSrc);
+    } else {
+      setViewingSrc(null);
+    }
+  }, [viewing]);
+
+  const baixarFoto = async (foto) => {
+    const src = await loadPhotoBlob(foto.id);
+    if (!src) return;
+    const a = document.createElement("a");
+    a.href = src;
+    a.download = foto.nome || `foto-${foto.id}.jpg`;
+    a.click();
+  };
+
+  const excluirFoto = async (foto) => {
+    await deletePhotoBlob(foto.id);
+    onChange(galeria.filter((f) => f.id !== foto.id));
+    setDeleting(null);
+    setViewing(null);
+  };
+
+  return (
+    <div>
+      <p style={{ fontSize: "13px", color: "var(--text-muted)", marginBottom: "16px", maxWidth: "560px" }}>
+        Guarde aqui as fotos que você usa pra divulgar (equipamentos, obras, etc.). Pra mandar pro cliente: abre a foto, clica em "Baixar", e anexa manualmente no WhatsApp — o WhatsApp não deixa anexar direto por um botão daqui.
+      </p>
+
+      <label
+        className="tl-focus"
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "8px",
+          background: "var(--accent)",
+          color: "var(--accent-text)",
+          borderRadius: "6px",
+          padding: "9px 16px",
+          fontSize: "13.5px",
+          fontWeight: 600,
+          cursor: "pointer",
+          marginBottom: "20px",
+        }}
+      >
+        <Upload size={15} />
+        {enviando ? "Enviando..." : "Adicionar fotos"}
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          multiple
+          disabled={enviando}
+          onChange={(e) => e.target.files.length > 0 && handleFiles(e.target.files)}
+          style={{ display: "none" }}
+        />
+      </label>
+
+      {galeria.length === 0 ? (
+        <EmptyState icon={Camera} title="Nenhuma foto na galeria ainda" hint="Clica em 'Adicionar fotos' pra subir as primeiras." />
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: "10px" }}>
+          {galeria.map((foto) => (
+            <div key={foto.id} style={{ position: "relative", border: "1px solid var(--border-soft)", borderRadius: "8px", overflow: "hidden", background: "var(--bg-panel)" }}>
+              <button
+                onClick={() => setViewing(foto)}
+                className="tl-focus"
+                style={{ display: "block", width: "100%", padding: 0, border: "none", cursor: "pointer", background: "none" }}
+              >
+                <FotoVisualGrande id={foto.id} />
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); setDeleting(foto); }}
+                className="tl-focus"
+                title="Excluir foto"
+                style={{
+                  position: "absolute",
+                  top: "6px",
+                  right: "6px",
+                  width: "26px",
+                  height: "26px",
+                  borderRadius: "50%",
+                  border: "none",
+                  background: "rgba(20,20,20,0.75)",
+                  color: "#fff",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                }}
+              >
+                <Trash2 size={13} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {viewing && (
+        <Modal title={viewing.nome || "Foto"} onClose={() => setViewing(null)}>
+          {viewingSrc ? (
+            <img src={viewingSrc} alt="" style={{ width: "100%", maxHeight: "60vh", objectFit: "contain", borderRadius: "8px", background: "#111" }} />
+          ) : (
+            <div style={{ height: "200px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Loader2 size={18} style={{ color: "var(--text-faint)" }} />
+            </div>
+          )}
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: "16px" }}>
+            <button
+              onClick={() => setDeleting(viewing)}
+              className="tl-focus"
+              style={{ background: "none", border: "1px solid var(--border-soft)", borderRadius: "6px", padding: "8px 14px", color: "var(--danger)", fontSize: "13px", cursor: "pointer" }}
+            >
+              Excluir
+            </button>
+            <Button icon={Download} onClick={() => baixarFoto(viewing)}>Baixar</Button>
+          </div>
+        </Modal>
+      )}
+
+      {deleting && (
+        <ConfirmDelete label={`a foto "${deleting.nome || "sem nome"}"`} dados={deleting} onConfirm={() => excluirFoto(deleting)} onCancel={() => setDeleting(null)} />
+      )}
+    </div>
+  );
+}
+
+
+
+function ClienteForm({ initial, onSave, onClose, statusClientes, prefs }) {
+  const [form, setForm] = useState(initial);
+  const [rascunhoRecuperado] = useState(() => !!initial.__rascunho);
+  const [buscandoCep, setBuscandoCep] = useState(false);
+  const [cepEntrega, setCepEntrega] = useState("");
+  const [buscandoCepEntrega, setBuscandoCepEntrega] = useState(false);
+  const [calculandoDistancia, setCalculandoDistancia] = useState(false);
+  const [erroDistancia, setErroDistancia] = useState("");
+  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+
+  const calcularDistancia = async () => {
+    setErroDistancia("");
+    const origem = parseCoordenadas(prefs?.coordenadasUsina);
+    const destino = parseCoordenadas(form.coordenadasObra);
+    if (!prefs?.googleMapsApiKey) { setErroDistancia("Falta cadastrar a chave do Google Maps em Configurações → Dados da empresa"); return; }
+    if (!origem) { setErroDistancia("Falta cadastrar as coordenadas da usina em Configurações → Dados da empresa"); return; }
+    if (!destino) { setErroDistancia('Cola as coordenadas da obra acima primeiro (formato "-23.668, -46.447")'); return; }
+    setCalculandoDistancia(true);
+    try {
+      const resultado = await calcularDistanciaRodoviaria(origem, destino, prefs.googleMapsApiKey);
+      setForm((f) => ({ ...f, distanciaKm: resultado.km.toFixed(1), distanciaTexto: resultado.distanciaTexto, duracaoTexto: resultado.duracaoTexto }));
+    } catch (e) {
+      setErroDistancia(e.message || "Não consegui calcular a distância");
+    }
+    setCalculandoDistancia(false);
+  };
+
+  useEffect(() => {
+    salvarRascunho("cliente", form);
+  }, [form]);
+
+  const buscarCep = async (cepDigitado) => {
+    const limpo = (cepDigitado || "").replace(/\D/g, "");
+    if (limpo.length !== 8) return;
+    setBuscandoCep(true);
+    try {
+      const resp = await fetch(`https://viacep.com.br/ws/${limpo}/json/`);
+      const dados = await resp.json();
+      if (!dados.erro) {
+        setForm((f) => ({
+          ...f,
+          endereco: dados.logradouro || f.endereco,
+          bairro: dados.bairro || f.bairro,
+          municipio: dados.localidade || f.municipio,
+          uf: dados.uf || f.uf,
+        }));
+      }
+    } catch (e) {
+      /* sem internet ou serviço fora do ar — segue com preenchimento manual */
+    }
+    setBuscandoCep(false);
+  };
+
+  // Igual à busca de CEP da cobrança acima, mas escreve o resultado direto
+  // como uma linha de texto pronta dentro de "Endereço de Entrega" — já que
+  // esse campo é livre (obra pode não ter número/CEP formal cadastrável).
+  const buscarCepEntrega = async (cepDigitado) => {
+    const limpo = (cepDigitado || "").replace(/\D/g, "");
+    if (limpo.length !== 8) return;
+    setBuscandoCepEntrega(true);
+    try {
+      const resp = await fetch(`https://viacep.com.br/ws/${limpo}/json/`);
+      const dados = await resp.json();
+      if (!dados.erro) {
+        const linha = [dados.logradouro, dados.bairro, dados.localidade && dados.uf ? `${dados.localidade}/${dados.uf}` : "", `CEP ${cepDigitado}`].filter(Boolean).join(" — ");
+        setForm((f) => ({ ...f, enderecoEntrega: linha }));
+      }
+    } catch (e) {
+      /* sem internet ou serviço fora do ar — segue com preenchimento manual */
+    }
+    setBuscandoCepEntrega(false);
+  };
+
+  return (
+    <Modal title={initial.nome ? "Editar cliente" : "Novo cliente"} onClose={() => { limparRascunho("cliente"); onClose(); }} wide>
+      {rascunhoRecuperado && <RascunhoBanner />}
+      {initial.nome && (form.telefone || form.email) && (
+        <div style={{ display: "flex", gap: "8px", marginBottom: "16px", flexWrap: "wrap" }}>
+          {form.telefone && (
+            <button
+              type="button"
+              onClick={() => {
+                const limpo = form.telefone.replace(/\D/g, "");
+                if (!limpo) return;
+                const numeroFinal = limpo.startsWith("55") ? limpo : `55${limpo}`;
+                window.open(`https://wa.me/${numeroFinal}`, "_blank");
+              }}
+              className="tl-focus"
+              style={{ display: "flex", alignItems: "center", gap: "6px", background: "#1F3A2E", color: "#6FCF97", border: "1px solid #2C4F3D", borderRadius: "6px", padding: "7px 13px", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}
+            >
+              <MessageCircle size={15} /> WhatsApp
+            </button>
+          )}
+          {form.email && (
+            <a
+              href={`mailto:${form.email}`}
+              className="tl-focus"
+              style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "var(--bg-panel-raised)", color: "var(--text-primary)", border: "1px solid var(--border-soft)", borderRadius: "6px", padding: "7px 13px", fontSize: "13px", fontWeight: 600, textDecoration: "none" }}
+            >
+              <Mail size={15} /> E-mail
+            </a>
+          )}
+        </div>
+      )}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          limparRascunho("cliente");
+          onSave(form);
+        }}
+      >
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "0 16px" }}>
+          <Field label="Nº do pedido" required hint="Sugerido automaticamente — pode alterar se precisar">
+            <Input value={form.pedido} onChange={set("pedido")} required />
+          </Field>
+          <Field label="Nome completo" required>
+            <Input value={form.nome} onChange={set("nome")} required />
+          </Field>
+        </div>
+        <Field label="Empresa" hint="Opcional — preenche quando o pedido for de uma empresa, não de pessoa física">
+          <Input value={form.empresa} onChange={set("empresa")} placeholder="Ex: CH Engenharia" />
+        </Field>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+          <Field label="CPF / CNPJ">
+            <Input value={form.cpf} onChange={(e) => setForm({ ...form, cpf: formatarCpfCnpj(e.target.value) })} placeholder="000.000.000-00" />
+          </Field>
+          <Field label="Telefone">
+            <Input value={form.telefone} onChange={(e) => setForm({ ...form, telefone: formatarTelefone(e.target.value) })} placeholder="(00) 00000-0000" />
+          </Field>
+        </div>
+        <Field label="E-mail">
+          <Input type="email" value={form.email} onChange={set("email")} />
+        </Field>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "0 16px" }}>
+          <Field label="CEP" hint={buscandoCep ? "Buscando endereço..." : "Preenche rua e bairro automaticamente"}>
+            <Input
+              value={form.cep}
+              onChange={(e) => {
+                const cep = formatarCep(e.target.value);
+                setForm({ ...form, cep });
+                if (cep.replace(/\D/g, "").length === 8) buscarCep(cep);
+              }}
+              placeholder="00000-000"
+            />
+          </Field>
+          <Field label="Endereço de Cobrança (rua)">
+            <Input value={form.endereco} onChange={set("endereco")} />
+          </Field>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 2fr", gap: "0 16px" }}>
+          <Field label="Número">
+            <Input value={form.numero} onChange={set("numero")} />
+          </Field>
+          <Field label="Bairro">
+            <Input value={form.bairro} onChange={set("bairro")} />
+          </Field>
+          <Field label="Complemento">
+            <Input value={form.complemento} onChange={set("complemento")} placeholder="Apto, bloco, referência..." />
+          </Field>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "2fr 0.7fr 1.3fr", gap: "0 16px" }}>
+          <Field label="Município" hint="Preenche sozinho pelo CEP — pode corrigir se precisar">
+            <Input value={form.municipio} onChange={set("municipio")} />
+          </Field>
+          <Field label="UF">
+            <Input value={form.uf} onChange={(e) => setForm({ ...form, uf: e.target.value.toUpperCase().slice(0, 2) })} placeholder="SP" />
+          </Field>
+          <Field label="Inscrição Estadual" hint="Opcional — aparece na Ordem de Serviço">
+            <Input value={form.inscricaoEstadual} onChange={set("inscricaoEstadual")} />
+          </Field>
+        </div>
+
+        <Field label="Endereço de Entrega" hint="Deixa em branco se for igual ao endereço de cobrança acima (ex: local da obra)">
+          <div style={{ display: "flex", gap: "8px", marginBottom: "8px", flexWrap: "wrap" }}>
+            <Input
+              value={cepEntrega}
+              onChange={(e) => {
+                const cep = formatarCep(e.target.value);
+                setCepEntrega(cep);
+                if (cep.replace(/\D/g, "").length === 8) buscarCepEntrega(cep);
+              }}
+              placeholder="CEP da obra (00000-000)"
+              style={{ maxWidth: "160px" }}
+            />
+            <button
+              type="button"
+              onClick={() => setForm({ ...form, enderecoEntrega: enderecoCompleto(form) })}
+              className="tl-focus"
+              style={{ background: "none", border: "none", color: "var(--accent)", fontSize: "12.5px", textDecoration: "underline", cursor: "pointer", padding: "8px 0" }}
+            >
+              Usar o mesmo endereço de cobrança
+            </button>
+            {buscandoCepEntrega && <span style={{ fontSize: "11.5px", color: "var(--text-faint)", alignSelf: "center" }}>Buscando...</span>}
+          </div>
+          <Input value={form.enderecoEntrega} onChange={set("enderecoEntrega")} placeholder="Ex: Rua da Obra, 123 - Bairro X" />
+        </Field>
+
+        <Field label="Coordenadas da obra (opcional)" hint='Cola do Google Maps — clique com o botão direito no ponto da obra e depois no número, ex: "-23.668, -46.447"'>
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "flex-start" }}>
+            <Input value={form.coordenadasObra} onChange={set("coordenadasObra")} placeholder="-23.668, -46.447" style={{ flex: 1, minWidth: "180px" }} />
+            <Button type="button" variant="subtle" size="sm" disabled={calculandoDistancia} onClick={calcularDistancia}>
+              {calculandoDistancia ? "Calculando..." : "Calcular distância"}
+            </Button>
+          </div>
+          {erroDistancia && <p style={{ fontSize: "11.5px", color: "var(--danger)", marginTop: "6px" }}>{erroDistancia}</p>}
+          {form.distanciaKm && !erroDistancia && (
+            <p style={{ fontSize: "12.5px", color: "var(--success)", marginTop: "6px" }}>
+              {form.distanciaTexto || `${form.distanciaKm} km`} de estrada da usina até a obra{form.duracaoTexto ? ` (~${form.duracaoTexto} de viagem)` : ""}
+            </p>
+          )}
+        </Field>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "0 16px" }}>
+          <Field label="Status">
+            <Select value={form.status} onChange={set("status")}>
+              {[...new Set([form.status, ...(statusClientes || []).map((s) => s.nome)].filter(Boolean))].map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="Observação">
+            <Input value={form.observacao} onChange={set("observacao")} />
+          </Field>
+        </div>
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "6px" }}>
+          <Button type="button" variant="ghost" onClick={() => { limparRascunho("cliente"); onClose(); }}>Cancelar</Button>
+          <Button type="submit">Salvar cliente</Button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Table helpers                                                       */
+/* ------------------------------------------------------------------ */
+const rowStyle = { borderBottom: "1px solid var(--border-soft)" };
+const tdStyle = { padding: "11px 14px", fontSize: "13.5px", verticalAlign: "middle" };
+
+function Table({ columns, rows }) {
+  return (
+    <div
+      className="tl-scrollbar"
+      style={{
+        background: "var(--bg-panel)",
+        border: "1px solid var(--border-soft)",
+        borderRadius: "9px",
+        overflowX: "auto",
+        WebkitOverflowScrolling: "touch",
+      }}
+    >
+      <table style={{ width: "100%", minWidth: "620px", borderCollapse: "collapse" }}>
+        <thead>
+          <tr style={{ background: "var(--bg-hatch)", borderBottom: "1px solid var(--border)" }}>
+            {columns.map((c, i) => (
+              <th
+                key={i}
+                className="tl-mono"
+                style={{
+                  textAlign: i === columns.length - 1 ? "right" : "left",
+                  padding: "10px 14px",
+                  fontSize: "10.5px",
+                  letterSpacing: "0.06em",
+                  color: "var(--text-faint)",
+                  textTransform: "uppercase",
+                  fontWeight: 600,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {c}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>{rows}</tbody>
+      </table>
+    </div>
+  );
+}
+
+function RowActions({ onEdit, onDelete }) {
+  return (
+    <div style={{ display: "inline-flex", gap: "4px" }}>
+      <button onClick={onEdit} className="tl-focus" style={iconBtnStyle} title="Editar">
+        <Pencil size={14} />
+      </button>
+      <button onClick={onDelete} className="tl-focus" style={{ ...iconBtnStyle, color: "var(--danger)" }} title="Excluir">
+        <Trash2 size={14} />
+      </button>
+    </div>
+  );
+}
+const iconBtnStyle = {
+  background: "var(--bg-panel-raised)",
+  border: "1px solid var(--border)",
+  borderRadius: "5px",
+  padding: "6px",
+  color: "var(--text-muted)",
+  cursor: "pointer",
+  display: "inline-flex",
+};
+
+/* ------------------------------------------------------------------ */
+/*  Produção module                                                     */
+/* ------------------------------------------------------------------ */
+const emptyProducao = () => ({
+  id: uid(),
+  pedido: "",
+  pedidoCliente: "", // número do pedido/nota do lado do cliente, se houver
+  data: "",
+  horario: "", // hora prevista de carregamento, pra ordenar a Programação Diária
+  equipamento: "", // combinação FCK + Brita, montada automaticamente ao salvar
+  fck: "",
+  brita: "",
+  slump: "",
+  peca: "", // tipo de elemento: laje, piso, base, calçada, etc.
+  qtdDias: 1, // usado como "Metro cúbico" na tela
+  valorDiaria: "", // usado como "Valor metro cúbico" na tela
+  frete: "", // usado como "Bomba" na tela
+  operador: "", // preenchido automaticamente com o motorista
+  motorista: "",
+  placa: "",
+  vendedor: "",
+  status: "EM ABERTO",
+  total: 0,
+  metragem: "",
+  viagens: [],
+  formaPagamento: "", // obrigatório quando status = PAGO
+  valorPago: "", // se for menor que o total, é pagamento parcial
+  dataProximoPagamento: "", // obrigatório se o pagamento ficou parcial
+  obraFinalizada: false, // marcado pelo botão "Finalizar pedido" — separado do status financeiro
+});
+const emptyViagem = () => ({ id: uid(), horario: "", placa: "", motorista: "", volume: "", sobra: "", sobraDestinoPedido: "", lacre: "", valorBomba: "", numeroBomba: "", descricao: "", valor: "" });
+
+function ProducaoModule({ title, icon, tipo, equipamentos, records, seedRecords, clienteByPedido, operadores, vendedores, motoristas, caminhoes, empresasRetirada, propostas, todasProducaoEsc, todasProducaoPerf, financeiro, ticks, onChange, onGerarProposta, draft, onDraftHandled }) {
+  const [editing, setEditing] = useState(null);
+  const [deleting, setDeleting] = useState(null);
+  const [viewing, setViewing] = useState(null);
+  const [busca, setBusca] = useState("");
+  const [ordenarPor, setOrdenarPor] = useState("data-recente");
+  const [filtroStatus, setFiltroStatus] = useState("todos");
+  const [filtroEquipamento, setFiltroEquipamento] = useState("todos");
+  const [somenteZerados, setSomenteZerados] = useState(false);
+  const [pedidoRelatorioGeral, setPedidoRelatorioGeral] = useState("");
+  const [verRelatorioGeral, setVerRelatorioGeral] = useState(null);
+  const [verProgramacaoDiaria, setVerProgramacaoDiaria] = useState(false);
+  const isPerfuratriz = tipo === "Perfuratriz";
+  const isEscavadeira = tipo === "Escavadeira";
+
+  // Proposta fechada em Propostas manda o pedido pra cá — abre sozinho
+  // um lançamento novo já com esse pedido, pra puxar os dados dela.
+  useEffect(() => {
+    if (draft) {
+      setEditing({ ...emptyProducao(), pedido: draft.pedido });
+      onDraftHandled();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft]);
+
+  const equipamentosUsados = useMemo(
+    () => [...new Set(records.map((r) => r.equipamento).filter(Boolean))].sort(),
+    [records]
+  );
+  const statusUsados = useMemo(() => {
+    const mapa = new Map(); // versão em MAIÚSCULO -> primeira grafia encontrada
+    records.forEach((r) => {
+      if (!r.status) return;
+      const chave = r.status.trim().toUpperCase();
+      if (!mapa.has(chave)) mapa.set(chave, r.status.trim());
+    });
+    return [...mapa.values()].sort();
+  }, [records]);
+
+  const registrosFiltradosVisiveis = useMemo(() => {
+    return [...records]
+      .filter((r) => {
+        const q = busca.trim().toLowerCase();
+        if (q && !String(r.pedido).toLowerCase().includes(q) && !String(r.cliente || "").toLowerCase().includes(q)) return false;
+        if (filtroEquipamento !== "todos" && r.equipamento !== filtroEquipamento) return false;
+        if (filtroStatus !== "todos" && String(r.status || "").trim().toUpperCase() !== filtroStatus.toUpperCase()) return false;
+        if (somenteZerados && numeroSeguro(r.total) !== 0) return false;
+        return true;
+      })
+      .sort((a, b) => {
+        if (ordenarPor === "data-antiga") return dataOrdenavel(a.data).localeCompare(dataOrdenavel(b.data));
+        if (ordenarPor === "pedido") return (parseInt(b.pedido, 10) || 0) - (parseInt(a.pedido, 10) || 0);
+        if (ordenarPor === "cliente") return String(a.cliente || "").localeCompare(String(b.cliente || ""));
+        return dataOrdenavel(b.data).localeCompare(dataOrdenavel(a.data));
+      });
+  }, [records, busca, filtroEquipamento, filtroStatus, somenteZerados, ordenarPor]);
+
+  const semCliente = records.filter((r) => !r.cliente || r.cliente === "-").length;
+
+  const restaurarClientes = () => {
+    const seedByPedido = new Map();
+    (seedRecords || []).forEach((s) => {
+      if (s.pedido && s.cliente && s.cliente !== "-") seedByPedido.set(String(s.pedido).trim(), s);
+    });
+    const corrigidos = records.map((r) => {
+      if (r.cliente && r.cliente !== "-") return r;
+      const cadastro = clienteByPedido.get(String(r.pedido).trim());
+      if (cadastro) return { ...r, cliente: cadastro.nome, endereco: cadastro.endereco || r.endereco };
+      const seed = seedByPedido.get(String(r.pedido).trim());
+      if (seed) return { ...r, cliente: seed.cliente, endereco: seed.endereco || r.endereco };
+      return r;
+    });
+    onChange(corrigidos);
+  };
+
+  const save = (record) => {
+    const cliente = clienteByPedido.get(String(record.pedido).trim());
+    const comCargas = recalcularComCargas(record);
+    const enriched = {
+      ...comCargas,
+      // Só sobrescreve cliente/endereço quando há um cadastro correspondente em Clientes.
+      // Sem isso, editar um pedido antigo sem cadastro formal apagaria o nome já salvo.
+      cliente: cliente ? cliente.nome : (record.cliente || "-"),
+      endereco: cliente ? cliente.endereco : (record.endereco || "-"),
+    };
+    const exists = records.some((r) => r.id === record.id);
+    onChange(exists ? records.map((r) => (r.id === record.id ? enriched : r)) : [...records, enriched]);
+    setEditing(null);
+  };
+
+  const remove = (id) => {
+    onChange(records.filter((r) => r.id !== id));
+    setDeleting(null);
+  };
+
+  return (
+    <div className="tl-fade-in">
+      <PageHeader
+        eyebrow="Produção"
+        title={title}
+        action={
+          <div style={{ display: "flex", gap: "8px" }}>
+            <Button variant="subtle" icon={Printer} onClick={() => setVerProgramacaoDiaria(true)}>Programação Diária</Button>
+            <Button icon={Plus} onClick={() => setEditing(abrirNovoRegistro("producao", emptyProducao))}>Novo lançamento</Button>
+          </div>
+        }
+      />
+
+      <div
+        style={{
+          display: "flex",
+          gap: "10px",
+          alignItems: "flex-end",
+          flexWrap: "wrap",
+          background: "var(--bg-panel)",
+          border: "1px solid var(--border-soft)",
+          borderRadius: "9px",
+          padding: "14px 16px",
+          marginBottom: "18px",
+        }}
+      >
+        <Field label="Relatório geral por pedido" hint="Reúne cliente, produção, proposta e financeiro desse número">
+          <Input value={pedidoRelatorioGeral} onChange={(e) => setPedidoRelatorioGeral(e.target.value)} placeholder="Ex: 620" style={{ width: "160px" }} />
+        </Field>
+        <Button
+          icon={FileText}
+          variant="subtle"
+          disabled={!pedidoRelatorioGeral.trim()}
+          onClick={() => setVerRelatorioGeral(pedidoRelatorioGeral.trim())}
+        >
+          Gerar relatório
+        </Button>
+      </div>
+
+      {semCliente > 0 && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "12px",
+            background: "#3A2F13",
+            border: "1px solid #5A4A1F",
+            borderRadius: "7px",
+            padding: "10px 14px",
+            marginBottom: "16px",
+            fontSize: "13px",
+          }}
+        >
+          <span style={{ color: "#E8A63D" }}>
+            {semCliente} pedido{semCliente > 1 ? "s" : ""} sem nome de cliente exibido.
+          </span>
+          <Button size="sm" variant="subtle" onClick={restaurarClientes}>Restaurar clientes</Button>
+        </div>
+      )}
+
+      {records.length === 0 ? (
+        <EmptyState icon={icon} title="Nenhum lançamento ainda" hint="Digite o número do pedido e o cliente é preenchido automaticamente." />
+      ) : (
+        <>
+          <div style={{ display: "flex", gap: "10px", marginBottom: "14px", flexWrap: "wrap", alignItems: "center" }}>
+            <div style={{ position: "relative", flex: 1, minWidth: "200px" }}>
+              <Search size={15} style={{ position: "absolute", left: "11px", top: "50%", transform: "translateY(-50%)", color: "var(--text-faint)" }} />
+              <Input placeholder="Buscar por pedido ou cliente" value={busca} onChange={(e) => setBusca(e.target.value)} style={{ paddingLeft: "32px" }} />
+            </div>
+            <Select value={filtroEquipamento} onChange={(e) => setFiltroEquipamento(e.target.value)} style={{ width: "190px" }}>
+              <option value="todos">Todo equipamento</option>
+              {equipamentosUsados.map((eq) => (
+                <option key={eq} value={eq}>{eq}</option>
+              ))}
+            </Select>
+            <Select value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value)} style={{ width: "160px" }}>
+              <option value="todos">Todo status</option>
+              {statusUsados.map((st) => (
+                <option key={st} value={st}>{st}</option>
+              ))}
+            </Select>
+            <Select value={ordenarPor} onChange={(e) => setOrdenarPor(e.target.value)} style={{ width: "220px" }}>
+              <option value="data-recente">Data (mais recente primeiro)</option>
+              <option value="data-antiga">Data (mais antiga primeiro)</option>
+              <option value="pedido">Nº do pedido</option>
+              <option value="cliente">Nome do cliente</option>
+            </Select>
+            <Button
+              size="sm"
+              variant={somenteZerados ? "primary" : "subtle"}
+              onClick={() => setSomenteZerados(!somenteZerados)}
+              type="button"
+            >
+              {somenteZerados ? "✓ " : ""}Só valor zerado ({records.filter((r) => numeroSeguro(r.total) === 0).length})
+            </Button>
+          </div>
+
+          {somenteZerados && registrosFiltradosVisiveis.length > 0 && (
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: "10px",
+                background: "#3A2F13",
+                border: "1px solid #5A4A1F",
+                borderRadius: "7px",
+                padding: "10px 14px",
+                marginBottom: "16px",
+                fontSize: "13px",
+              }}
+            >
+              <span style={{ color: "#E8A63D" }}>
+                {registrosFiltradosVisiveis.length} lançamento(s) com valor zerado nessa lista.
+              </span>
+              <Button
+                size="sm"
+                variant="subtle"
+                icon={Trash2}
+                onClick={() => {
+                  if (window.confirm(`Excluir os ${registrosFiltradosVisiveis.length} lançamentos zerados listados agora? Depois é só reimportar a planilha que eles voltam com o valor certo.`)) {
+                    const idsExcluir = new Set(registrosFiltradosVisiveis.map((r) => r.id));
+                    onChange(records.filter((r) => !idsExcluir.has(r.id)));
+                  }
+                }}
+              >
+                Excluir estes {registrosFiltradosVisiveis.length}
+              </Button>
+            </div>
+          )}
+
+          <Table
+          columns={["Pedido", "Cliente", "Data", "Equipamento", "Total", "Status", ""]}
+          rows={registrosFiltradosVisiveis
+            .map((r) => (
+            <tr key={r.id} style={rowStyle}>
+              <td style={tdStyle}><PedidoStub n={r.pedido} /></td>
+              <td style={{ ...tdStyle, fontWeight: 500 }}>{r.cliente || "-"}</td>
+              <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{fmtDate(r.data)}</td>
+              <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{r.equipamento || "-"}</td>
+              <td style={{ ...tdStyle }} className="tl-mono">{money(r.total)}</td>
+              <td style={tdStyle}>{(() => { const st = statusFinanceiroEfetivo(r, financeiro); return <FinStatusBadge status={st.status} atrasada={st.atrasada} />; })()}</td>
+              <td style={{ ...tdStyle, textAlign: "right" }}>
+                <div style={{ display: "inline-flex", gap: "4px" }}>
+                  <button onClick={() => setViewing(r)} className="tl-focus" style={iconBtnStyle} title="Ver relatório do pedido">
+                    <Eye size={14} />
+                  </button>
+                  <RowActions onEdit={() => setEditing(r)} onDelete={() => setDeleting(r)} />
+                </div>
+              </td>
+            </tr>
+          ))}
+          />
+        </>
+      )}
+
+      {editing && (
+        <ProducaoForm
+          initial={editing}
+          equipamentos={equipamentos}
+          isPerfuratriz={isPerfuratriz}
+          isEscavadeira={isEscavadeira}
+          clienteByPedido={clienteByPedido}
+          operadores={operadores}
+          vendedores={vendedores}
+          motoristas={motoristas}
+          caminhoes={caminhoes}
+          empresasRetirada={empresasRetirada}
+          propostas={propostas}
+          ticks={ticks}
+          onSave={save}
+          onClose={() => setEditing(null)}
+        />
+      )}
+      {viewing && (
+        <PedidoReport
+          record={viewing}
+          isPerfuratriz={isPerfuratriz}
+          isEscavadeira={isEscavadeira}
+          cliente={clienteByPedido.get(String(viewing.pedido).trim())}
+          onClose={() => setViewing(null)}
+          onGerarProposta={() => {
+            setViewing(null);
+            onGerarProposta(viewing);
+          }}
+        />
+      )}
+      {deleting && (
+        <ConfirmDelete label={`o pedido nº ${deleting.pedido}`} dados={deleting} onConfirm={() => remove(deleting.id)} onCancel={() => setDeleting(null)} />
+      )}
+      {verRelatorioGeral && (
+        <RelatorioGeralPedido
+          pedido={verRelatorioGeral}
+          cliente={clienteByPedido.get(verRelatorioGeral)}
+          producaoEsc={todasProducaoEsc}
+          producaoPerf={todasProducaoPerf}
+          propostas={propostas}
+          financeiro={financeiro}
+          onClose={() => setVerRelatorioGeral(null)}
+        />
+      )}
+      {verProgramacaoDiaria && (
+        <ProgramacaoDiariaModal records={records} clienteByPedido={clienteByPedido} onClose={() => setVerProgramacaoDiaria(false)} />
+      )}
+    </div>
+  );
+}
+
+// Relatório de expedição do dia — o formato que a balança usa pra saber o
+// que carregar em cada caminhão: horário, cliente, endereço, m³, FCK/Brita/
+// Slump, valor, vendedor e peça. Pensado pra imprimir.
+function ProgramacaoDiariaModal({ records, clienteByPedido, onClose }) {
+  const [data, setData] = useState(new Date().toISOString().slice(0, 10));
+
+  const doDia = useMemo(() => {
+    return (records || [])
+      .filter((r) => r.data === data)
+      .sort((a, b) => (a.horario || "").localeCompare(b.horario || ""));
+  }, [records, data]);
+
+  const totalM3 = doDia.reduce((s, r) => s + (Number(r.qtdDias) || 0), 0);
+  const dataFormatada = data ? new Date(`${data}T00:00:00`).toLocaleDateString("pt-BR") : "";
+
+  return (
+    <Modal title="Programação Diária" onClose={onClose} wide>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "18px", gap: "12px", flexWrap: "wrap" }}>
+        <Field label="Data">
+          <Input type="date" value={data} onChange={(e) => setData(e.target.value)} style={{ width: "180px" }} />
+        </Field>
+        <Button icon={Printer} onClick={() => window.print()}>Imprimir</Button>
+      </div>
+
+      <div id="programacao-diaria-imprimir" className="tl-print-area">
+        <div style={{ textAlign: "center", marginBottom: "16px", borderBottom: "2px solid #333", paddingBottom: "10px" }}>
+          <div style={{ fontWeight: 800, fontSize: "16px" }}>{PREFS_ATUAL_REF?.nomeEmpresa || "RJL Mix Concreto"}</div>
+          <div style={{ fontSize: "13px", color: "#555", marginTop: "4px" }}>EXPEDIÇÃO :: TODAS PARA {dataFormatada}</div>
+        </div>
+
+        {doDia.length === 0 ? (
+          <EmptyState icon={Truck} title="Nenhum lançamento nessa data" hint="Escolhe outra data acima, ou lança a produção do dia primeiro." />
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: "0" }}>
+            {doDia.map((r, i) => {
+              const cliente = clienteByPedido.get(String(r.pedido).trim());
+              return (
+                <div key={r.id} style={{ padding: "12px 4px", borderBottom: "1px solid #ccc", fontSize: "12.5px" }}>
+                  <div style={{ fontWeight: 700, marginBottom: "4px" }}>{r.horario || "--:--"}</div>
+                  <div><strong>CLIENTE</strong> &nbsp; {cliente ? cliente.nome : r.cliente || "-"} {r.pedido ? `- ${r.pedido}` : ""}</div>
+                  <div><strong>ENDEREÇO</strong> &nbsp; {cliente ? enderecoCompleto(cliente) : r.endereco || "-"}</div>
+                  <div>
+                    <strong>m3</strong> &nbsp; {r.qtdDias || "-"}
+                    {"     "}
+                    {[r.fck, r.brita, r.slump ? `SLUMP ${r.slump}` : ""].filter(Boolean).join(" - ")}
+                  </div>
+                  <div>
+                    <strong>VALOR UNIT</strong> &nbsp; {money(r.valorDiaria)}
+                    {r.pedidoCliente ? `     Pedido ${r.pedidoCliente}` : ""}
+                  </div>
+                  <div><strong>VENDEDOR</strong> &nbsp; {r.vendedor || "-"}</div>
+                  <div><strong>BOMBISTA</strong> &nbsp; {numeroSeguro(r.frete) > 0 ? "BOMBA" : "CONVENCIONAL"}</div>
+                  <div><strong>PEÇA</strong> &nbsp; {r.peca || ""}</div>
+                </div>
+              );
+            })}
+            <div style={{ padding: "14px 4px", fontWeight: 700, fontSize: "13px", display: "flex", justifyContent: "space-between" }}>
+              <span>{doDia.length} registro(s)</span>
+              <span>Total para {dataFormatada} &nbsp; {totalM3.toFixed(1)} m³</span>
+            </div>
+          </div>
+        )}
+      </div>
+    </Modal>
+  );
+}
+function RelatorioGeralPedido({ pedido, cliente, producaoEsc, propostas, financeiro, onClose }) {
+  const [gerandoPdf, setGerandoPdf] = useState(false);
+  const [aviso, setAviso] = useState("");
+
+  const lancamentosEsc = (producaoEsc || []).filter((r) => String(r.pedido).trim() === pedido);
+  const propostasPedido = (propostas || []).filter((p) => String(p.pedido).trim() === pedido);
+  const contasPedido = (financeiro || []).filter((c) => String(c.pedido).trim() === pedido);
+
+  const totalEsc = lancamentosEsc.reduce((s, r) => s + numeroSeguro(r.total), 0);
+  const totalPropostas = propostasPedido.reduce((s, p) => s + calcularTotalProposta(p), 0);
+  const totalGeral = totalEsc;
+
+  const enviar = async () => {
+    setGerandoPdf(true);
+    setAviso("");
+    const blob = await gerarPdfRelatorioGeral(pedido, cliente, lancamentosEsc, propostasPedido, contasPedido, totalGeral);
+    setGerandoPdf(false);
+
+    const texto =
+      `*Relatório Geral — Pedido nº ${pedido}*\n\n` +
+      (cliente ? `Cliente: ${cliente.nome}\n` : "") +
+      `Lançamentos: ${lancamentosEsc.length}\n` +
+      `Total: ${money(totalGeral)}\n\n${PREFS_ATUAL_REF?.nomeEmpresa || "RJL Mix Concreto"}`;
+
+    let telefone = (cliente?.telefone || "").replace(/\D/g, "");
+    const abrirTextoSimples = () => {
+      if (!telefone) {
+        const digitado = window.prompt("Cliente sem telefone cadastrado. Digite o número (com DDD):", "");
+        telefone = (digitado || "").replace(/\D/g, "");
+        if (!telefone) return;
+      }
+      const numeroFinal = telefone.startsWith("55") ? telefone : `55${telefone}`;
+      window.open(`https://wa.me/${numeroFinal}?text=${encodeURIComponent(texto)}`, "_blank");
+    };
+
+    if (!blob) {
+      setAviso("Ainda não gero PDF de verdade — mandando como texto. Pra enviar com a logo, use "Imprimir" e escolha "Salvar como PDF".");
+      abrirTextoSimples();
+      return;
+    }
+
+    const fileName = `relatorio-geral-pedido-${pedido}.pdf`;
+    const file = new File([blob], fileName, { type: "application/pdf" });
+
+    if (ehCelular && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: `Relatório - Pedido ${pedido}`, text: `Relatório Geral - ${PREFS_ATUAL_REF?.nomeEmpresa || "RJL Mix Concreto"}` });
+        return;
+      } catch (e) {
+        /* segue pro download abaixo */
+      }
+    }
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    window.alert(`PDF baixado como "${fileName}" (confira a pasta Downloads).\n\nO WhatsApp vai abrir agora só com o texto — anexe esse arquivo baixado na conversa antes de enviar.`);
+    abrirTextoSimples();
+    setAviso("PDF baixado e WhatsApp aberto — é só anexar o arquivo baixado na conversa.");
+  };
+
+  return (
+    <Modal title={`Relatório geral — Pedido nº ${pedido}`} onClose={onClose} wide>
+      <div className="tl-print-area" style={{ background: "#fff", color: "#1a1a1a", borderRadius: "6px", padding: "28px", fontFamily: "Inter, sans-serif" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", borderBottom: "2px solid #1a1a1a", paddingBottom: "14px", marginBottom: "20px" }}>
+          <img src={LOGO_DATA_URI()} onError={onLogoError} alt="" style={{ width: "44px", height: "44px", borderRadius: "6px" }} />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "19px" }}>{PREFS_ATUAL_REF?.nomeEmpresa || "RJL Mix Concreto"}</div>
+            <div style={{ fontSize: "11px", color: "#555" }}>{[PREFS_ATUAL_REF?.cnpjEmpresa ? `CNPJ: ${PREFS_ATUAL_REF.cnpjEmpresa}` : "", PREFS_ATUAL_REF?.enderecoEmpresa || ""].filter(Boolean).join(" — ") || "Dados da empresa em Configurações"}</div>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "17px" }}>RELATÓRIO GERAL</div>
+            <div style={{ fontSize: "11px", color: "#555" }}>Pedido nº {pedido}</div>
+          </div>
+        </div>
+
+        {cliente && (
+          <div style={{ marginBottom: "18px", fontSize: "13px" }}>
+            <strong>Cliente:</strong> {cliente.nome} · <strong>Telefone:</strong> {cliente.telefone || "-"} · <strong>Endereço:</strong> {cliente.endereco || "-"}
+          </div>
+        )}
+
+        {lancamentosEsc.length > 0 && (
+          <div style={{ marginBottom: "18px" }}>
+            <strong style={{ fontSize: "13.5px" }}>Produção Concreto ({lancamentosEsc.length})</strong>
+            {lancamentosEsc.map((r) => (
+              <div key={r.id} style={{ borderBottom: "1px solid #eee", padding: "6px 0" }}>
+                <ReportRow label={`${fmtDate(r.data)} — ${r.equipamento || "-"}`} value={<strong>{money(r.total)}</strong>} />
+                <div style={{ fontSize: "11px", color: "#777", paddingLeft: "4px" }}>
+                  Valor: {money(r.valorDiaria)} · Bomba: {money(r.frete)}
+                  {(r.viagens || []).length > 0 && ` · Viagens: ${r.viagens.length} (${money((r.viagens || []).reduce((s, v) => s + subtotalCarga(v) + (Number(v.valorBomba) || 0), 0))})`}
+                </div>
+              </div>
+            ))}
+            <ReportRow label="Subtotal Concreto" value={<strong>{money(totalEsc)}</strong>} />
+          </div>
+        )}
+
+        {propostasPedido.length > 0 && (
+          <div style={{ marginBottom: "18px" }}>
+            <strong style={{ fontSize: "13.5px" }}>Propostas ({propostasPedido.length})</strong>
+            {propostasPedido.map((p) => (
+              <ReportRow
+                key={p.id}
+                label={`${p.tipo} — ${new Date(p.criadaEm).toLocaleDateString("pt-BR")}`}
+                value={money(calcularTotalProposta(p))}
+              />
+            ))}
+          </div>
+        )}
+
+        {contasPedido.length > 0 && (
+          <div style={{ marginBottom: "18px" }}>
+            <strong style={{ fontSize: "13.5px" }}>Financeiro ({contasPedido.length})</strong>
+            {contasPedido.map((c) => (
+              <ReportRow key={c.id} label={`${c.tipo} — ${c.descricao || "-"} (${c.status})`} value={money(c.valor)} />
+            ))}
+          </div>
+        )}
+
+        {lancamentosEsc.length === 0 && propostasPedido.length === 0 && contasPedido.length === 0 && (
+          <p style={{ fontSize: "13px", color: "#777" }}>Nenhum registro encontrado pra esse número de pedido.</p>
+        )}
+
+        <div style={{ borderTop: "2px solid #1a1a1a", marginTop: "18px", paddingTop: "12px", display: "flex", justifyContent: "flex-end" }}>
+          <span style={{ fontSize: "15px", fontWeight: 700 }}>Total geral: {money(totalGeral)}</span>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "16px", flexWrap: "wrap" }}>
+        <Button variant="ghost" onClick={onClose}>Fechar</Button>
+        <Button
+          variant="subtle"
+          icon={MessageCircle}
+          disabled={gerandoPdf}
+          style={{ background: "#25D366", color: "#fff", borderColor: "#25D366", fontWeight: 700 }}
+          onClick={enviar}
+        >
+          {gerandoPdf ? "Gerando PDF..." : "WhatsApp"}
+        </Button>
+        <Button icon={Printer} onClick={() => window.print()}>Imprimir</Button>
+      </div>
+      {aviso && <p style={{ fontSize: "12.5px", color: "var(--amber)", marginTop: "10px", textAlign: "right" }}>{aviso}</p>}
+    </Modal>
+  );
+}
+
+function ReportRow({ label, value }) {
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: "1px solid var(--border-soft)", fontSize: "13px" }}>
+      <span style={{ color: "var(--text-faint)" }}>{label}</span>
+      <span style={{ fontWeight: 500, textAlign: "right" }}>{value || "-"}</span>
+    </div>
+  );
+}
+
+function PedidoReport({ record, cliente, isPerfuratriz, isEscavadeira, onClose, onGerarProposta }) {
+  const viagens = record.viagens || [];
+  return (
+    <Modal title={`Relatório do pedido nº ${record.pedido}`} onClose={onClose}>
+      <div style={{ marginBottom: "6px" }}>
+        <div className="tl-mono" style={{ fontSize: "10.5px", color: "var(--text-faint)", textTransform: "uppercase", marginBottom: "2px" }}>Cliente</div>
+        <ReportRow label="Nome" value={cliente?.nome || record.cliente} />
+        <ReportRow label="Telefone" value={cliente?.telefone} />
+        <ReportRow label="Endereço" value={cliente?.endereco || record.endereco} />
+      </div>
+      <div style={{ marginTop: "14px" }}>
+        <div className="tl-mono" style={{ fontSize: "10.5px", color: "var(--text-faint)", textTransform: "uppercase", marginBottom: "2px" }}>Serviço</div>
+        <ReportRow label="Data" value={fmtDate(record.data)} />
+        <ReportRow label="Concreto" value={record.equipamento} />
+        <ReportRow label="Motorista" value={record.motorista || record.operador} />
+        <ReportRow label="Placa caminhão" value={record.placa} />
+        <ReportRow label="Vendedor" value={record.vendedor} />
+        <ReportRow label="Status" value={record.status} />
+      </div>
+      {isEscavadeira && viagens.length > 0 && (
+        <div style={{ marginTop: "14px" }}>
+          <div className="tl-mono" style={{ fontSize: "10.5px", color: "var(--text-faint)", textTransform: "uppercase", marginBottom: "2px" }}>Cargas de entrega</div>
+          {viagens.map((v, i) => (
+            <ReportRow key={v.id} label={[`Carga ${i + 1}`, v.horario, v.placa].filter(Boolean).join(" · ")} value={money(subtotalCarga(v) + (Number(v.valorBomba) || 0))} />
+          ))}
+        </div>
+      )}
+      <div style={{ marginTop: "14px" }}>
+        <div className="tl-mono" style={{ fontSize: "10.5px", color: "var(--text-faint)", textTransform: "uppercase", marginBottom: "2px" }}>Financeiro</div>
+        <ReportRow label="Metro cúbico" value={record.qtdDias} />
+        <ReportRow label="Valor" value={money(record.valorDiaria)} />
+        <ReportRow label="Bomba" value={money(record.frete)} />
+        <ReportRow label="Total" value={<span style={{ color: "var(--amber)" }}>{money(record.total)}</span>} />
+      </div>
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "20px" }}>
+        <Button variant="ghost" onClick={onClose}>Fechar</Button>
+        <Button icon={FileText} onClick={onGerarProposta}>Gerar proposta</Button>
+      </div>
+    </Modal>
+  );
+}
+
+function ProducaoForm({ initial, equipamentos, isPerfuratriz, isEscavadeira, clienteByPedido, operadores, vendedores, motoristas, caminhoes, empresasRetirada, propostas, ticks, onSave, onClose }) {
+  const [form, setForm] = useState(initial);
+  const [rascunhoRecuperado] = useState(() => !!initial.__rascunho);
+  const [abaAtiva, setAbaAtiva] = useState("lancamento");
+  const [erroValidacao, setErroValidacao] = useState("");
+  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+
+  useEffect(() => {
+    salvarRascunho("producao", form);
+  }, [form]);
+
+  const matched = clienteByPedido.get(String(form.pedido).trim());
+  const fallbackNome = !matched && form.cliente && form.cliente !== "-" ? form.cliente : null;
+  const fallbackEndereco = !matched && form.endereco && form.endereco !== "-" ? form.endereco : null;
+  // As cargas em si agora são editadas na Central de Balança — aqui só
+  // usamos o que já existe pra calcular o total exibido corretamente.
+  const viagens = form.viagens || [];
+  const total = recalcularComCargas(form).total;
+  const ehPago = form.status === "PAGO";
+  // O bloco de pagamento aparece tanto pra status PAGO quanto EM ABERTO —
+  // assim dá pra registrar um pagamento PARCIAL sem precisar marcar o
+  // pedido como "pago" (o que seria enganoso enquanto falta receber parte).
+  const mostraBlocoPagamento = form.status === "PAGO" || form.status === "EM ABERTO";
+  // Se o campo "valor pago" ainda não foi digitado: quando o status é PAGO,
+  // assume o total inteiro; quando é EM ABERTO, assume que nada foi pago
+  // ainda (0), a não ser que a pessoa preencha um valor parcial.
+  const valorPagoProducao = form.valorPago !== "" ? numeroSeguro(form.valorPago) : (ehPago ? total : 0);
+  const restanteProducao = Math.max(0, total - valorPagoProducao);
+  const pagamentoParcialProducao = mostraBlocoPagamento && restanteProducao > 0.005 && valorPagoProducao > 0.005;
+
+  // O pedido usado pra buscar cargas só atualiza 300ms depois que a pessoa
+  // parar de digitar — sem isso, com muitos ticks acumulados no sistema, a
+  // busca refazia a cada letra digitada e podia travar o app no celular.
+  const [pedidoParaBusca, setPedidoParaBusca] = useState(form.pedido);
+  useEffect(() => {
+    const timer = setTimeout(() => setPedidoParaBusca(form.pedido), 300);
+    return () => clearTimeout(timer);
+  }, [form.pedido]);
+
+  const propostaDoPedido = (propostas || []).find((p) => String(p.pedido).trim() === String(form.pedido).trim());
+  const totalProposta = propostaDoPedido ? calcularTotalProposta(propostaDoPedido) : 0;
+
+  // Antes, "puxar da proposta" jogava os itens dentro de "viagens" — que é
+  // EXATAMENTE a mesma lista das cargas da Central de Balança. Isso criava
+  // cargas falsas lá (sem volume/placa/motorista de verdade), inflava o
+  // total a cada clique repetido (somava de novo por cima) e desalinhava
+  // Financeiro e Fechamento. Agora não mexe mais em "viagens": preenche
+  // direto o metro cúbico, o valor por m³, a bomba, o FCK/Brita/Peça e o
+  // vendedor do lançamento com o que já está na proposta — e sempre
+  // SUBSTITUI (nunca soma), então clicar de novo não duplica nada.
+  const puxarDaProposta = () => {
+    if (!propostaDoPedido) return;
+    setForm({
+      ...form,
+      qtdDias: propostaDoPedido.volumeConcreto || form.qtdDias,
+      valorDiaria: propostaDoPedido.valorM3 || form.valorDiaria,
+      frete: propostaDoPedido.bomba || form.frete,
+      fck: propostaDoPedido.fck || form.fck,
+      brita: propostaDoPedido.brita || form.brita,
+      slump: propostaDoPedido.slump || form.slump,
+      peca: propostaDoPedido.peca || form.peca,
+      vendedor: propostaDoPedido.vendedor || form.vendedor,
+    });
+  };
+  const jaPuxouDaProposta =
+    propostaDoPedido &&
+    propostaDoPedido.volumeConcreto &&
+    String(form.qtdDias) === String(propostaDoPedido.volumeConcreto) &&
+    String(form.valorDiaria) === String(propostaDoPedido.valorM3);
+  const limparValoresPuxados = () => setForm({ ...form, qtdDias: "", valorDiaria: "" });
+
+  // Quando esse lançamento nasce de uma proposta que acabou de fechar
+  // (vindo direto de Propostas), já puxa os dados sozinho — sem precisar
+  // clicar em "Puxar itens e valores da proposta" na mão.
+  useEffect(() => {
+    if (!initial.equipamento && propostaDoPedido && !jaPuxouDaProposta) {
+      puxarDaProposta();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <>
+    <Modal title={initial.equipamento ? "Editar lançamento" : "Novo lançamento"} onClose={() => { limparRascunho("producao"); onClose(); }} wide>
+      {rascunhoRecuperado && <RascunhoBanner />}
+
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (ehPago && !form.formaPagamento.trim()) {
+            setErroValidacao("Pra marcar como PAGO, é obrigatório preencher a forma de pagamento (PIX, boleto, dinheiro, etc).");
+            return;
+          }
+          if (pagamentoParcialProducao && !form.dataProximoPagamento) {
+            setErroValidacao("Como o pagamento foi parcial, preencha a data prevista pro próximo pagamento do restante.");
+            return;
+          }
+          setErroValidacao("");
+          limparRascunho("producao");
+          // "Equipamento" (usado nos relatórios) vira a combinação de FCK +
+          // Brita; "Operador" vira o motorista — assim os relatórios que já
+          // existem continuam funcionando sem precisar mudar em outro lugar.
+          const equipamentoMontado = [form.fck, form.brita, form.slump ? `SLUMP ${form.slump}` : ""].filter(Boolean).join(" - ");
+          const dadosFinais = {
+            ...form,
+            equipamento: equipamentoMontado || form.equipamento,
+            operador: form.motorista || form.operador,
+          };
+          // Se "valor pago" ficou em branco, salva com o total atual (pagamento
+          // integral) — assim nunca grava vazio, mesmo sem o usuário mexer no campo.
+          onSave(ehPago && form.valorPago === "" ? { ...dadosFinais, valorPago: total } : dadosFinais);
+        }}
+      >
+        {!form.equipamento && !form.data && (
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "#3A2F13", border: "1px solid #5A4A1F", borderRadius: "8px", padding: "10px 14px", marginBottom: "16px", fontSize: "12.5px", color: "#E8A63D" }}>
+            <AlertTriangle size={15} style={{ flexShrink: 0 }} />
+            Não esqueça de definir a <strong>data de entrega</strong> desse pedido.
+          </div>
+        )}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+          <Field label="Nº do pedido" required hint={matched || fallbackNome ? undefined : form.pedido ? "Nenhum cliente cadastrado com esse pedido" : undefined}>
+            <Input value={form.pedido} onChange={set("pedido")} required />
+          </Field>
+          <Field label="Data de entrega">
+            <Input type="date" value={form.data} onChange={set("data")} />
+          </Field>
+        </div>
+
+        <div
+          style={{
+            background: "var(--bg-base)",
+            border: "1px solid var(--border-soft)",
+            borderRadius: "6px",
+            padding: "10px 12px",
+            marginBottom: "16px",
+            fontSize: "13px",
+          }}
+        >
+          <div className="tl-mono" style={{ fontSize: "10.5px", color: "var(--text-faint)", marginBottom: "4px", textTransform: "uppercase" }}>
+            Cliente {matched ? "(automático)" : fallbackNome ? "(salvo neste pedido)" : ""}
+          </div>
+          {matched ? (
+            <>
+              <div style={{ fontWeight: 600 }}>{matched.nome}</div>
+              <div style={{ color: "var(--text-muted)", fontSize: "12.5px" }}>{enderecoCompleto(matched) || "Endereço não cadastrado"}</div>
+              {matched.observacao && <div style={{ color: "var(--text-faint)", fontSize: "11.5px", marginTop: "2px" }}>Obs: {matched.observacao}</div>}
+            </>
+          ) : fallbackNome ? (
+            <>
+              <div style={{ fontWeight: 600 }}>{fallbackNome}</div>
+              <div style={{ color: "var(--text-muted)", fontSize: "12.5px" }}>{fallbackEndereco || "Endereço não cadastrado"}</div>
+              <div style={{ color: "var(--text-faint)", fontSize: "11px", marginTop: "4px" }}>
+                Este pedido não tem cadastro em Clientes — cadastre-o lá para manter os dados sempre atualizados.
+              </div>
+            </>
+          ) : (
+            <div style={{ color: "var(--text-faint)" }}>Digite um nº de pedido cadastrado em Clientes</div>
+          )}
+        </div>
+
+        {propostaDoPedido && (
+          <div
+            style={{
+              background: "var(--bg-panel-raised)",
+              border: "1px solid var(--amber)",
+              borderRadius: "6px",
+              padding: "10px 12px",
+              marginBottom: "16px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: "10px",
+              flexWrap: "wrap",
+            }}
+          >
+            <div style={{ fontSize: "12.5px" }}>
+              <div className="tl-mono" style={{ fontSize: "10.5px", color: "var(--amber)", textTransform: "uppercase", marginBottom: "2px" }}>
+                Proposta encontrada pra esse pedido
+              </div>
+              <div>{linhasProposta(propostaDoPedido).length} item(ns) · Total: <strong>{money(totalProposta)}</strong></div>
+              {jaPuxouDaProposta && <div style={{ color: "var(--success)", fontSize: "11.5px", marginTop: "2px" }}>✓ Já puxado pra "Metro cúbico" / "Valor metro cúbico" abaixo</div>}
+            </div>
+            <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+              {jaPuxouDaProposta && (
+                <button type="button" onClick={limparValoresPuxados} className="tl-focus" style={{ background: "none", border: "none", color: "var(--danger)", fontSize: "12px", textDecoration: "underline", cursor: "pointer", padding: 0 }}>
+                  Remover valores puxados
+                </button>
+              )}
+              <Button type="button" size="sm" variant="subtle" icon={FileText} onClick={puxarDaProposta}>
+                {jaPuxouDaProposta ? "Puxar de novo" : "Puxar itens e valores da proposta"}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+          <Field label="FCK" hint="Ex: FCK 25, FCK 30">
+            <Input value={form.fck} onChange={set("fck")} list="lista-fck" />
+            <datalist id="lista-fck">
+              <option value="FCK 15" />
+              <option value="FCK 20" />
+              <option value="FCK 25" />
+              <option value="FCK 30" />
+              <option value="FCK 35" />
+              <option value="FCK 40" />
+            </datalist>
+          </Field>
+          <Field label="Brita" hint="Ex: Brita 0, Brita 1">
+            <Input value={form.brita} onChange={set("brita")} list="lista-brita" />
+            <datalist id="lista-brita">
+              <option value="Brita 0" />
+              <option value="Brita 0/1" />
+              <option value="Brita 1" />
+              <option value="Brita 2" />
+            </datalist>
+          </Field>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+          <Field label="Slump" hint="Ex: 7+-1, 10+-2, 12+-2">
+            <Input value={form.slump} onChange={set("slump")} />
+          </Field>
+          <Field label="Peça" hint="Ex: Laje, Piso, Base, Calçada, Sapata">
+            <Input value={form.peca} onChange={set("peca")} list="lista-pecas" />
+            <datalist id="lista-pecas">
+              <option value="Laje" />
+              <option value="Piso" />
+              <option value="Base" />
+              <option value="Calçada" />
+              <option value="Sapata" />
+              <option value="Viga" />
+              <option value="Pilar" />
+              <option value="Contrapiso" />
+              <option value="Rampa" />
+              <option value="Pavimentação" />
+            </datalist>
+          </Field>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+          <Field label="Horário" hint="Hora prevista de carregamento">
+            <Input type="time" value={form.horario} onChange={set("horario")} />
+          </Field>
+          <Field label="Pedido do cliente" hint="Nº de pedido/nota do lado do cliente, se houver">
+            <Input value={form.pedidoCliente} onChange={set("pedidoCliente")} />
+          </Field>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+          <Field label="Status">
+            <Select value={form.status} onChange={set("status")}>
+              {STATUS_PRODUCAO.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </Select>
+          </Field>
+        </div>
+
+        {mostraBlocoPagamento && (
+          <div style={{ background: "var(--bg-base)", border: "1px solid var(--border-soft)", borderRadius: "8px", padding: "14px 16px", marginBottom: "16px" }}>
+            <Field label={ehPago ? "Forma de pagamento *" : "Forma de pagamento"} hint={ehPago ? "Obrigatório quando o status é PAGO" : "Preenche se já recebeu algum valor adiantado"}>
+              <Input value={form.formaPagamento} onChange={set("formaPagamento")} placeholder="Ex: PIX, boleto, dinheiro" required={ehPago} />
+            </Field>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+              <Field label="Valor pago (R$)" hint={ehPago ? "Deixa em branco se pagou o total inteiro" : "Deixa em branco se ainda não recebeu nada"}>
+                <Input type="number" min="0" step="0.01" value={form.valorPago} onChange={set("valorPago")} placeholder={ehPago ? money(total) : "0,00"} />
+              </Field>
+              <Field label="Falta pagar (calculado sozinho)">
+                <div style={{ padding: "9px 12px", background: "var(--bg-panel-raised)", borderRadius: "6px", fontSize: "14px", fontWeight: 700, color: restanteProducao > 0.005 ? "var(--danger)" : "var(--success)" }} className="tl-mono">
+                  {money(restanteProducao)}
+                </div>
+              </Field>
+            </div>
+            {pagamentoParcialProducao && (
+              <Field label="Data prevista pro próximo pagamento *" hint="Obrigatório porque ficou faltando pagar uma parte">
+                <Input type="date" value={form.dataProximoPagamento} onChange={set("dataProximoPagamento")} required />
+              </Field>
+            )}
+          </div>
+        )}
+
+        {erroValidacao && (
+          <div style={{ background: "#3A1E1E", border: "1px solid #5a3030", color: "#D6706F", borderRadius: "6px", padding: "10px 12px", fontSize: "12.5px", marginBottom: "14px" }}>
+            {erroValidacao}
+          </div>
+        )}
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0 16px" }}>
+          <Field label="Metro cúbico">
+            <Input type="number" min="0" step="0.1" value={form.qtdDias} onChange={set("qtdDias")} />
+          </Field>
+          <Field label="Valor metro cúbico (R$)">
+            <Input type="number" min="0" step="0.01" value={form.valorDiaria} onChange={set("valorDiaria")} />
+          </Field>
+          <Field label="Bomba (R$)">
+            <Input type="number" min="0" step="0.01" value={form.frete} onChange={set("frete")} />
+          </Field>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+          <Field label="Vendedor">
+            <Input value={form.vendedor} onChange={set("vendedor")} list="lista-vendedores" />
+            <datalist id="lista-vendedores">
+              {porNome(vendedores).map((v) => <option key={v.id} value={v.nome} />)}
+            </datalist>
+          </Field>
+        </div>
+
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            background: "var(--bg-panel-raised)",
+            border: "1px solid var(--border)",
+            borderRadius: "6px",
+            padding: "10px 14px",
+            marginBottom: "18px",
+          }}
+        >
+          <span className="tl-mono" style={{ fontSize: "11px", color: "var(--text-muted)", textTransform: "uppercase" }}>Total do pedido</span>
+          <span className="tl-display" style={{ fontSize: "22px", fontWeight: 700, color: "var(--amber)" }}>{money(total)}</span>
+        </div>
+
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
+          <Button type="button" variant="ghost" onClick={() => { limparRascunho("producao"); onClose(); }}>Cancelar</Button>
+          <Button type="submit">Salvar lançamento</Button>
+        </div>
+      </form>
+    </Modal>
+    </>
+  );
+}
+
+// Ordem de serviço de UMA carga específica — pronta pra imprimir. Os dados
+// continuam salvos dentro do lançamento de Produção (pedido original); isso
+// só formata essa carga sozinha pra impressão, sem duplicar nada.
+// Célula da tabela "estilo canhoto" (bordas finas, rótulo pequeno em cima,
+// valor embaixo) — usada em vários pontos da Ordem de Serviço pra imitar o
+// layout de nota fiscal que a empresa já usa em papel.
+function CelulaOS({ label, value, flex, borderRight = true }) {
+  return (
+    <div style={{ flex: flex || 1, padding: "5px 8px", borderRight: borderRight ? "1px solid #999" : "none", minWidth: 0 }}>
+      <div style={{ fontSize: "8.5px", fontWeight: 700, letterSpacing: "0.3px", color: "#666", textTransform: "uppercase", marginBottom: "2px" }}>{label}</div>
+      <div style={{ fontSize: "11.5px", fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{value || "\u00A0"}</div>
+    </div>
+  );
+}
+
+function OrdemServicoCargaModal({ carga, indice, form, cliente, onClose }) {
+  const nomeEmpresa = PREFS_ATUAL_REF?.nomeEmpresa || "RJL Mix Concreto";
+  const anoPedido = (form.data || "").slice(0, 4) || new Date().getFullYear();
+  const protocolo = `${form.pedido || "0"}${String(indice + 1).padStart(2, "0")}`;
+  const razaoSocial = cliente?.empresa || cliente?.nome || form.cliente || "-";
+  const cnpjCpf = cliente?.cpf || "-";
+  const descricaoConcreto = [form.fck, form.brita, form.slump ? `SLUMP ${form.slump}` : ""].filter(Boolean).join(" - ") || "-";
+  const valorBomba = numeroSeguro(carga.valorBomba);
+  const totalCarga = subtotalCarga(carga) + valorBomba;
+
+  return (
+    <Modal title={`Ordem de Serviço — Carga ${indice + 1}`} onClose={onClose} wide>
+      <div style={{ marginBottom: "16px" }}>
+        <Button icon={Printer} onClick={() => window.print()}>Imprimir</Button>
+      </div>
+      <div className="tl-print-area" style={{ background: "#fff", color: "#1a1a1a", padding: "18px", fontFamily: "Inter, sans-serif", fontSize: "12px", border: "1px solid #999" }}>
+        {/* Cabeçalho: logo/empresa à esquerda, data/horário/protocolo à direita */}
+        <div style={{ display: "flex", borderBottom: "2px solid #1a1a1a", paddingBottom: "10px", marginBottom: "10px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", flex: 1 }}>
+            <img src={LOGO_DATA_URI()} onError={onLogoError} alt="" style={{ width: "44px", height: "44px", objectFit: "contain", flexShrink: 0 }} />
+            <div>
+              <div style={{ fontWeight: 800, fontSize: "15px", lineHeight: 1.15 }}>{nomeEmpresa}</div>
+              {PREFS_ATUAL_REF?.enderecoEmpresa && <div style={{ fontSize: "9.5px", color: "#555" }}>{PREFS_ATUAL_REF.enderecoEmpresa}</div>}
+              {PREFS_ATUAL_REF?.cnpjEmpresa && <div style={{ fontSize: "9.5px", color: "#555" }}>CNPJ: {PREFS_ATUAL_REF.cnpjEmpresa}</div>}
+            </div>
+          </div>
+          <div style={{ display: "flex", border: "1px solid #1a1a1a" }}>
+            <div style={{ padding: "5px 12px", borderRight: "1px solid #1a1a1a", textAlign: "center" }}>
+              <div style={{ fontSize: "8px", fontWeight: 700, color: "#666" }}>DATA DE ENTREGA</div>
+              <div style={{ fontSize: "13px", fontWeight: 800 }}>{fmtDate(form.data) || "-"}</div>
+            </div>
+            <div style={{ padding: "5px 12px", textAlign: "center" }}>
+              <div style={{ fontSize: "8px", fontWeight: 700, color: "#666" }}>HORÁRIO</div>
+              <div style={{ fontSize: "13px", fontWeight: 800 }}>{carga.horario || "-"}</div>
+            </div>
+          </div>
+        </div>
+        <div style={{ textAlign: "right", fontSize: "10.5px", fontWeight: 700, marginBottom: "10px" }}>PROTOCOLO {protocolo}</div>
+
+        {/* Destinatário */}
+        <div style={{ fontSize: "9px", fontWeight: 700, color: "#666", marginBottom: "2px" }}>DESTINATÁRIO</div>
+        <div style={{ border: "1px solid #999", marginBottom: "10px" }}>
+          <div style={{ display: "flex", borderBottom: "1px solid #999" }}>
+            <CelulaOS label="Razão Social" value={razaoSocial} flex={2.2} />
+            <CelulaOS label="CNPJ / CPF" value={cnpjCpf} flex={1.3} />
+            <CelulaOS label="Data da Emissão" value={fmtDate(form.data)} flex={1} borderRight={false} />
+          </div>
+          <div style={{ display: "flex", borderBottom: "1px solid #999" }}>
+            <CelulaOS label="Endereço" value={cliente ? enderecoCompleto(cliente) : form.endereco || "-"} flex={2.2} />
+            <CelulaOS label="Bairro / Distrito" value={cliente?.bairro} flex={1} />
+            <CelulaOS label="CEP" value={cliente?.cep} flex={0.8} />
+            <CelulaOS label="Data Entrada/Saída" value={fmtDate(form.data)} flex={1} borderRight={false} />
+          </div>
+          <div style={{ display: "flex" }}>
+            <CelulaOS label="Município" value={cliente?.municipio} flex={1.4} />
+            <CelulaOS label="Fone / Fax" value={cliente?.telefone} flex={1} />
+            <CelulaOS label="UF" value={cliente?.uf} flex={0.5} />
+            <CelulaOS label="Inscrição Estadual" value={cliente?.inscricaoEstadual} flex={1} />
+            <CelulaOS label="Hora Entr/Saída" value={carga.horario} flex={1} borderRight={false} />
+          </div>
+        </div>
+
+        {/* Dados do produto */}
+        <div style={{ fontSize: "9px", fontWeight: 700, color: "#666", marginBottom: "2px" }}>DADOS DO PRODUTO</div>
+        <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "10px", fontSize: "11.5px" }}>
+          <thead>
+            <tr>
+              <th style={{ border: "1px solid #999", padding: "5px 8px", fontSize: "9px", textAlign: "left", background: "#f2f2f2" }}>VOLUME m³</th>
+              <th style={{ border: "1px solid #999", padding: "5px 8px", fontSize: "9px", textAlign: "left", background: "#f2f2f2" }}>DESCRIÇÃO</th>
+              <th style={{ border: "1px solid #999", padding: "5px 8px", fontSize: "9px", textAlign: "right", background: "#f2f2f2" }}>VAL. UNIT</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style={{ border: "1px solid #999", padding: "6px 8px", fontWeight: 700 }}>{carga.volume || "-"}</td>
+              <td style={{ border: "1px solid #999", padding: "6px 8px", fontWeight: 700 }}>{descricaoConcreto}{form.peca ? ` — Peça: ${form.peca}` : ""}</td>
+              <td style={{ border: "1px solid #999", padding: "6px 8px", fontWeight: 700, textAlign: "right" }}>{carga.valor ? money(carga.valor) : "-"}</td>
+            </tr>
+            <tr>
+              <td colSpan={3} style={{ border: "1px solid #999", padding: "6px 8px", textAlign: "right" }}>
+                {valorBomba > 0 && (
+                  <div style={{ fontSize: "11px" }}>Taxa bomba{carga.numeroBomba ? ` Nº ${carga.numeroBomba}` : ""}: <strong>{money(valorBomba)}</strong></div>
+                )}
+                <div style={{ fontSize: "13px", fontWeight: 800, marginTop: valorBomba > 0 ? "3px" : 0 }}>Total: {money(totalCarga)}</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        {/* Observações + informativo preventivo */}
+        <div style={{ fontSize: "9px", fontWeight: 700, color: "#666", marginBottom: "2px" }}>OBSERVAÇÕES</div>
+        <div style={{ border: "1px solid #999", padding: "10px", fontSize: "10.5px", lineHeight: 1.6, marginBottom: "10px" }}>
+          <div style={{ marginBottom: "8px" }}>
+            <strong>PED {form.pedido || "-"}/{String(anoPedido).slice(-2)}</strong>
+            {form.vendedor ? `  VENDEDOR: ${form.vendedor}` : ""}
+            {`  CONTRATANTE: ${razaoSocial}`}
+            {cnpjCpf !== "-" ? ` - CNPJ/CPF: ${cnpjCpf}` : ""}
+            {` - ENDEREÇO: ${cliente ? enderecoCompleto(cliente) : form.endereco || "-"}`}
+            {carga.motorista ? ` - MOTORISTA: ${carga.motorista}` : ""}
+            {carga.lacre ? ` - LACRE: ${carga.lacre}` : ""}
+            {carga.placa ? ` - PLACA: ${carga.placa}` : ""}
+            {valorBomba > 0 ? ` - BOMBA${carga.numeroBomba ? ` Nº ${carga.numeroBomba}` : ""}` : ""}
+          </div>
+          <div style={{ fontWeight: 700, marginBottom: "4px" }}>INFORMATIVO PREVENTIVO AO CLIENTE</div>
+          <ol style={{ margin: 0, paddingLeft: "16px" }}>
+            <li>Molhar bem a laje antes da concretagem;</li>
+            <li>Conferir a nota fiscal e o lacre do caminhão;</li>
+            <li>Verificar o escoramento na laje com apoios de 1 em 1 metro de distância, sob risco de abaulamento e queda;</li>
+            <li>Não alterar a quantidade de água na mistura do concreto, aguardando no mínimo 35 minutos para molhar a laje, após concretagem, sob riscos de fissuras;</li>
+            <li>Molhar a laje por 7 dias e cobrir com lona plástica, mantendo-a sempre umedecida, sob riscos de fissuras;</li>
+            <li>Em caso de contratação de bomba para escoamento do concreto, providenciar um saco de cimento para nata lubrificadora;</li>
+            <li>Em hipótese alguma deve permanecer sob a laje pessoas ou coisas, sendo de total e irrestrita responsabilidade do cliente eventuais danos que ocorrem com aqueles;</li>
+            <li>A responsabilidade da {nomeEmpresa} se limita a obedecer as especificações técnicas do concreto fornecidas pelo cliente, contendo a dosagem, consistência e resistência;</li>
+            <li>Concreto não é impermeável, assim não há garantia contra vazamentos posteriores à sua secagem;</li>
+            <li>A {nomeEmpresa} só se responsabiliza pela entrega correta do produto adquirido, mas não pela medição da quantidade necessária deste, pois o volume pode sofrer variações conforme o terreno, superfícies e montagem das ferragens da obra. Desta forma, se o volume de concreto se mostrar insuficiente, caberá ao comprador a quitação da diferença à maior do concreto consumido;</li>
+            <li>É de responsabilidade do cliente a montagem da laje com materiais apropriados e determinados pelo projeto estrutural, bem como a instalação correta das escoras, devidamente apoiadas em solo firme, tudo em condições técnicas hábeis para suportar o peso do concreto, da laje e dos profissionais que farão a concretagem.</li>
+          </ol>
+          <p style={{ marginTop: "8px", marginBottom: 0 }}>O cliente, que abaixo assina, se declara ciente dos termos acima descritos, bem como ser sua a responsabilidade pelo descumprimento de qualquer uma das regras expostas.</p>
+        </div>
+
+        <div style={{ display: "flex", gap: "24px", marginTop: "26px", marginBottom: "18px" }}>
+          <div style={{ flex: 1, borderTop: "1px solid #1a1a1a", paddingTop: "4px", textAlign: "center", fontSize: "10px", color: "#555" }}>Assinatura</div>
+          <div style={{ flex: 1, borderTop: "1px solid #1a1a1a", paddingTop: "4px", textAlign: "center", fontSize: "10px", color: "#555" }}>RG</div>
+        </div>
+
+        <div style={{ borderTop: "1px dashed #999", paddingTop: "10px", fontSize: "10.5px", lineHeight: 1.6 }}>
+          <div style={{ fontWeight: 700, marginBottom: "4px" }}>ADIÇÃO DE ÁGUA</div>
+          <p style={{ margin: 0 }}>
+            Determinei a adição de ______ litros de água no volume de ______ m³ de concreto, elevado o abatimento máximo para ______ cm.
+            Tenho ciência que esta adição de água acarretará alterações nas características do concreto, diminuindo a resistência do concreto.
+          </p>
+          <div style={{ display: "flex", gap: "24px", marginTop: "24px" }}>
+            <div style={{ flex: 1, borderTop: "1px solid #1a1a1a", paddingTop: "4px", textAlign: "center", fontSize: "10px", color: "#555" }}>Nome completo / RG</div>
+            <div style={{ flex: 1, borderTop: "1px solid #1a1a1a", paddingTop: "4px", textAlign: "center", fontSize: "10px", color: "#555" }}>Assinatura / Data</div>
+          </div>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+// Tela dedicada da balança — digita o pedido, o sistema puxa cliente,
+// endereço e a especificação do concreto sozinho, e o operador só lança
+// cada carga que sai (horário, placa, motorista, volume, valor, lacre,
+// bomba). As cargas ficam salvas dentro do mesmo lançamento de Produção.
+// Box de fechamento do pedido — se ainda tem saldo em aberto, oferece um
+// link pronto de cobrança pelo WhatsApp; sempre oferece dar baixa (marca o
+// lançamento como CONCLUÍDO em Produção-Concreto).
+function FinalizarPedidoBox({ lancamento, cliente, producaoEsc, onChangeProducaoEsc }) {
+  const total = numeroSeguro(lancamento.total);
+  const valorPago = lancamento.valorPago !== "" && lancamento.valorPago !== undefined ? numeroSeguro(lancamento.valorPago) : (lancamento.status === "PAGO" ? total : 0);
+  const saldoAberto = Math.max(0, total - valorPago);
+  // "Obra finalizada" é separado do status financeiro (EM ABERTO/PAGO/
+  // etc). Antes esse botão trocava o status do lançamento pra
+  // "CONCLUÍDO", o que confundia o Financeiro. Agora só marca que a obra
+  // terminou, sem mexer em nada do dinheiro.
+  const jaFinalizado = !!lancamento.obraFinalizada;
+  const [avisoFinalizado, setAvisoFinalizado] = useState(false);
+
+  const finalizar = () => {
+    onChangeProducaoEsc(producaoEsc.map((r) => (r.id === lancamento.id ? { ...r, obraFinalizada: true } : r)));
+    setAvisoFinalizado(true);
+    setTimeout(() => setAvisoFinalizado(false), 3000);
+  };
+
+  const linkCobranca = () => {
+    const telefone = (cliente?.telefone || "").replace(/\D/g, "");
+    const msg = `Olá! Sobre o pedido nº ${lancamento.pedido}, ainda está em aberto o valor de ${money(saldoAberto)}. Pode nos ajudar com a regularização? Qualquer dúvida, estamos à disposição!`;
+    const url = telefone ? `https://wa.me/55${telefone}?text=${encodeURIComponent(msg)}` : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+    window.open(url, "_blank");
+  };
+
+  if (avisoFinalizado) {
+    return (
+      <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "#1E3A2A", border: "1px solid var(--success)", borderRadius: "9px", padding: "12px 16px", marginBottom: "18px", fontSize: "13px", color: "var(--success)", fontWeight: 600 }}>
+        <CheckCircle2 size={16} /> Obra finalizada!
+      </div>
+    );
+  }
+
+  if (jaFinalizado) {
+    return (
+      <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "var(--bg-panel)", border: "1px solid var(--border-soft)", borderRadius: "9px", padding: "12px 16px", marginBottom: "18px", fontSize: "12.5px", color: "var(--success)" }}>
+        <CheckCircle2 size={16} /> Essa obra já está marcada como finalizada.
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px", background: "var(--bg-panel)", border: "1px solid var(--border-soft)", borderRadius: "9px", padding: "12px 16px", marginBottom: "18px" }}>
+      <div style={{ fontSize: "12.5px" }}>
+        {saldoAberto > 0.005 ? (
+          <span>Saldo em aberto: <strong style={{ color: "var(--danger)" }}>{money(saldoAberto)}</strong></span>
+        ) : (
+          <span style={{ color: "var(--success)" }}>Sem saldo em aberto — pode dar baixa.</span>
+        )}
+      </div>
+      <div style={{ display: "flex", gap: "8px" }}>
+        {saldoAberto > 0.005 && (
+          <Button type="button" size="sm" variant="subtle" icon={MessageCircle} onClick={linkCobranca}>Enviar cobrança</Button>
+        )}
+        <Button type="button" size="sm" icon={CheckCircle2} onClick={finalizar}>Finalizar pedido</Button>
+      </div>
+    </div>
+  );
+}
+
+function CentralBalancaModule({ producaoEsc, clienteByPedido, onChangeProducaoEsc, cartaTraco, movimentosEstoque, onChangeMovimentosEstoque, financeiro, onChangeFinanceiro }) {
+  const [pedidoBusca, setPedidoBusca] = useState("");
+  const [cargaAberta, setCargaAberta] = useState(null);
+  const [imprimindoCarga, setImprimindoCarga] = useState(null);
+
+  const hoje = new Date().toISOString().slice(0, 10);
+  const producaoDoDia = useMemo(() => {
+    return producaoEsc
+      .filter((r) => r.data === hoje)
+      .sort((a, b) => (a.horario || "").localeCompare(b.horario || ""));
+  }, [producaoEsc, hoje]);
+
+  const pedido = pedidoBusca.trim();
+  const lancamento = pedido ? producaoEsc.find((r) => String(r.pedido).trim() === pedido) : null;
+  const cliente = pedido ? clienteByPedido.get(pedido) : null;
+  const viagens = lancamento?.viagens || [];
+  const temTraco = lancamento ? cartaTraco.some((t) => (t.fck || "").trim().toLowerCase() === (lancamento.fck || "").trim().toLowerCase()) : false;
+
+  // Recalcula os movimentos de estoque de TODAS as cargas desse lançamento
+  // — sempre remove os antigos (pelo id da carga que os gerou) e recria do
+  // zero com os valores atuais, pra nunca duplicar ao editar uma carga.
+  const recalcularEstoqueDasCargas = (novasViagens) => {
+    if (!lancamento) return movimentosEstoque;
+    const idsDasCargas = new Set(novasViagens.map((v) => v.id));
+    const semAntigos = movimentosEstoque.filter((m) => !(m.origemCargaId && idsDasCargas.has(m.origemCargaId)));
+    const novosMovimentos = [];
+    novasViagens.forEach((v) => {
+      const volumeBruto = Number(v.volume) || 0;
+      const sobra = Number(v.sobra) || 0;
+      const volumeEfetivo = Math.max(0, volumeBruto - sobra);
+      if (volumeEfetivo <= 0) return;
+      const consumo = calcularConsumoMateriais(cartaTraco, lancamento.fck, volumeEfetivo);
+      if (!consumo) return;
+      Object.entries(consumo).forEach(([material, quantidade]) => {
+        if (quantidade <= 0) return;
+        novosMovimentos.push({
+          id: uid(),
+          origemCargaId: v.id,
+          data: lancamento.data || hoje,
+          material,
+          tipo: "Saída",
+          quantidade: Number(quantidade.toFixed(3)),
+          motivo: `Consumo automático — Pedido ${lancamento.pedido}, carta traço ${lancamento.fck}`,
+        });
+      });
+    });
+    return [...semAntigos, ...novosMovimentos];
+  };
+
+  const atualizarViagens = (novasViagens) => {
+    if (!lancamento) return;
+    const atualizado = recalcularComCargas({ ...lancamento, viagens: novasViagens });
+    onChangeProducaoEsc(producaoEsc.map((r) => (r.id === lancamento.id ? atualizado : r)));
+    onChangeMovimentosEstoque(recalcularEstoqueDasCargas(novasViagens));
+  };
+
+  const setViagem = (id, k, v) => atualizarViagens(viagens.map((it) => (it.id === id ? { ...it, [k]: v } : it)));
+  // Cada campo já salva sozinho a cada letra digitada — esse botão não
+  // muda isso, só dá uma confirmação visual de que está tudo salvo.
+  const [salvouCargas, setSalvouCargas] = useState(false);
+  const confirmarSalvo = () => {
+    setSalvouCargas(true);
+    setTimeout(() => setSalvouCargas(false), 1800);
+  };
+  const addViagem = () => {
+    // Já entra com o "Valor por m³" preenchido com o valor combinado no
+    // lançamento — sem precisar digitar de novo em cada carga. A Bomba só
+    // entra sozinha na 1ª carga do pedido; da 2ª em diante fica em branco.
+    const nova = {
+      ...emptyViagem(),
+      valor: lancamento?.valorDiaria || "",
+      valorBomba: viagens.length === 0 ? lancamento?.frete || "" : "",
+    };
+    atualizarViagens([...viagens, nova]);
+    setCargaAberta(viagens.length);
+  };
+  const duplicarUltimaCarga = () => {
+    const base = viagens[viagens.length - 1];
+    const nova = { ...emptyViagem(), placa: base?.placa || "", motorista: base?.motorista || "", volume: base?.volume || "", valor: base?.valor || "" };
+    atualizarViagens([...viagens, nova]);
+    setCargaAberta(viagens.length);
+  };
+  const removeViagem = (id) => {
+    atualizarViagens(viagens.filter((it) => it.id !== id));
+    setCargaAberta(null);
+  };
+  const resumoCarga = (v) => {
+    const subtotal = subtotalCarga(v);
+    const partes = [v.horario, v.placa, v.volume ? `${v.volume} m³` : "", subtotal > 0 ? money(subtotal) : ""].filter(Boolean);
+    return partes.length > 0 ? partes.join(" · ") : "Toca pra preencher";
+  };
+
+  return (
+    <div className="tl-fade-in">
+      <PageHeader eyebrow="Operação" title="Central de Balança" />
+
+      <div style={{ marginBottom: "22px" }}>
+        <h4 className="tl-mono" style={{ fontSize: "11px", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: "10px" }}>Produção de hoje</h4>
+        {producaoDoDia.length === 0 ? (
+          <p style={{ fontSize: "12.5px", color: "var(--text-faint)" }}>Nenhum pedido lançado ainda pra hoje.</p>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px", maxWidth: "720px" }}>
+            {producaoDoDia.map((r) => {
+              const cli = clienteByPedido.get(String(r.pedido).trim());
+              const selecionado = pedido === String(r.pedido).trim();
+              return (
+                <button
+                  key={r.id}
+                  type="button"
+                  onClick={() => setPedidoBusca(String(r.pedido).trim())}
+                  className="tl-focus"
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: "10px",
+                    padding: "10px 12px",
+                    borderRadius: "8px",
+                    border: selecionado ? "1px solid var(--accent)" : "1px solid var(--border-soft)",
+                    background: selecionado ? "var(--bg-panel-raised)" : "var(--bg-panel)",
+                    cursor: "pointer",
+                    textAlign: "left",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0 }}>
+                    <PedidoStub n={r.pedido} />
+                    <span style={{ fontWeight: 600, fontSize: "13px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{cli ? cli.nome : r.cliente || "-"}</span>
+                    <span style={{ fontSize: "12px", color: "var(--text-faint)" }}>{[r.fck, r.brita].filter(Boolean).join(" · ")}</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", flexShrink: 0 }}>
+                    {/* De propósito sem status financeiro aqui — essa aba fica
+                        neutra quanto a pago/pendente/atrasado. Isso vive só
+                        no Financeiro, pra nunca mais divergir. */}
+                    <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>{(r.viagens || []).length} carga(s)</span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <div style={{ maxWidth: "640px" }}>
+        <Field label="Nº do pedido" hint="Digita o pedido, ou clica em um da lista acima">
+          <Input value={pedidoBusca} onChange={(e) => setPedidoBusca(e.target.value)} placeholder="Ex: 620" style={{ fontSize: "16px" }} />
+        </Field>
+
+        {pedido && !lancamento && (
+          <EmptyState icon={Truck} title="Nenhum lançamento encontrado com esse pedido" hint="Cadastra o lançamento em Produção-Concreto primeiro (FCK, brita, slump, valor) — depois volta aqui pra lançar as cargas." />
+        )}
+
+        {lancamento && (
+          <>
+            <div style={{ background: "var(--bg-panel)", border: "1px solid var(--border-soft)", borderRadius: "9px", padding: "14px 16px", marginBottom: "18px" }}>
+              <div style={{ fontWeight: 700, fontSize: "15px", marginBottom: "2px" }}>{cliente ? cliente.nome : lancamento.cliente || "-"}</div>
+              <div style={{ fontSize: "12.5px", color: "var(--text-muted)", marginBottom: "8px" }}>{cliente ? enderecoCompleto(cliente) : lancamento.endereco || "-"}</div>
+              <div style={{ fontSize: "12.5px", color: "var(--text-muted)" }}>
+                {[lancamento.fck, lancamento.brita, lancamento.slump ? `SLUMP ${lancamento.slump}` : ""].filter(Boolean).join(" · ") || "Sem especificação de concreto lançada"}
+                {lancamento.peca ? `  ·  Peça: ${lancamento.peca}` : ""}
+              </div>
+              {cliente?.distanciaKm && (
+                <div style={{ fontSize: "12.5px", color: "var(--amber)", marginTop: "4px", display: "flex", alignItems: "center", gap: "5px" }}>
+                  <Truck size={12} />
+                  {cliente.distanciaTexto || `${cliente.distanciaKm} km`} da usina até a obra{cliente.duracaoTexto ? ` (~${cliente.duracaoTexto})` : ""}
+                </div>
+              )}
+            </div>
+
+            <FinalizarPedidoBox lancamento={lancamento} cliente={cliente} producaoEsc={producaoEsc} onChangeProducaoEsc={onChangeProducaoEsc} />
+
+            <div style={{ marginBottom: "8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span className="tl-mono" style={{ fontSize: "11px", color: "var(--text-muted)", textTransform: "uppercase" }}>Cargas de entrega (Ordens de Serviço)</span>
+              <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                {viagens.length > 0 && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={salvouCargas ? "primary" : "ghost"}
+                    icon={salvouCargas ? Check : Save}
+                    onClick={confirmarSalvo}
+                  >
+                    {salvouCargas ? "Salvo" : "Salvar cargas"}
+                  </Button>
+                )}
+                {viagens.length > 0 && (
+                  <Button type="button" size="sm" variant="ghost" icon={Copy} onClick={duplicarUltimaCarga}>Repetir última</Button>
+                )}
+                <Button type="button" size="sm" variant="subtle" icon={Plus} onClick={addViagem}>Carga</Button>
+              </div>
+            </div>
+
+            {viagens.length === 0 ? (
+              <EmptyState icon={Truck} title="Nenhuma carga lançada ainda pra esse pedido" hint='Clica em "Carga" pra registrar a primeira viagem de caminhão.' />
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginBottom: "10px" }}>
+                {viagens.map((v, i) => {
+                  const aberta = cargaAberta === i;
+                  return (
+                    <div key={v.id} style={{ background: "var(--bg-base)", border: "1px solid var(--border-soft)", borderRadius: "8px", overflow: "hidden" }}>
+                      <div
+                        onClick={() => setCargaAberta(aberta ? null : i)}
+                        style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 10px", cursor: "pointer" }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px", minWidth: 0 }}>
+                          <ChevronRight size={14} style={{ color: "var(--text-faint)", flexShrink: 0, transform: aberta ? "rotate(90deg)" : "none", transition: "transform 0.15s" }} />
+                          <span style={{ fontSize: "12px", fontWeight: 700, color: "var(--text-muted)", flexShrink: 0 }}>Carga {i + 1}</span>
+                          <span style={{ fontSize: "12px", color: "var(--text-faint)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{resumoCarga(v)}</span>
+                        </div>
+                        <div style={{ display: "flex", gap: "4px", flexShrink: 0 }} onClick={(e) => e.stopPropagation()}>
+                          <button type="button" onClick={() => setImprimindoCarga(i)} className="tl-focus" style={iconBtnStyle} title="Imprimir ordem de serviço dessa carga">
+                            <Printer size={13} />
+                          </button>
+                          <button type="button" onClick={() => removeViagem(v.id)} className="tl-focus" style={{ ...iconBtnStyle, color: "var(--danger)" }}>
+                            <X size={13} />
+                          </button>
+                        </div>
+                      </div>
+                      {aberta && (
+                        <div style={{ padding: "0 10px 12px 10px" }}>
+                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1.4fr", gap: "0 8px" }}>
+                            <Field label="Horário">
+                              <Input type="time" value={v.horario} onChange={(e) => setViagem(v.id, "horario", e.target.value)} />
+                            </Field>
+                            <Field label="Placa">
+                              <Input value={v.placa} onChange={(e) => setViagem(v.id, "placa", e.target.value)} />
+                            </Field>
+                            <Field label="Motorista">
+                              <Input value={v.motorista} onChange={(e) => setViagem(v.id, "motorista", e.target.value)} />
+                            </Field>
+                          </div>
+                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 8px" }}>
+                            <Field label="Volume (m³)">
+                              <Input type="number" min="0" step="0.1" value={v.volume} onChange={(e) => setViagem(v.id, "volume", e.target.value)} />
+                            </Field>
+                            <Field label="Valor por m³ (R$)">
+                              <Input type="number" min="0" step="0.01" value={v.valor} onChange={(e) => setViagem(v.id, "valor", e.target.value)} />
+                            </Field>
+                          </div>
+                          {(numeroSeguro(v.volume) > 0 && numeroSeguro(v.valor) > 0) && (
+                            <div style={{ fontSize: "11px", color: "var(--text-faint)", textAlign: "right", marginBottom: "8px" }}>
+                              {v.volume} m³ × {money(v.valor)} = <strong style={{ color: "var(--text-muted)" }}>{money(subtotalCarga(v))}</strong>
+                            </div>
+                          )}
+                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 8px" }}>
+                            <Field label="Lacre" hint="Número do lacre dessa carga">
+                              <Input value={v.lacre} onChange={(e) => setViagem(v.id, "lacre", e.target.value)} />
+                            </Field>
+                            <Field label="Bomba nessa carga (R$)" hint="Deixa em branco se não teve">
+                              <Input type="number" min="0" step="0.01" value={v.valorBomba} onChange={(e) => setViagem(v.id, "valorBomba", e.target.value)} />
+                            </Field>
+                          </div>
+                          {numeroSeguro(v.valorBomba) > 0 && (
+                            <Field label="Nº da bomba" hint="Aparece na Ordem de Serviço, ex: Bomba Nº 69">
+                              <Input value={v.numeroBomba} onChange={(e) => setViagem(v.id, "numeroBomba", e.target.value)} />
+                            </Field>
+                          )}
+                          <Field label="Sobra que voltou (m³)" hint="Se o caminhão voltou com sobra reaproveitável, desconta daqui do consumo de estoque">
+                            <Input type="number" min="0" step="0.1" value={v.sobra} onChange={(e) => setViagem(v.id, "sobra", e.target.value)} />
+                          </Field>
+                          {numeroSeguro(v.sobra) > 0 && (
+                            <Field label="Sobra usada em qual obra? (nº do pedido)" hint="Deixa em branco se ainda não foi usada em outra obra — aparece no relatório de Sobras">
+                              <Input value={v.sobraDestinoPedido} onChange={(e) => setViagem(v.id, "sobraDestinoPedido", e.target.value)} placeholder="Ex: 624" />
+                            </Field>
+                          )}
+                          {temTraco ? (
+                            numeroSeguro(v.volume) > 0 && (
+                              <p style={{ fontSize: "10.5px", color: "var(--text-faint)" }}>
+                                Consumo de estoque calculado sozinho pela carta traço, sobre {Math.max(0, numeroSeguro(v.volume) - numeroSeguro(v.sobra)).toFixed(1)} m³ efetivos.
+                              </p>
+                            )
+                          ) : (
+                            <p style={{ fontSize: "10.5px", color: "var(--amber)" }}>
+                              Sem carta traço cadastrada pro FCK "{lancamento.fck || "-"}" — o estoque não vai ser abatido sozinho pra essa carga.
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12.5px", padding: "6px 2px", color: "var(--text-muted)" }}>
+                  <span>{viagens.length} carga(s) — {viagens.reduce((s, v) => s + (Number(v.volume) || 0), 0).toFixed(1)} m³ entregues</span>
+                  <strong style={{ color: "var(--text-primary)" }}>
+                    {money(viagens.reduce((s, v) => s + subtotalCarga(v) + (Number(v.valorBomba) || 0), 0))}
+                    {viagens.some((v) => numeroSeguro(v.valorBomba) > 0) && (
+                      <span style={{ fontWeight: 400, fontSize: "11px", color: "var(--text-faint)" }}> (inclui bomba)</span>
+                    )}
+                  </strong>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {imprimindoCarga !== null && viagens[imprimindoCarga] && (
+        <OrdemServicoCargaModal
+          carga={viagens[imprimindoCarga]}
+          indice={imprimindoCarga}
+          form={lancamento}
+          cliente={cliente}
+          onClose={() => setImprimindoCarga(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Propostas module                                                    */
+/* ------------------------------------------------------------------ */
+// Monta a lista de linhas de uma proposta (concreto + bomba + itens extras)
+// num formato único, usado tanto na tela de visualizar quanto no PDF e no
+// texto do WhatsApp — assim os três lugares nunca ficam desalinhados.
+function linhasProposta(p) {
+  const linhas = [];
+  const volume = Number(p.volumeConcreto) || 0;
+  const valorM3 = Number(p.valorM3) || 0;
+  if (volume > 0 || valorM3 > 0) {
+    const specs = [p.fck, p.brita, p.slump ? `Slump ${p.slump}` : "", p.peca].filter(Boolean).join(" · ");
+    linhas.push({ descricao: specs ? `Concreto — ${specs}` : "Concreto", qtd: volume, valorUnit: valorM3, subtotal: volume * valorM3 });
+  }
+  const bomba = Number(p.bomba) || 0;
+  if (bomba > 0) {
+    linhas.push({ descricao: "Bomba", qtd: 1, valorUnit: bomba, subtotal: bomba });
+  }
+  (p.itens || []).forEach((it) => {
+    linhas.push({ descricao: it.descricao || "Item", qtd: it.qtd, valorUnit: it.valorUnit, subtotal: (Number(it.qtd) || 0) * (Number(it.valorUnit) || 0) });
+  });
+  return linhas;
+}
+function calcularTotalProposta(p) {
+  return linhasProposta(p).reduce((s, l) => s + l.subtotal, 0);
+}
+
+const emptyItem = () => ({ id: uid(), descricao: "", qtd: 1, valorUnit: "" });
+// Observações padrão pra propostas (editável em código)
+const DESCRITIVO_ESCAVADEIRA = `Orçamento válido pelo prazo de 15 dias.
+Se precisar de nota fiscal, acrescentar 18% ao valor total.`;
+
+
+const emptyProposta = () => ({
+  id: uid(),
+  pedido: "",
+  tipo: "Concreto",
+  fck: "",
+  brita: "",
+  slump: "",
+  peca: "",
+  volumeConcreto: "",
+  valorM3: "",
+  bomba: "",
+  vendedor: "",
+  itens: [],
+  observacao: "",
+  enderecoEntrega: "", // local da obra — pode ser diferente do endereço de cobrança do cliente
+  descritivo: DESCRITIVO_ESCAVADEIRA, // editável — cada proposta pode ter o texto ajustado
+  criadaEm: new Date().toISOString(),
+  status: "Aberta", // Aberta | Fechada | Perdida
+  dataBaixa: "",
+  motivoPerda: "",
+});
+
+function PropostasModule({ propostas, clienteByPedido, vendedores, onChange, draft, onDraftHandled, onGanhou }) {
+  const [editing, setEditing] = useState(null);
+  const [viewing, setViewing] = useState(null);
+  const [deleting, setDeleting] = useState(null);
+  const [baixando, setBaixando] = useState(null); // { proposta, tipo: "Fechada" | "Perdida" }
+  const [filtroStatus, setFiltroStatus] = useState("todas"); // todas | Aberta | Fechada | Perdida
+
+  useEffect(() => {
+    if (draft) {
+      setEditing({ ...emptyProposta(), pedido: draft.pedido, tipo: draft.tipo });
+      onDraftHandled();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft]);
+
+  const save = (proposta) => {
+    const exists = propostas.some((p) => p.id === proposta.id);
+    onChange(exists ? propostas.map((p) => (p.id === proposta.id ? proposta : p)) : [...propostas, proposta]);
+    setEditing(null);
+  };
+
+  const remove = (id) => {
+    onChange(propostas.filter((p) => p.id !== id));
+    setDeleting(null);
+  };
+
+  const confirmarBaixa = (status, motivoPerda) => {
+    const atualizada = { ...baixando.proposta, status, dataBaixa: new Date().toISOString().slice(0, 10), motivoPerda: motivoPerda || "" };
+    onChange(propostas.map((p) => (p.id === atualizada.id ? atualizada : p)));
+    // Proposta ganhou (Fechada) — já sobe sozinha pra Produção, pra não
+    // precisar lançar tudo de novo na mão.
+    if (status === "Fechada" && onGanhou) onGanhou(atualizada);
+    setBaixando(null);
+  };
+
+  const propostasFiltradas = filtroStatus === "todas" ? propostas : propostas.filter((p) => (p.status || "Aberta") === filtroStatus);
+
+  const STATUS_PROPOSTA_COR = {
+    Aberta: { bg: "#52431D", fg: "#F0B958" },
+    Fechada: { bg: "#2B4F3A", fg: "#7BC492" },
+    Perdida: { bg: "#532B2B", fg: "#E88886" },
+  };
+
+  return (
+    <div className="tl-fade-in">
+      <PageHeader
+        eyebrow="Comercial"
+        title="Propostas"
+        action={<Button icon={Plus} onClick={() => setEditing(abrirNovoRegistro("proposta", emptyProposta))}>Nova proposta</Button>}
+      />
+
+      <div style={{ display: "flex", gap: "4px", marginBottom: "18px", background: "var(--bg-panel)", border: "1px solid var(--border-soft)", borderRadius: "8px", padding: "4px", width: "fit-content", flexWrap: "wrap" }}>
+        {[
+          { id: "todas", label: "Todas" },
+          { id: "Aberta", label: "Abertas" },
+          { id: "Fechada", label: "Fechadas" },
+          { id: "Perdida", label: "Perdidas" },
+        ].map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setFiltroStatus(t.id)}
+            className="tl-focus"
+            style={{
+              padding: "7px 14px",
+              borderRadius: "6px",
+              border: "none",
+              cursor: "pointer",
+              fontSize: "13px",
+              fontWeight: 600,
+              background: filtroStatus === t.id ? "var(--accent)" : "transparent",
+              color: filtroStatus === t.id ? "var(--accent-text)" : "var(--text-muted)",
+            }}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {propostasFiltradas.length === 0 ? (
+        <EmptyState icon={FileText} title="Nenhuma proposta encontrada" hint="Gere uma proposta a partir de um pedido cadastrado, ou ajuste o filtro acima." />
+      ) : (
+        <Table
+          columns={["Pedido", "Cliente", "Tipo", "Total", "Status", ""]}
+          rows={[...propostasFiltradas].sort((a, b) => (b.criadaEm || "").localeCompare(a.criadaEm || "")).map((p) => {
+            const cliente = clienteByPedido.get(String(p.pedido).trim());
+            const total = calcularTotalProposta(p);
+            const status = p.status || "Aberta";
+            const cor = STATUS_PROPOSTA_COR[status];
+            return (
+              <tr key={p.id} style={rowStyle}>
+                <td style={tdStyle}><PedidoStub n={p.pedido} /></td>
+                <td style={{ ...tdStyle, fontWeight: 500 }}>{cliente ? cliente.nome : "-"}</td>
+                <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{p.tipo}</td>
+                <td style={tdStyle} className="tl-mono">{money(total)}</td>
+                <td style={tdStyle}>
+                  <span style={{ background: cor.bg, color: cor.fg, padding: "3px 9px", borderRadius: "20px", fontSize: "11px", fontWeight: 700 }}>
+                    {status.toUpperCase()}
+                  </span>
+                  {status === "Perdida" && p.motivoPerda && (
+                    <div style={{ fontSize: "11px", color: "var(--text-faint)", marginTop: "3px" }}>{p.motivoPerda}</div>
+                  )}
+                </td>
+                <td style={{ ...tdStyle, textAlign: "right" }}>
+                  <div style={{ display: "inline-flex", gap: "4px" }}>
+                    {status === "Aberta" && (
+                      <>
+                        <button onClick={() => setBaixando({ proposta: p, tipo: "Fechada" })} className="tl-focus" style={iconBtnStyle} title="Marcar como Fechada (ganhou)">
+                          <Check size={14} style={{ color: "var(--success)" }} />
+                        </button>
+                        <button onClick={() => setBaixando({ proposta: p, tipo: "Perdida" })} className="tl-focus" style={iconBtnStyle} title="Marcar como Perdida">
+                          <X size={14} style={{ color: "var(--danger)" }} />
+                        </button>
+                      </>
+                    )}
+                    <button onClick={() => setViewing(p)} className="tl-focus" style={iconBtnStyle} title="Visualizar / imprimir">
+                      <Printer size={14} />
+                    </button>
+                    <RowActions onEdit={() => setEditing(p)} onDelete={() => setDeleting(p)} />
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
+        />
+      )}
+
+      {editing && (
+        <PropostaForm initial={editing} clienteByPedido={clienteByPedido} vendedores={vendedores} onSave={save} onClose={() => setEditing(null)} />
+      )}
+      {viewing && (
+        <PropostaPreview proposta={viewing} cliente={clienteByPedido.get(String(viewing.pedido).trim())} onClose={() => setViewing(null)} />
+      )}
+      {deleting && (
+        <ConfirmDelete label={`a proposta do pedido nº ${deleting.pedido}`} dados={deleting} onConfirm={() => remove(deleting.id)} onCancel={() => setDeleting(null)} />
+      )}
+      {baixando && (
+        <BaixaPropostaModal baixando={baixando} onConfirm={confirmarBaixa} onCancel={() => setBaixando(null)} />
+      )}
+    </div>
+  );
+}
+
+function BaixaPropostaModal({ baixando, onConfirm, onCancel }) {
+  const [motivoPerda, setMotivoPerda] = useState("");
+  const ganhou = baixando.tipo === "Fechada";
+
+  return (
+    <Modal title={ganhou ? "Marcar proposta como Fechada" : "Marcar proposta como Perdida"} onClose={onCancel}>
+      <p style={{ fontSize: "13.5px", color: "var(--text-muted)", marginBottom: "16px" }}>
+        {ganhou
+          ? `Confirma que o cliente fechou o pedido nº ${baixando.proposta.pedido}?`
+          : `Confirma que essa proposta do pedido nº ${baixando.proposta.pedido} não vai fechar?`}
+      </p>
+      {!ganhou && (
+        <Field label="Motivo (opcional)" hint="Ajuda a entender por que não fechou">
+          <Input value={motivoPerda} onChange={(e) => setMotivoPerda(e.target.value)} placeholder="Ex: preço, concorrência, desistiu da obra..." />
+        </Field>
+      )}
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "10px" }}>
+        <Button variant="ghost" onClick={onCancel}>Cancelar</Button>
+        <Button onClick={() => onConfirm(baixando.tipo, motivoPerda)} variant={ganhou ? "primary" : "danger"}>
+          {ganhou ? "Confirmar fechamento" : "Confirmar perda"}
+        </Button>
+      </div>
+    </Modal>
+  );
+}
+
+function PropostaForm({ initial, clienteByPedido, vendedores, onSave, onClose }) {
+  const [form, setForm] = useState(initial);
+  const [rascunhoRecuperado] = useState(() => !!initial.__rascunho);
+  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+  const matched = clienteByPedido.get(String(form.pedido).trim());
+
+  useEffect(() => {
+    salvarRascunho("proposta", form);
+  }, [form]);
+
+  const setItem = (id, k, v) =>
+    setForm({ ...form, itens: form.itens.map((it) => (it.id === id ? { ...it, [k]: v } : it)) });
+  const addItem = () => setForm({ ...form, itens: [...form.itens, emptyItem()] });
+  const removeItem = (id) => setForm({ ...form, itens: form.itens.filter((it) => it.id !== id) });
+
+  const total = calcularTotalProposta(form);
+
+  return (
+    <Modal title={initial.pedido ? "Editar proposta" : "Nova proposta"} onClose={() => { limparRascunho("proposta"); onClose(); }} wide>
+      {rascunhoRecuperado && <RascunhoBanner />}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          limparRascunho("proposta");
+          onSave(form);
+        }}
+      >
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+          <Field label="Nº do pedido" required>
+            <Input value={form.pedido} onChange={set("pedido")} required />
+          </Field>
+          <Field label="Tipo">
+            <Select value={form.tipo} onChange={set("tipo")}>
+              <option>Concreto</option>
+              <option>Argamassa</option>
+            </Select>
+          </Field>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+          <Field label="FCK" hint="Ex: FCK 25, FCK 30">
+            <Input value={form.fck} onChange={set("fck")} list="lista-fck-proposta" />
+            <datalist id="lista-fck-proposta">
+              <option value="FCK 15" />
+              <option value="FCK 20" />
+              <option value="FCK 25" />
+              <option value="FCK 30" />
+              <option value="FCK 35" />
+              <option value="FCK 40" />
+            </datalist>
+          </Field>
+          <Field label="Brita" hint="Ex: Brita 0, Brita 1">
+            <Input value={form.brita} onChange={set("brita")} list="lista-brita-proposta" />
+            <datalist id="lista-brita-proposta">
+              <option value="Brita 0" />
+              <option value="Brita 0/1" />
+              <option value="Brita 1" />
+              <option value="Brita 2" />
+            </datalist>
+          </Field>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+          <Field label="Slump" hint="Ex: 7+-1, 10+-2, 12+-2">
+            <Input value={form.slump} onChange={set("slump")} />
+          </Field>
+          <Field label="Peça" hint="Ex: Laje, Piso, Base, Calçada, Sapata">
+            <Input value={form.peca} onChange={set("peca")} list="lista-pecas-proposta" />
+            <datalist id="lista-pecas-proposta">
+              <option value="Laje" /><option value="Piso" /><option value="Base" /><option value="Calçada" /><option value="Sapata" /><option value="Viga" /><option value="Pilar" /><option value="Contrapiso" /><option value="Rampa" /><option value="Pavimentação" />
+            </datalist>
+          </Field>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0 16px" }}>
+          <Field label="Volume do concreto (m³)">
+            <Input type="number" min="0" step="0.1" value={form.volumeConcreto} onChange={set("volumeConcreto")} />
+          </Field>
+          <Field label="Valor por m³ (R$)">
+            <Input type="number" min="0" step="0.01" value={form.valorM3} onChange={set("valorM3")} />
+          </Field>
+          <Field label="Bomba (R$)">
+            <Input type="number" min="0" step="0.01" value={form.bomba} onChange={set("bomba")} />
+          </Field>
+        </div>
+
+        <Field label="Vendedor">
+          <Input value={form.vendedor} onChange={set("vendedor")} list="proposta-lista-vendedores" />
+          <datalist id="proposta-lista-vendedores">
+            {porNome(vendedores || []).map((v) => <option key={v.id} value={v.nome} />)}
+          </datalist>
+        </Field>
+
+        <div
+          style={{
+            background: "var(--bg-base)",
+            border: "1px solid var(--border-soft)",
+            borderRadius: "6px",
+            padding: "10px 12px",
+            marginBottom: "18px",
+            fontSize: "13px",
+          }}
+        >
+          <div className="tl-mono" style={{ fontSize: "10.5px", color: "var(--text-faint)", marginBottom: "4px", textTransform: "uppercase" }}>
+            Cliente (automático)
+          </div>
+          {matched ? (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2px 16px", fontSize: "12.5px" }}>
+              <span style={{ fontWeight: 600, fontSize: "14px", gridColumn: "1 / -1" }}>{matched.nome}</span>
+              <span style={{ color: "var(--text-muted)" }}>Tel: {matched.telefone || "-"}</span>
+              <span style={{ color: "var(--text-muted)" }}>CPF/CNPJ: {matched.cpf || "-"}</span>
+              <span style={{ color: "var(--text-muted)", gridColumn: "1 / -1" }}>{enderecoCompleto(matched) || "-"}</span>
+              {matched.observacao && <span style={{ color: "var(--text-faint)", fontSize: "11.5px", gridColumn: "1 / -1" }}>Obs: {matched.observacao}</span>}
+            </div>
+          ) : (
+            <div style={{ color: "var(--text-faint)" }}>Digite um nº de pedido cadastrado em Clientes</div>
+          )}
+        </div>
+
+        <Field label="Endereço de Entrega" hint="Local da obra — puxa sozinho do cliente, mas pode editar pra essa proposta">
+          <Input
+            value={form.enderecoEntrega !== undefined && form.enderecoEntrega !== "" ? form.enderecoEntrega : (matched?.enderecoEntrega || "")}
+            onChange={set("enderecoEntrega")}
+            placeholder="Ex: Rua da Obra, 123 - Bairro X"
+          />
+        </Field>
+
+        <div style={{ marginBottom: "8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span className="tl-mono" style={{ fontSize: "11px", color: "var(--text-muted)", textTransform: "uppercase" }}>Itens extras (opcional)</span>
+          <Button type="button" size="sm" variant="subtle" icon={Plus} onClick={addItem}>Item</Button>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "18px" }}>
+          {form.itens.map((it) => (
+            <div key={it.id} style={{ display: "grid", gridTemplateColumns: "2fr 70px 110px 32px", gap: "8px", alignItems: "center" }}>
+              <Input placeholder="Descrição do serviço" value={it.descricao} onChange={(e) => setItem(it.id, "descricao", e.target.value)} />
+              <Input type="number" min="0" placeholder="Qtd" value={it.qtd} onChange={(e) => setItem(it.id, "qtd", e.target.value)} />
+              <Input type="number" min="0" step="0.01" placeholder="Valor unit." value={it.valorUnit} onChange={(e) => setItem(it.id, "valorUnit", e.target.value)} />
+              <button type="button" onClick={() => removeItem(it.id)} className="tl-focus" style={{ ...iconBtnStyle, color: "var(--danger)" }}>
+                <X size={13} />
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <Field label="Observação">
+          <TextArea value={form.observacao} onChange={set("observacao")} />
+        </Field>
+
+        <Field label="Descritivo (condições gerais)" hint="Aparece no rodapé do PDF — pode editar livremente pra essa proposta">
+          <TextArea rows={5} value={form.descritivo !== undefined ? form.descritivo : DESCRITIVO_ESCAVADEIRA} onChange={set("descritivo")} />
+        </Field>
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            background: "var(--bg-panel-raised)",
+            border: "1px solid var(--border)",
+            borderRadius: "6px",
+            padding: "10px 14px",
+            marginBottom: "18px",
+          }}
+        >
+          <span className="tl-mono" style={{ fontSize: "11px", color: "var(--text-muted)", textTransform: "uppercase" }}>Total da proposta</span>
+          <span className="tl-display" style={{ fontSize: "22px", fontWeight: 700, color: "var(--amber)" }}>{money(total)}</span>
+        </div>
+
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
+          <Button type="button" variant="ghost" onClick={() => { limparRascunho("proposta"); onClose(); }}>Cancelar</Button>
+          <Button type="submit">Salvar proposta</Button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function PropostaPreview({ proposta, cliente, onClose }) {
+  const total = calcularTotalProposta(proposta);
+  const [gerandoPdf, setGerandoPdf] = useState(false);
+  const [avisoPdf, setAvisoPdf] = useState("");
+
+  const enviarPdf = async () => {
+    setGerandoPdf(true);
+    setAvisoPdf("");
+    const blob = await gerarPdfProposta(proposta, cliente, total);
+    setGerandoPdf(false);
+
+    if (!blob) {
+      setAvisoPdf("Geração de PDF não disponível nesta pré-visualização. Use \"Imprimir\" e escolha \"Salvar como PDF\" — no site publicado esse botão gera o PDF direto.");
+      return;
+    }
+
+    const fileName = `proposta-${proposta.pedido || "rjl-mix-concreto"}.pdf`;
+    const file = new File([blob], fileName, { type: "application/pdf" });
+
+    if (ehCelular && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({
+          files: [file],
+          title: `Proposta nº ${proposta.pedido}`,
+          text: `Proposta nº ${proposta.pedido} - ${PREFS_ATUAL_REF?.nomeEmpresa || "RJL Mix Concreto"}`,
+        });
+        return;
+      } catch (e) {
+        /* usuário cancelou ou não conseguiu compartilhar — segue para o download abaixo */
+      }
+    }
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    window.alert(`PDF baixado como "${fileName}" (confira a pasta Downloads).\n\nO WhatsApp vai abrir agora só com o texto — anexe esse arquivo baixado na conversa antes de enviar.`);
+
+    const linhas = linhasProposta(proposta)
+      .map((it) => `• ${it.descricao || "Item"} (x${it.qtd}): ${money(it.subtotal)}`)
+      .join("\n");
+    const texto =
+      `Olá${cliente ? `, ${cliente.nome}` : ""}! Segue a proposta do pedido nº ${proposta.pedido}:\n\n${linhas}\n\n` +
+      `*Total: ${money(total)}*\n\n${proposta.observacao || ""}\n\n${PREFS_ATUAL_REF?.nomeEmpresa || "RJL Mix Concreto"}`;
+    const telefone = (cliente?.telefone || "").replace(/\D/g, "");
+    const numeroFinal = telefone ? (telefone.startsWith("55") ? telefone : `55${telefone}`) : "";
+    window.open(`https://wa.me/${numeroFinal}?text=${encodeURIComponent(texto)}`, "_blank");
+    setAvisoPdf("PDF baixado e WhatsApp aberto com a mensagem pronta — é só anexar o arquivo baixado na conversa.");
+  };
+
+  return (
+    <Modal title="Visualizar proposta" onClose={onClose} wide>
+      <div id="proposta-print" className="tl-print-area" style={{ background: "#fff", color: "#1a1a1a", borderRadius: "6px", padding: "28px", fontFamily: "Inter, sans-serif" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "2px solid #1a1a1a", paddingBottom: "14px", marginBottom: "18px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <img src={LOGO_DATA_URI()} onError={onLogoError} alt="" style={{ width: "44px", height: "44px", borderRadius: "6px" }} />
+            <div>
+              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "20px" }}>{PREFS_ATUAL_REF?.nomeEmpresa || "RJL Mix Concreto"}</div>
+              <div style={{ fontSize: "11.5px", color: "#555" }}>{[PREFS_ATUAL_REF?.cnpjEmpresa ? `CNPJ: ${PREFS_ATUAL_REF.cnpjEmpresa}` : "", PREFS_ATUAL_REF?.enderecoEmpresa || ""].filter(Boolean).join(" — ") || "Dados da empresa em Configurações"}</div>
+            </div>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontSize: "20px", fontWeight: 700 }}>PROPOSTA Nº {proposta.pedido}</div>
+            <div style={{ fontSize: "11.5px", color: "#555" }}>{proposta.tipo} · {new Date(proposta.criadaEm).toLocaleDateString("pt-BR")}</div>
+          </div>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 20px", fontSize: "12.5px", marginBottom: "20px" }}>
+          <div><strong>Cliente:</strong> {cliente ? cliente.nome : "-"}</div>
+          <div><strong>Contato:</strong> {cliente?.telefone || "-"}</div>
+          <div><strong>CPF/CNPJ:</strong> {cliente?.cpf || "-"}</div>
+          <div><strong>Endereço:</strong> {cliente?.endereco || "-"}</div>
+        </div>
+
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12.5px", marginBottom: "16px" }}>
+          <thead>
+            <tr style={{ background: "#f0efe9" }}>
+              <th style={previewTh}>Descrição</th>
+              <th style={{ ...previewTh, textAlign: "center" }}>Qtd</th>
+              <th style={{ ...previewTh, textAlign: "right" }}>Valor unit.</th>
+              <th style={{ ...previewTh, textAlign: "right" }}>Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            {linhasProposta(proposta).map((it, idx) => (
+              <tr key={idx}>
+                <td style={previewTd}>{it.descricao || "-"}</td>
+                <td style={{ ...previewTd, textAlign: "center" }}>{it.qtd}</td>
+                <td style={{ ...previewTd, textAlign: "right" }}>{money(it.valorUnit)}</td>
+                <td style={{ ...previewTd, textAlign: "right" }}>{money(it.subtotal)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "20px" }}>
+          <div style={{ fontSize: "16px", fontWeight: 700 }}>Total: {money(total)}</div>
+        </div>
+
+        {proposta.observacao && (
+          <div style={{ fontSize: "12px", color: "#555", borderTop: "1px solid #ddd", paddingTop: "12px" }}>
+            {proposta.observacao}
+          </div>
+        )}
+
+        <div style={{ fontSize: "11px", color: "#444", borderTop: "1px solid #ddd", marginTop: "16px", paddingTop: "14px", whiteSpace: "pre-line", lineHeight: 1.6 }}>
+          {proposta.descritivo !== undefined ? proposta.descritivo : DESCRITIVO_ESCAVADEIRA}
+        </div>
+      </div>
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "16px", flexWrap: "wrap" }}>
+        <Button variant="ghost" onClick={onClose}>Fechar</Button>
+        <Button
+          variant="subtle"
+          icon={Mail}
+          onClick={() => {
+            const subject = `Proposta nº ${proposta.pedido} - ${PREFS_ATUAL_REF?.nomeEmpresa || "RJL Mix Concreto"}`;
+            const linhas = linhasProposta(proposta)
+              .map((it) => `- ${it.descricao || "Item"} (x${it.qtd}): ${money(it.subtotal)}`)
+              .join("%0D%0A");
+            const body =
+              `Olá${cliente ? `, ${cliente.nome}` : ""}!%0D%0A%0D%0A` +
+              `Segue a proposta referente ao pedido nº ${proposta.pedido}:%0D%0A%0D%0A${linhas}%0D%0A%0D%0A` +
+              `Total: ${money(total)}%0D%0A%0D%0A${proposta.observacao ? proposta.observacao + "%0D%0A%0D%0A" : ""}` +
+              `Atenciosamente,%0D%0A${PREFS_ATUAL_REF?.nomeEmpresa || "RJL Mix Concreto"}`;
+            window.open(`mailto:${cliente?.email || ""}?subject=${encodeURIComponent(subject)}&body=${body}`, "_blank");
+          }}
+        >
+          E-mail
+        </Button>
+        <Button
+          variant="subtle"
+          icon={MessageCircle}
+          disabled={gerandoPdf}
+          onClick={enviarPdf}
+        >
+          {gerandoPdf ? "Gerando PDF..." : "WhatsApp"}
+        </Button>
+        <Button icon={Printer} onClick={() => window.print()}>Imprimir</Button>
+      </div>
+      {avisoPdf && (
+        <p style={{ fontSize: "12.5px", color: "var(--amber)", marginTop: "10px", textAlign: "right" }}>{avisoPdf}</p>
+      )}
+    </Modal>
+  );
+}
+const previewTh = { textAlign: "left", padding: "7px 8px", borderBottom: "1px solid #ddd", fontWeight: 600 };
+const previewTd = { padding: "7px 8px", borderBottom: "1px solid #eee" };
+
+/* ------------------------------------------------------------------ */
+/*  Manutenção módulo (máquinas + manutenção + abastecimento)          */
+/* ------------------------------------------------------------------ */
+const emptyMaquina = () => ({ id: uid(), nome: "", tipo: "Caminhão Betoneira" });
+const emptyManutencao = () => ({
+  id: uid(),
+  maquinaId: "",
+  tipo: "Manutenção",
+  data: "",
+  descricao: "",
+  horimetro: "",
+  litros: "",
+  valor: "",
+  observacao: "",
+  fotos: [],
+});
+
+function ManutencaoModule({ maquinas, manutencoes, onChangeMaquinas, onChangeManutencoes }) {
+  const [editingMaquina, setEditingMaquina] = useState(null);
+  const [deletingMaquina, setDeletingMaquina] = useState(null);
+  const [editingReg, setEditingReg] = useState(null);
+  const [deletingReg, setDeletingReg] = useState(null);
+  const [filtroMaquina, setFiltroMaquina] = useState("todas");
+  const [aba, setAba] = useState("lista"); // lista | relatorio
+
+  const maquinaById = useMemo(() => {
+    const map = new Map();
+    maquinas.forEach((m) => map.set(m.id, m));
+    return map;
+  }, [maquinas]);
+
+  const saveMaquina = (m) => {
+    const exists = maquinas.some((x) => x.id === m.id);
+    onChangeMaquinas(exists ? maquinas.map((x) => (x.id === m.id ? m : x)) : [...maquinas, m]);
+    setEditingMaquina(null);
+  };
+  const removeMaquina = (id) => {
+    onChangeMaquinas(maquinas.filter((x) => x.id !== id));
+    setDeletingMaquina(null);
+  };
+
+  const saveReg = (r) => {
+    const exists = manutencoes.some((x) => x.id === r.id);
+    onChangeManutencoes(exists ? manutencoes.map((x) => (x.id === r.id ? r : x)) : [...manutencoes, r]);
+    setEditingReg(null);
+  };
+  const removeReg = (id) => {
+    onChangeManutencoes(manutencoes.filter((x) => x.id !== id));
+    setDeletingReg(null);
+  };
+
+  const registrosFiltrados =
+    filtroMaquina === "todas" ? manutencoes : manutencoes.filter((r) => r.maquinaId === filtroMaquina);
+
+  return (
+    <div className="tl-fade-in">
+      <PageHeader eyebrow="Frota" title="Manutenção & Abastecimento" />
+
+      <div style={{ marginBottom: "26px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+          <h4 className="tl-mono" style={{ fontSize: "11.5px", letterSpacing: "0.05em", color: "var(--text-muted)", textTransform: "uppercase" }}>
+            Máquinas cadastradas
+          </h4>
+          <Button size="sm" variant="subtle" icon={Plus} onClick={() => setEditingMaquina(emptyMaquina())}>Máquina</Button>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: "10px" }}>
+          {porNome(maquinas).map((m) => (
+            <div key={m.id} style={{ background: "var(--bg-panel)", border: "1px solid var(--border-soft)", borderRadius: "8px", padding: "12px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <Wrench size={14} style={{ color: "var(--amber)", marginTop: "2px" }} />
+                <div style={{ display: "flex", gap: "4px" }}>
+                  <button onClick={() => setEditingMaquina(m)} className="tl-focus" style={iconBtnStyle}><Pencil size={12} /></button>
+                  <button onClick={() => setDeletingMaquina(m)} className="tl-focus" style={{ ...iconBtnStyle, color: "var(--danger)" }}><Trash2 size={12} /></button>
+                </div>
+              </div>
+              <div className="tl-display" style={{ fontSize: "17px", fontWeight: 700, marginTop: "8px" }}>{m.nome}</div>
+              <div style={{ fontSize: "11.5px", color: "var(--text-faint)" }}>{m.tipo}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+        <div style={{ display: "flex", gap: "8px" }}>
+          <Button size="sm" variant={aba === "lista" ? "primary" : "subtle"} onClick={() => setAba("lista")} type="button">Lista</Button>
+          <Button size="sm" variant={aba === "relatorio" ? "primary" : "subtle"} onClick={() => setAba("relatorio")} type="button">Relatório</Button>
+        </div>
+        {aba === "lista" && (
+          <div style={{ display: "flex", gap: "8px" }}>
+            <Select value={filtroMaquina} onChange={(e) => setFiltroMaquina(e.target.value)} style={{ width: "220px" }}>
+              <option value="todas">Todas as máquinas</option>
+              {porNome(maquinas).map((m) => (
+                <option key={m.id} value={m.id}>{m.nome}</option>
+              ))}
+            </Select>
+            <Button icon={Plus} onClick={() => setEditingReg(abrirNovoRegistro("manutencao", emptyManutencao))}>Novo registro</Button>
+          </div>
+        )}
+      </div>
+
+      {aba === "relatorio" && (
+        <RelatorioConsumoMaquinas manutencoes={manutencoes} maquinas={maquinas} maquinaById={maquinaById} />
+      )}
+
+      {aba === "lista" && (registrosFiltrados.length === 0 ? (
+        <EmptyState icon={Wrench} title="Nenhum registro ainda" hint="Lance manutenções e abastecimentos por máquina." />
+      ) : (
+        <Table
+          columns={["Máquina", "Tipo", "Data", "Descrição", "Valor", ""]}
+          rows={[...registrosFiltrados].sort((a, b) => dataOrdenavel(b.data).localeCompare(dataOrdenavel(a.data))).map((r) => (
+            <tr key={r.id} style={rowStyle}>
+              <td style={{ ...tdStyle, fontWeight: 500 }}>
+                {maquinaById.get(r.maquinaId)?.nome || (r.maquinaNome ? <span style={{ color: "var(--amber)" }} title="Nome vindo da planilha — ainda não vinculado a uma máquina cadastrada">{r.maquinaNome} ⚠️</span> : "-")}
+              </td>
+              <td style={tdStyle}>
+                <span
+                  className="tl-mono"
+                  style={{
+                    fontSize: "11px",
+                    fontWeight: 600,
+                    padding: "3px 8px",
+                    borderRadius: "3px",
+                    background: r.tipo === "Abastecimento" ? "#2C3F55" : "#52431D",
+                    color: r.tipo === "Abastecimento" ? "#8CBCE8" : "#F0B958",
+                  }}
+                >
+                  {r.tipo === "Abastecimento" ? "ABASTECIMENTO" : "MANUTENÇÃO"}
+                </span>
+              </td>
+              <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{fmtDate(r.data)}</td>
+              <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{r.descricao || "-"}</td>
+              <td style={tdStyle} className="tl-mono">{money(r.valor)}</td>
+              <td style={{ ...tdStyle, textAlign: "right" }}>
+                <RowActions onEdit={() => setEditingReg(r)} onDelete={() => setDeletingReg(r)} />
+              </td>
+            </tr>
+          ))}
+        />
+      ))}
+
+      {editingMaquina && <MaquinaForm initial={editingMaquina} onSave={saveMaquina} onClose={() => setEditingMaquina(null)} />}
+      {deletingMaquina && (
+        <ConfirmDelete label={`a máquina "${deletingMaquina.nome}"`} dados={deletingMaquina} onConfirm={() => removeMaquina(deletingMaquina.id)} onCancel={() => setDeletingMaquina(null)} />
+      )}
+      {editingReg && (
+        <ManutencaoForm initial={editingReg} maquinas={maquinas} onSave={saveReg} onClose={() => setEditingReg(null)} />
+      )}
+      {deletingReg && (
+        <ConfirmDelete label="este registro" dados={deletingReg} onConfirm={() => removeReg(deletingReg.id)} onCancel={() => setDeletingReg(null)} />
+      )}
+    </div>
+  );
+}
+
+function RelatorioConsumoMaquinas({ manutencoes, maquinas, maquinaById }) {
+  const [periodo, setPeriodo] = useState("mensal"); // diario | semanal | mensal
+
+  const abastecimentos = manutencoes.filter((r) => r.tipo === "Abastecimento");
+
+  // Consumo total (litros e valor) por máquina — pro gráfico comparativo
+  const porMaquina = useMemo(() => {
+    const map = new Map();
+    abastecimentos.forEach((r) => {
+      const nome = maquinaById.get(r.maquinaId)?.nome || "Sem máquina";
+      if (!map.has(nome)) map.set(nome, { litros: 0, valor: 0, manutencaoValor: 0 });
+      map.get(nome).litros += Number(r.litros) || 0;
+      map.get(nome).valor += Number(r.valor) || 0;
+    });
+    manutencoes
+      .filter((r) => r.tipo !== "Abastecimento")
+      .forEach((r) => {
+        const nome = maquinaById.get(r.maquinaId)?.nome || "Sem máquina";
+        if (!map.has(nome)) map.set(nome, { litros: 0, valor: 0, manutencaoValor: 0 });
+        map.get(nome).manutencaoValor += Number(r.valor) || 0;
+      });
+    return [...map.entries()].sort((a, b) => b[1].litros - a[1].litros).slice(0, 10);
+  }, [manutencoes, maquinaById]);
+
+  // Consumo agrupado por período (diário/semanal/mensal), somando todas as máquinas
+  const chaveDe = (dataStr) => {
+    if (!dataStr) return null;
+    if (periodo === "diario") return dataStr;
+    if (periodo === "semanal") return isoWeekKey(dataStr);
+    return dataStr.slice(0, 7);
+  };
+
+  const buckets = useMemo(() => {
+    const map = new Map();
+    abastecimentos.forEach((r) => {
+      const chave = chaveDe(r.data);
+      if (!chave) return;
+      if (!map.has(chave)) map.set(chave, { litros: 0, valor: 0 });
+      map.get(chave).litros += Number(r.litros) || 0;
+      map.get(chave).valor += Number(r.valor) || 0;
+    });
+    return [...map.entries()].sort((a, b) => b[0].localeCompare(a[0])).slice(0, 20);
+  }, [abastecimentos, periodo]);
+
+  const totalLitros = abastecimentos.reduce((s, r) => s + (Number(r.litros) || 0), 0);
+  const totalAbastecimento = abastecimentos.reduce((s, r) => s + (Number(r.valor) || 0), 0);
+  const totalManutencao = manutencoes.filter((r) => r.tipo !== "Abastecimento").reduce((s, r) => s + (Number(r.valor) || 0), 0);
+
+  return (
+    <div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "12px", marginBottom: "22px" }}>
+        <MiniStat label="Total abastecido" valor={`${totalLitros.toFixed(0)} L`} cor="var(--amber)" />
+        <MiniStat label="Gasto com abastecimento" valor={money(totalAbastecimento)} cor="var(--danger)" />
+        <MiniStat label="Gasto com manutenção" valor={money(totalManutencao)} cor="var(--text-primary)" />
+      </div>
+
+      <div style={{ background: "var(--bg-panel)", border: "1px solid var(--border-soft)", borderRadius: "9px", padding: "18px", marginBottom: "22px" }}>
+        <h4 className="tl-mono" style={{ fontSize: "11.5px", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: "14px" }}>
+          Consumo de combustível por máquina (litros)
+        </h4>
+        <GraficoBarras
+          series={[{ nome: "Litros", cor: "var(--amber)", dados: porMaquina.map(([nome, d]) => ({ label: nome, valor: d.litros })) }]}
+          formatarValor={(v) => `${v.toFixed(0)} L`}
+        />
+      </div>
+
+      <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
+        {[
+          { id: "diario", label: "Diário" },
+          { id: "semanal", label: "Semanal" },
+          { id: "mensal", label: "Mensal" },
+        ].map((p) => (
+          <Button key={p.id} size="sm" variant={periodo === p.id ? "primary" : "subtle"} onClick={() => setPeriodo(p.id)} type="button">
+            {p.label}
+          </Button>
+        ))}
+      </div>
+
+      {buckets.length === 0 ? (
+        <EmptyState icon={BarChart2} title="Sem abastecimentos registrados ainda" hint="O relatório aparece assim que houver registros de abastecimento com data e litros." />
+      ) : (
+        <>
+          <div style={{ background: "var(--bg-panel)", border: "1px solid var(--border-soft)", borderRadius: "9px", padding: "18px", marginBottom: "20px" }}>
+            <GraficoBarras
+              series={[{ nome: "Litros", cor: "var(--amber)", dados: [...buckets].reverse().map(([chave, d]) => ({ label: chave, valor: d.litros })) }]}
+              formatarValor={(v) => `${v.toFixed(0)} L`}
+            />
+          </div>
+          <Table
+            columns={["Período", "Litros abastecidos", "Gasto"]}
+            rows={buckets.map(([chave, d]) => (
+              <tr key={chave} style={rowStyle}>
+                <td style={{ ...tdStyle, fontWeight: 600 }} className="tl-mono">{chave}</td>
+                <td style={tdStyle} className="tl-mono">{d.litros.toFixed(0)} L</td>
+                <td style={tdStyle} className="tl-mono">{money(d.valor)}</td>
+              </tr>
+            ))}
+          />
+        </>
+      )}
+
+      <div style={{ marginTop: "26px" }}>
+        <h4 className="tl-mono" style={{ fontSize: "11.5px", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: "12px" }}>
+          Desempenho por máquina
+        </h4>
+        {porMaquina.length === 0 ? (
+          <p style={{ fontSize: "12.5px", color: "var(--text-faint)" }}>Sem dados ainda.</p>
+        ) : (
+          <Table
+            columns={["Máquina", "Litros abastecidos", "Gasto abastecimento", "Gasto manutenção", "Gasto total"]}
+            rows={porMaquina.map(([nome, d]) => (
+              <tr key={nome} style={rowStyle}>
+                <td style={{ ...tdStyle, fontWeight: 500 }}>{nome}</td>
+                <td style={tdStyle} className="tl-mono">{d.litros.toFixed(0)} L</td>
+                <td style={tdStyle} className="tl-mono">{money(d.valor)}</td>
+                <td style={tdStyle} className="tl-mono">{money(d.manutencaoValor)}</td>
+                <td style={{ ...tdStyle, fontWeight: 600 }} className="tl-mono">{money(d.valor + d.manutencaoValor)}</td>
+              </tr>
+            ))}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function MaquinaForm({ initial, onSave, onClose }) {
+  const [form, setForm] = useState(initial);
+  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+  return (
+    <Modal title={initial.nome ? "Editar máquina" : "Nova máquina"} onClose={onClose}>
+      <form onSubmit={(e) => { e.preventDefault(); onSave(form); }}>
+        <Field label="Nome / identificação" required>
+          <Input value={form.nome} onChange={set("nome")} required />
+        </Field>
+        <Field label="Tipo">
+          <Select value={form.tipo} onChange={set("tipo")}>
+            <option>Caminhão Betoneira</option>
+            <option>Bomba de Concreto</option>
+            <option>Caminhão</option>
+            <option>Carregadeira</option>
+            <option>Gerador</option>
+            <option>Outro</option>
+          </Select>
+        </Field>
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "6px" }}>
+          <Button type="button" variant="ghost" onClick={onClose}>Cancelar</Button>
+          <Button type="submit">Salvar</Button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function ManutencaoForm({ initial, maquinas, onSave, onClose }) {
+  const [form, setForm] = useState(initial);
+  const [rascunhoRecuperado] = useState(() => !!initial.__rascunho);
+  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+  const isAbastecimento = form.tipo === "Abastecimento";
+
+  useEffect(() => {
+    salvarRascunho("manutencao", form);
+  }, [form]);
+
+  return (
+    <Modal title={initial.descricao ? "Editar registro" : "Novo registro"} onClose={() => { limparRascunho("manutencao"); onClose(); }} wide>
+      {rascunhoRecuperado && <RascunhoBanner />}
+      <form onSubmit={(e) => { e.preventDefault(); limparRascunho("manutencao"); onSave(form); }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+          <Field label="Máquina" required>
+            <Select value={form.maquinaId} onChange={set("maquinaId")} required>
+              <option value="">Selecionar</option>
+              {porNome(maquinas).map((m) => (
+                <option key={m.id} value={m.id}>{m.nome}</option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="Tipo de registro">
+            <Select value={form.tipo} onChange={set("tipo")}>
+              <option>Manutenção</option>
+              <option>Abastecimento</option>
+            </Select>
+          </Field>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+          <Field label="Data">
+            <Input type="date" value={form.data} onChange={set("data")} />
+          </Field>
+          <Field label="Horímetro / KM">
+            <Input value={form.horimetro} onChange={set("horimetro")} />
+          </Field>
+        </div>
+
+        <Field label={isAbastecimento ? "O que foi feito" : "Descrição do serviço"}>
+          <Input
+            placeholder={isAbastecimento ? "Ex: Abastecimento diesel" : "Ex: Troca de óleo e filtros"}
+            value={form.descricao}
+            onChange={set("descricao")}
+          />
+        </Field>
+
+        <div style={{ display: "grid", gridTemplateColumns: isAbastecimento ? "1fr 1fr" : "1fr", gap: "0 16px" }}>
+          {isAbastecimento && (
+            <Field label="Litros">
+              <Input type="number" min="0" step="0.1" value={form.litros} onChange={set("litros")} />
+            </Field>
+          )}
+          <Field label="Valor (R$)">
+            <Input type="number" min="0" step="0.01" value={form.valor} onChange={set("valor")} />
+          </Field>
+        </div>
+
+        <Field label="Observação">
+          <TextArea value={form.observacao} onChange={set("observacao")} />
+        </Field>
+
+        <FotosUpload fotos={form.fotos || []} onChange={(fotos) => setForm({ ...form, fotos })} />
+
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "6px" }}>
+          <Button type="button" variant="ghost" onClick={() => { limparRascunho("manutencao"); onClose(); }}>Cancelar</Button>
+          <Button type="submit">Salvar registro</Button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Fotos de obra módulo                                                */
+/* ------------------------------------------------------------------ */
+function PhotoThumb({ id, onClick }) {
+  const [src, setSrc] = useState(null);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    loadPhotoBlob(id).then((v) => {
+      if (!active) return;
+      if (v) setSrc(v);
+      else setFailed(true);
+    });
+    return () => { active = false; };
+  }, [id]);
+
+  return (
+    <button
+      onClick={onClick}
+      className="tl-focus"
+      style={{
+        aspectRatio: "1",
+        borderRadius: "8px",
+        overflow: "hidden",
+        border: "1px solid var(--border-soft)",
+        background: "var(--bg-panel-raised)",
+        cursor: "pointer",
+        padding: 0,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      {failed ? (
+        <ImageOff size={18} style={{ color: "var(--text-faint)" }} />
+      ) : src ? (
+        <img src={src} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+      ) : (
+        <Loader2 size={16} style={{ color: "var(--text-faint)" }} />
+      )}
+    </button>
+  );
+}
+
+
+/* ------------------------------------------------------------------ */
+/*  Agenda módulo                                                       */
+/* ------------------------------------------------------------------ */
+const emptyCompromisso = () => ({
+  id: uid(),
+  titulo: "",
+  tipo: "Compromisso",
+  data: new Date().toISOString().slice(0, 10),
+  hora: "",
+  maquinaId: "",
+  pedido: "",
+  observacao: "",
+  status: "Pendente",
+});
+
+function AgendaModule({ agenda, maquinas, clienteByPedido, producaoEsc, producaoPerf, onChange }) {
+  const [editing, setEditing] = useState(null);
+  const [deleting, setDeleting] = useState(null);
+  const [visao, setVisao] = useState("calendario"); // calendario | lista
+
+  const maquinaById = useMemo(() => {
+    const map = new Map();
+    maquinas.forEach((m) => map.set(m.id, m));
+    return map;
+  }, [maquinas]);
+
+  const hojeISO = new Date().toISOString().slice(0, 10);
+
+  const save = (c) => {
+    const exists = agenda.some((x) => x.id === c.id);
+    onChange(exists ? agenda.map((x) => (x.id === c.id ? c : x)) : [...agenda, c]);
+    setEditing(null);
+  };
+  const remove = (id) => {
+    onChange(agenda.filter((x) => x.id !== id));
+    setDeleting(null);
+  };
+  const toggleConcluido = (c) => {
+    onChange(agenda.map((x) => (x.id === c.id ? { ...x, status: x.status === "Concluído" ? "Pendente" : "Concluído" } : x)));
+  };
+
+  const ordenada = [...agenda].sort((a, b) => dataOrdenavel(a.data || "9999").localeCompare(dataOrdenavel(b.data || "9999")));
+  const atrasados = ordenada.filter((c) => dataOrdenavel(c.data) < hojeISO && c.status !== "Concluído");
+  const hoje = ordenada.filter((c) => dataOrdenavel(c.data) === hojeISO && c.status !== "Concluído");
+  const futuros = ordenada.filter((c) => dataOrdenavel(c.data) > hojeISO && c.status !== "Concluído");
+  const concluidos = ordenada.filter((c) => c.status === "Concluído");
+
+  return (
+    <div className="tl-fade-in">
+      <PageHeader
+        eyebrow="Planejamento"
+        title="Agenda"
+        action={
+          <div style={{ display: "flex", gap: "8px" }}>
+            <Button size="sm" variant={visao === "calendario" ? "primary" : "subtle"} onClick={() => setVisao("calendario")} type="button">Calendário</Button>
+            <Button size="sm" variant={visao === "lista" ? "primary" : "subtle"} onClick={() => setVisao("lista")} type="button">Lista</Button>
+            <Button icon={Plus} onClick={() => setEditing(abrirNovoRegistro("agenda", emptyCompromisso))}>Novo compromisso</Button>
+          </div>
+        }
+      />
+
+      {visao === "calendario" && (
+        <div style={{ marginBottom: "26px" }}>
+          <CalendarioMensal agenda={agenda} producaoEsc={producaoEsc} producaoPerf={producaoPerf} clienteByPedido={clienteByPedido} />
+        </div>
+      )}
+
+      {visao === "lista" && (agenda.length === 0 ? (
+        <EmptyState icon={Calendar} title="Nenhum compromisso ainda" hint="Cadastre agendamentos de máquinas e compromissos gerais." />
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: "26px" }}>
+          <AgendaGroup titulo="Atrasados" cor="var(--danger)" itens={atrasados} maquinaById={maquinaById} clienteByPedido={clienteByPedido} onEdit={setEditing} onDelete={setDeleting} onToggle={toggleConcluido} />
+          <AgendaGroup titulo="Hoje" cor="var(--amber)" itens={hoje} maquinaById={maquinaById} clienteByPedido={clienteByPedido} onEdit={setEditing} onDelete={setDeleting} onToggle={toggleConcluido} />
+          <AgendaGroup titulo="Próximos" cor="var(--text-muted)" itens={futuros} maquinaById={maquinaById} clienteByPedido={clienteByPedido} onEdit={setEditing} onDelete={setDeleting} onToggle={toggleConcluido} />
+          {concluidos.length > 0 && (
+            <AgendaGroup titulo="Concluídos" cor="var(--success)" itens={concluidos} maquinaById={maquinaById} clienteByPedido={clienteByPedido} onEdit={setEditing} onDelete={setDeleting} onToggle={toggleConcluido} muted />
+          )}
+        </div>
+      ))}
+
+      {editing && <AgendaForm initial={editing} maquinas={maquinas} onSave={save} onClose={() => setEditing(null)} />}
+      {deleting && (
+        <ConfirmDelete label={`o compromisso "${deleting.titulo}"`} dados={deleting} onConfirm={() => remove(deleting.id)} onCancel={() => setDeleting(null)} />
+      )}
+    </div>
+  );
+}
+
+// Lista os equipamentos que estiveram em obra num dia (AAAA-MM-DD),
+// juntando os lançamentos de Produção.
+function maquinasNoDia(dataISO, producaoEsc, producaoPerf) {
+  const doDia = [];
+  (producaoEsc || []).forEach((r) => {
+    if (r.data === dataISO) doDia.push({ equipamento: r.equipamento || "-", cliente: r.cliente || "-", tipo: "", pedido: r.pedido });
+  });
+  return doDia;
+}
+
+function CalendarioMensal({ agenda, producaoEsc, producaoPerf, clienteByPedido, compacto }) {
+  const hoje = new Date();
+  const [mesRef, setMesRef] = useState(new Date(hoje.getFullYear(), hoje.getMonth(), 1));
+  const [diaSelecionado, setDiaSelecionado] = useState(null);
+  const hojeISO = hoje.toISOString().slice(0, 10);
+
+  const ano = mesRef.getFullYear();
+  const mes = mesRef.getMonth();
+  const primeiroDiaSemana = new Date(ano, mes, 1).getDay(); // 0=dom
+  const totalDias = new Date(ano, mes + 1, 0).getDate();
+
+  const celulas = [];
+  for (let i = 0; i < primeiroDiaSemana; i++) celulas.push(null);
+  for (let d = 1; d <= totalDias; d++) celulas.push(d);
+
+  const isoDoDia = (d) => `${ano}-${String(mes + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+
+  const nomesMes = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+
+  const diaInfo = diaSelecionado
+    ? {
+        iso: diaSelecionado,
+        compromissos: (agenda || []).filter((a) => a.data === diaSelecionado),
+        maquinas: maquinasNoDia(diaSelecionado, producaoEsc, producaoPerf),
+      }
+    : null;
+
+  return (
+    <div>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <button type="button" className="tl-focus" onClick={() => setMesRef(new Date(ano, mes - 1, 1))} style={{ ...iconBtnStyle, cursor: "pointer" }}>‹</button>
+          <span className="tl-display" style={{ fontSize: "17px", fontWeight: 700 }}>{nomesMes[mes]} {ano}</span>
+          <button type="button" className="tl-focus" onClick={() => setMesRef(new Date(ano, mes + 1, 1))} style={{ ...iconBtnStyle, cursor: "pointer" }}>›</button>
+        </div>
+        <Button size="sm" variant="subtle" type="button" onClick={() => setMesRef(new Date(hoje.getFullYear(), hoje.getMonth(), 1))}>Hoje</Button>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "4px", marginBottom: "4px" }}>
+        {["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map((d) => (
+          <div key={d} className="tl-mono" style={{ textAlign: "center", fontSize: "10.5px", color: "var(--text-faint)", padding: "4px 0" }}>{d}</div>
+        ))}
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "4px" }}>
+        {celulas.map((d, i) => {
+          if (d === null) return <div key={`vazio-${i}`} />;
+          const iso = isoDoDia(d);
+          const maqs = maquinasNoDia(iso, producaoEsc, producaoPerf);
+          const compCount = (agenda || []).filter((a) => a.data === iso && a.status !== "Concluído").length;
+          const ehHoje = iso === hojeISO;
+          const selecionado = iso === diaSelecionado;
+          return (
+            <button
+              type="button"
+              key={iso}
+              onClick={() => setDiaSelecionado(selecionado ? null : iso)}
+              className="tl-focus"
+              style={{
+                minHeight: compacto ? "44px" : "64px",
+                borderRadius: "6px",
+                border: ehHoje ? "1px solid var(--amber)" : "1px solid var(--border-soft)",
+                background: selecionado ? "var(--bg-panel-raised)" : "var(--bg-panel)",
+                cursor: "pointer",
+                padding: "4px 5px",
+                textAlign: "left",
+                display: "flex",
+                flexDirection: "column",
+                gap: "2px",
+              }}
+            >
+              <span className="tl-mono" style={{ fontSize: "11px", fontWeight: ehHoje ? 700 : 500, color: ehHoje ? "var(--amber)" : "var(--text-muted)" }}>{d}</span>
+              {maqs.length > 0 && (
+                <span style={{ fontSize: "9.5px", color: "var(--text-primary)", background: "var(--bg-panel-raised)", borderRadius: "3px", padding: "1px 4px", alignSelf: "flex-start" }}>
+                  {maqs.length} máq.
+                </span>
+              )}
+              {compCount > 0 && (
+                <span style={{ fontSize: "9.5px", color: "var(--amber)" }}>● {compCount} evento{compCount > 1 ? "s" : ""}</span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {diaInfo && (
+        <div style={{ marginTop: "14px", background: "var(--bg-panel)", border: "1px solid var(--border-soft)", borderRadius: "9px", padding: "16px" }}>
+          <div className="tl-mono" style={{ fontSize: "11px", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: "10px" }}>
+            {fmtDate(diaInfo.iso)}
+          </div>
+
+          {diaInfo.maquinas.length === 0 && diaInfo.compromissos.length === 0 ? (
+            <p style={{ fontSize: "13px", color: "var(--text-faint)" }}>Nada registrado nesse dia.</p>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+              {diaInfo.maquinas.length > 0 && (
+                <div>
+                  <div style={{ fontSize: "12px", fontWeight: 600, marginBottom: "6px" }}>Concreto</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                    {diaInfo.maquinas.map((m, i) => (
+                      <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: "13px" }}>
+                        <span><strong>{m.equipamento}</strong>{m.tipo ? ` · ${m.tipo}` : ""}</span>
+                        <span style={{ color: "var(--text-muted)" }}>{m.cliente} (#{m.pedido})</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {diaInfo.compromissos.length > 0 && (
+                <div>
+                  <div style={{ fontSize: "12px", fontWeight: 600, marginBottom: "6px" }}>Compromissos</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                    {diaInfo.compromissos.map((c) => (
+                      <div key={c.id} style={{ fontSize: "13px" }}>
+                        {c.hora && <span className="tl-mono" style={{ color: "var(--text-faint)" }}>{c.hora} · </span>}
+                        {c.titulo} <span style={{ color: "var(--text-muted)" }}>({c.status})</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AgendaGroup({ titulo, cor, itens, maquinaById, clienteByPedido, onEdit, onDelete, onToggle, muted }) {
+  if (itens.length === 0) return null;
+  return (
+    <div>
+      <h4 className="tl-mono" style={{ fontSize: "11.5px", letterSpacing: "0.05em", color: cor, marginBottom: "10px", textTransform: "uppercase" }}>
+        {titulo} · {itens.length}
+      </h4>
+      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+        {itens.map((c) => {
+          const maquina = maquinaById.get(c.maquinaId);
+          const cliente = c.pedido ? clienteByPedido.get(String(c.pedido).trim()) : null;
+          return (
+            <div
+              key={c.id}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+                background: "var(--bg-panel)",
+                border: "1px solid var(--border-soft)",
+                borderRadius: "8px",
+                padding: "12px 14px",
+                opacity: muted ? 0.6 : 1,
+              }}
+            >
+              <button
+                onClick={() => onToggle(c)}
+                className="tl-focus"
+                title="Marcar como concluído"
+                style={{
+                  width: "18px",
+                  height: "18px",
+                  borderRadius: "5px",
+                  border: `2px solid ${c.status === "Concluído" ? "var(--success)" : "var(--text-faint)"}`,
+                  background: c.status === "Concluído" ? "var(--success)" : "transparent",
+                  cursor: "pointer",
+                  flexShrink: 0,
+                }}
+              />
+              <div style={{ minWidth: "62px", fontSize: "12px" }} className="tl-mono">
+                <div style={{ color: "var(--text-primary)", fontWeight: 600 }}>{fmtDate(c.data)}</div>
+                {c.hora && <div style={{ color: "var(--text-faint)" }}>{c.hora}</div>}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 600, fontSize: "13.5px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {c.titulo || "Sem título"}
+                </div>
+                <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>
+                  {c.tipo}
+                  {maquina && ` · ${maquina.nome}`}
+                  {c.pedido && ` · Pedido #${c.pedido}`}
+                  {cliente && ` (${cliente.nome})`}
+                </div>
+              </div>
+              <RowActions onEdit={() => onEdit(c)} onDelete={() => onDelete(c)} />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function AgendaForm({ initial, maquinas, onSave, onClose }) {
+  const [form, setForm] = useState(initial);
+  const [rascunhoRecuperado] = useState(() => !!initial.__rascunho);
+  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+
+  useEffect(() => {
+    salvarRascunho("agenda", form);
+  }, [form]);
+
+  return (
+    <Modal title={initial.titulo ? "Editar compromisso" : "Novo compromisso"} onClose={() => { limparRascunho("agenda"); onClose(); }} wide>
+      {rascunhoRecuperado && <RascunhoBanner />}
+      <form onSubmit={(e) => { e.preventDefault(); limparRascunho("agenda"); onSave(form); }}>
+        <Field label="Título" required>
+          <Input value={form.titulo} onChange={set("titulo")} required placeholder="Ex: Manutenção preventiva ESC30" />
+        </Field>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0 16px" }}>
+          <Field label="Data" required>
+            <Input type="date" value={form.data} onChange={set("data")} required />
+          </Field>
+          <Field label="Hora">
+            <Input type="time" value={form.hora} onChange={set("hora")} />
+          </Field>
+          <Field label="Tipo">
+            <Select value={form.tipo} onChange={set("tipo")}>
+              <option>Compromisso</option>
+              <option>Manutenção de máquina</option>
+              <option>Entrega</option>
+              <option>Retirada</option>
+              <option>Reunião</option>
+            </Select>
+          </Field>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+          <Field label="Máquina vinculada" hint="Opcional">
+            <Select value={form.maquinaId} onChange={set("maquinaId")}>
+              <option value="">Nenhuma</option>
+              {porNome(maquinas).map((m) => (
+                <option key={m.id} value={m.id}>{m.nome}</option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="Pedido vinculado" hint="Opcional — puxa o cliente automaticamente">
+            <Input value={form.pedido} onChange={set("pedido")} />
+          </Field>
+        </div>
+
+        <Field label="Observação">
+          <TextArea value={form.observacao} onChange={set("observacao")} />
+        </Field>
+
+        <Field label="Status">
+          <Select value={form.status} onChange={set("status")}>
+            <option>Pendente</option>
+            <option>Concluído</option>
+          </Select>
+        </Field>
+
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "6px" }}>
+          <Button type="button" variant="ghost" onClick={() => { limparRascunho("agenda"); onClose(); }}>Cancelar</Button>
+          <Button type="submit">Salvar compromisso</Button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Tick de Carregamento módulo                                         */
+/* ------------------------------------------------------------------ */
+const emptyTick = () => ({
+  id: uid(),
+  placa: "",
+  tipoResiduo: "",
+  pedido: "",
+  nomeContrato: "",
+  maquinaId: "",
+  operador: "",
+  data: new Date().toISOString().slice(0, 10),
+  horario: new Date().toTimeString().slice(0, 5),
+  cliente: "",
+  endereco: "",
+  telefoneCliente: "",
+  fotos: [],
+  assinatura: "",
+});
+
+function AssinaturaPad({ valor, onChange }) {
+  const canvasRef = React.useRef(null);
+  const desenhandoRef = React.useRef(false);
+  const [temTraço, setTemTraço] = useState(!!valor);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    ctx.lineWidth = 2.2;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = "#1a1a1a";
+    if (valor) {
+      const img = new Image();
+      img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      img.src = valor;
+    }
+  }, []);
+
+  const posicao = (e) => {
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    const cx = e.touches ? e.touches[0].clientX : e.clientX;
+    const cy = e.touches ? e.touches[0].clientY : e.clientY;
+    return { x: ((cx - rect.left) / rect.width) * canvas.width, y: ((cy - rect.top) / rect.height) * canvas.height };
+  };
+
+  const iniciar = (e) => {
+    e.preventDefault();
+    desenhandoRef.current = true;
+    const ctx = canvasRef.current.getContext("2d");
+    const p = posicao(e);
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+  };
+  const mover = (e) => {
+    if (!desenhandoRef.current) return;
+    e.preventDefault();
+    const ctx = canvasRef.current.getContext("2d");
+    const p = posicao(e);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+  };
+  const parar = () => {
+    if (!desenhandoRef.current) return;
+    desenhandoRef.current = false;
+    setTemTraço(true);
+    onChange(canvasRef.current.toDataURL("image/png"));
+  };
+  const limpar = () => {
+    const canvas = canvasRef.current;
+    canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+    setTemTraço(false);
+    onChange("");
+  };
+
+  return (
+    <div>
+      <canvas
+        ref={canvasRef}
+        width={500}
+        height={160}
+        style={{ width: "100%", height: "150px", background: "#fff", borderRadius: "6px", border: "1px solid var(--border)", touchAction: "none", cursor: "crosshair" }}
+        onMouseDown={iniciar}
+        onMouseMove={mover}
+        onMouseUp={parar}
+        onMouseLeave={parar}
+        onTouchStart={iniciar}
+        onTouchMove={mover}
+        onTouchEnd={parar}
+      />
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "6px" }}>
+        <span style={{ fontSize: "11px", color: "var(--text-faint)" }}>Cliente assina com o dedo ou o mouse aqui em cima</span>
+        <Button type="button" size="sm" variant="ghost" icon={Trash2} onClick={limpar}>Limpar assinatura</Button>
+      </div>
+    </div>
+  );
+}
+
+
+
+// Sistema genérico de rascunho — qualquer formulário do sistema pode usar
+// essas 3 funções pra nunca perder o que a pessoa digitou, mesmo trocando
+// de aba ou fechando o app sem salvar. Cada tipo de formulário usa sua
+// própria chave (ex: "cliente", "producao-esc", "proposta"...).
+const salvarRascunho = (chave, form) => {
+  try {
+    localStorage.setItem(`tl-rascunho:${chave}`, JSON.stringify(form));
+  } catch (e) {}
+};
+const lerRascunho = (chave) => {
+  try {
+    const s = localStorage.getItem(`tl-rascunho:${chave}`);
+    return s ? JSON.parse(s) : null;
+  } catch (e) {
+    return null;
+  }
+};
+const limparRascunho = (chave) => {
+  try {
+    localStorage.removeItem(`tl-rascunho:${chave}`);
+  } catch (e) {}
+};
+
+function RascunhoBanner() {
+  return (
+    <div style={{ background: "var(--bg-base)", border: "1px solid var(--amber)", borderRadius: "6px", padding: "8px 12px", marginBottom: "14px", fontSize: "12.5px", color: "var(--amber)" }}>
+      ↻ Rascunho recuperado — o que você tinha digitado antes de sair não foi perdido.
+    </div>
+  );
+}
+
+// Abre um formulário novo checando primeiro se tem rascunho salvo daquele
+// tipo — se tiver qualquer campo preenchido, usa ele; senão usa o registro
+// vazio de sempre. `extras` deixa sobrescrever campos (ex: próximo pedido).
+const abrirNovoRegistro = (chave, criarVazio, extras = {}) => {
+  const rascunho = lerRascunho(chave);
+  // Proteção contra rascunho corrompido ou gigante demais (ex: uma lista
+  // de viagens que cresceu descontroladamente numa sessão antiga) — se
+  // parecer estranho, descarta e começa do zero, sem travar a tela.
+  const rascunhoParaceRazoavel = (r) => {
+    if (!r || typeof r !== "object") return false;
+    try {
+      const tamanho = JSON.stringify(r).length;
+      if (tamanho > 50000) return false; // rascunho normal tem poucos KB
+    } catch (e) {
+      return false;
+    }
+    return true;
+  };
+  const temConteudo =
+    rascunho &&
+    rascunhoParaceRazoavel(rascunho) &&
+    Object.keys(rascunho).some((k) => k !== "id" && k !== "__rascunho" && rascunho[k] !== "" && rascunho[k] !== null && (!Array.isArray(rascunho[k]) || rascunho[k].length > 0));
+  if (temConteudo) return { ...rascunho, __rascunho: true };
+  if (rascunho && !rascunhoParaceRazoavel(rascunho)) limparRascunho(chave);
+  return { ...criarVazio(), ...extras };
+};
+
+
+
+
+
+
+
+/* ------------------------------------------------------------------ */
+/*  Controle Diário módulo                                              */
+/* ------------------------------------------------------------------ */
+const emptyControleDiario = () => ({
+  id: uid(),
+  maquinaId: "",
+  operador: "",
+  data: new Date().toISOString().slice(0, 10),
+  horimetroInicio: "",
+  horimetroFim: "",
+  abastecida: false,
+  litros: "",
+  observacao: "",
+  fotos: [],
+});
+
+function ControleDiarioModule({ registros, maquinas, onChange, isAdmin, requireAdmin }) {
+  const [editing, setEditing] = useState(null);
+  const [deleting, setDeleting] = useState(null);
+  const [mostrarRelatorio, setMostrarRelatorio] = useState(false);
+  const [filtroMaquina, setFiltroMaquina] = useState("todas");
+
+  const maquinaById = useMemo(() => {
+    const map = new Map();
+    maquinas.forEach((m) => map.set(m.id, m));
+    return map;
+  }, [maquinas]);
+
+  const horasDe = (r) => {
+    const ini = Number(r.horimetroInicio);
+    const fim = Number(r.horimetroFim);
+    if (isNaN(ini) || isNaN(fim) || fim < ini) return 0;
+    return fim - ini;
+  };
+
+  const save = (r) => {
+    const exists = registros.some((x) => x.id === r.id);
+    onChange(exists ? registros.map((x) => (x.id === r.id ? r : x)) : [...registros, r]);
+    setEditing(null);
+  };
+  const remove = (id) => {
+    onChange(registros.filter((x) => x.id !== id));
+    setDeleting(null);
+  };
+
+  const registrosFiltrados = filtroMaquina === "todas" ? registros : registros.filter((r) => r.maquinaId === filtroMaquina);
+
+  const relatorio = useMemo(() => {
+    const porMaquina = new Map();
+    registrosFiltrados.forEach((r) => {
+      const key = r.maquinaId || "sem-maquina";
+      if (!porMaquina.has(key)) porMaquina.set(key, { horas: 0, litros: 0, dias: 0 });
+      const acc = porMaquina.get(key);
+      acc.horas += horasDe(r);
+      acc.litros += r.abastecida ? Number(r.litros) || 0 : 0;
+      acc.dias += 1;
+    });
+    return porMaquina;
+  }, [registrosFiltrados]);
+
+  return (
+    <div className="tl-fade-in">
+      <PageHeader
+        eyebrow="Apontamento diário"
+        title="Controle Diário"
+        action={
+          <div style={{ display: "flex", gap: "8px" }}>
+            <Button variant="subtle" icon={Gauge} onClick={() => setMostrarRelatorio(true)}>Relatório</Button>
+            <Button icon={Plus} onClick={() => setEditing(abrirNovoRegistro("controle-diario", emptyControleDiario))}>Novo apontamento</Button>
+          </div>
+        }
+      />
+
+      <p style={{ fontSize: "12px", color: "var(--text-faint)", marginBottom: "16px" }}>
+        Qualquer pessoa pode registrar o apontamento do dia. Editar ou excluir um registro já salvo pede a senha de administrador.
+      </p>
+
+      <div style={{ marginBottom: "16px", maxWidth: "240px" }}>
+        <Select value={filtroMaquina} onChange={(e) => setFiltroMaquina(e.target.value)}>
+          <option value="todas">Todas as máquinas</option>
+          {porNome(maquinas).map((m) => (
+            <option key={m.id} value={m.id}>{m.nome}</option>
+          ))}
+        </Select>
+      </div>
+
+      {registrosFiltrados.length === 0 ? (
+        <EmptyState icon={Gauge} title="Nenhum apontamento ainda" hint="Registre o horímetro de início e fim do dia de cada máquina." />
+      ) : (
+        <Table
+          columns={["Máquina", "Operador", "Data", "Horímetro", "Horas", "Abastecida", ""]}
+          rows={[...registrosFiltrados].sort((a, b) => (b.data || "").localeCompare(a.data || "")).map((r) => (
+            <tr key={r.id} style={rowStyle}>
+              <td style={{ ...tdStyle, fontWeight: 500 }}>{maquinaById.get(r.maquinaId)?.nome || "-"}</td>
+              <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{r.operador || "-"}</td>
+              <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{fmtDate(r.data)}</td>
+              <td style={tdStyle} className="tl-mono">{r.horimetroInicio || "-"} → {r.horimetroFim || "-"}</td>
+              <td style={tdStyle} className="tl-mono">{horasDe(r)}h</td>
+              <td style={tdStyle}>{r.abastecida ? `${r.litros || 0} L` : "Não"}</td>
+              <td style={{ ...tdStyle, textAlign: "right" }}>
+                <RowActions
+                  onEdit={() => requireAdmin(() => setEditing(r))}
+                  onDelete={() => requireAdmin(() => setDeleting(r))}
+                />
+              </td>
+            </tr>
+          ))}
+        />
+      )}
+
+      {editing && <ControleDiarioForm initial={editing} maquinas={maquinas} onSave={save} onClose={() => setEditing(null)} />}
+      {deleting && (
+        <ConfirmDelete label="este apontamento" dados={deleting} onConfirm={() => remove(deleting.id)} onCancel={() => setDeleting(null)} />
+      )}
+      {mostrarRelatorio && (
+        <Modal title="Relatório — horas e litragem por máquina" onClose={() => setMostrarRelatorio(false)} wide>
+          {relatorio.size === 0 ? (
+            <p style={{ color: "var(--text-faint)", fontSize: "13px" }}>Nenhum dado para mostrar ainda.</p>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              {[...relatorio.entries()].map(([maquinaId, acc]) => (
+                <div
+                  key={maquinaId}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    background: "var(--bg-panel-raised)",
+                    border: "1px solid var(--border)",
+                    borderRadius: "7px",
+                    padding: "12px 14px",
+                  }}
+                >
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: "14px" }}>{maquinaById.get(maquinaId)?.nome || "Sem máquina"}</div>
+                    <div style={{ fontSize: "11.5px", color: "var(--text-faint)" }}>{acc.dias} apontamento{acc.dias > 1 ? "s" : ""}</div>
+                  </div>
+                  <div style={{ display: "flex", gap: "24px", textAlign: "right" }}>
+                    <div>
+                      <div className="tl-display" style={{ fontSize: "20px", fontWeight: 700, color: "var(--amber)" }}>{acc.horas}h</div>
+                      <div style={{ fontSize: "10.5px", color: "var(--text-faint)" }}>trabalhadas</div>
+                    </div>
+                    <div>
+                      <div className="tl-display" style={{ fontSize: "20px", fontWeight: 700 }}>{acc.litros}L</div>
+                      <div style={{ fontSize: "10.5px", color: "var(--text-faint)" }}>abastecidos</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "18px" }}>
+            <Button variant="ghost" onClick={() => setMostrarRelatorio(false)}>Fechar</Button>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+function ControleDiarioForm({ initial, maquinas, onSave, onClose }) {
+  const [form, setForm] = useState(initial);
+  const [rascunhoRecuperado] = useState(() => !!initial.__rascunho);
+  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+
+  useEffect(() => {
+    salvarRascunho("controle-diario", form);
+  }, [form]);
+
+  const horas = (() => {
+    const ini = Number(form.horimetroInicio);
+    const fim = Number(form.horimetroFim);
+    if (isNaN(ini) || isNaN(fim) || fim < ini) return null;
+    return fim - ini;
+  })();
+
+  return (
+    <Modal title={initial.operador ? "Editar apontamento" : "Novo apontamento diário"} onClose={() => { limparRascunho("controle-diario"); onClose(); }} wide>
+      {rascunhoRecuperado && <RascunhoBanner />}
+      <form onSubmit={(e) => { e.preventDefault(); limparRascunho("controle-diario"); onSave(form); }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+          <Field label="Máquina" required>
+            <Select value={form.maquinaId} onChange={set("maquinaId")} required>
+              <option value="">Selecionar</option>
+              {porNome(maquinas).map((m) => (
+                <option key={m.id} value={m.id}>{m.nome}</option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="Operador" required>
+            <Input value={form.operador} onChange={set("operador")} required />
+          </Field>
+        </div>
+
+        <Field label="Data">
+          <Input type="date" value={form.data} onChange={set("data")} />
+        </Field>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+          <Field label="Horímetro início do dia" required>
+            <Input type="number" min="0" step="0.1" value={form.horimetroInicio} onChange={set("horimetroInicio")} required />
+          </Field>
+          <Field label="Horímetro fim do dia" required>
+            <Input type="number" min="0" step="0.1" value={form.horimetroFim} onChange={set("horimetroFim")} required />
+          </Field>
+        </div>
+
+        {horas !== null && (
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              background: "var(--bg-panel-raised)",
+              border: "1px solid var(--border)",
+              borderRadius: "6px",
+              padding: "9px 14px",
+              marginBottom: "16px",
+            }}
+          >
+            <span className="tl-mono" style={{ fontSize: "11px", color: "var(--text-muted)", textTransform: "uppercase" }}>Horas trabalhadas</span>
+            <span className="tl-display" style={{ fontSize: "18px", fontWeight: 700, color: "var(--amber)" }}>{horas}h</span>
+          </div>
+        )}
+
+        <label style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "14px", cursor: "pointer" }}>
+          <input type="checkbox" checked={form.abastecida} onChange={(e) => setForm({ ...form, abastecida: e.target.checked })} />
+          <span style={{ fontSize: "13.5px" }}>A máquina foi abastecida hoje</span>
+        </label>
+
+        {form.abastecida && (
+          <Field label="Litragem abastecida">
+            <Input type="number" min="0" step="0.1" value={form.litros} onChange={set("litros")} />
+          </Field>
+        )}
+
+        <Field label="Observação">
+          <TextArea value={form.observacao} onChange={set("observacao")} />
+        </Field>
+
+        <FotosUpload fotos={form.fotos || []} onChange={(fotos) => setForm({ ...form, fotos })} />
+
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "6px" }}>
+          <Button type="button" variant="ghost" onClick={() => { limparRascunho("controle-diario"); onClose(); }}>Cancelar</Button>
+          <Button type="submit">Salvar apontamento</Button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Configurações módulo                                                */
+/* ------------------------------------------------------------------ */
+// Tira acentos e símbolos de um texto de cabeçalho, pra comparar de forma
+// tolerante ("N° DO PEDIDO" e "Nº do Pedido" viram a mesma coisa).
+function normalizarCabecalho(txt) {
+  return String(txt || "")
+    .toUpperCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^A-Z0-9 ]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+// Acha, dentro das primeiras linhas de uma planilha, a linha que parece ser
+// o cabeçalho (a que contém um dos textos esperados), e devolve um mapa
+// "nome da coluna normalizado" → índice da coluna.
+function detectarCabecalho(matriz, candidatos) {
+  for (let r = 0; r < Math.min(matriz.length, 15); r++) {
+    const linha = (matriz[r] || []).map(normalizarCabecalho);
+    if (candidatos.some((c) => linha.includes(c))) {
+      const mapa = {};
+      linha.forEach((v, i) => { if (v) mapa[v] = i; });
+      return { linhaIdx: r, mapa };
+    }
+  }
+  return null;
+}
+
+function pegar(linha, mapa, ...nomes) {
+  for (const nome of nomes) {
+    const i = mapa[nome];
+    if (i !== undefined && linha[i] !== undefined && linha[i] !== null && linha[i] !== "") return linha[i];
+  }
+  return "";
+}
+
+async function lerExcelParaPacote(file) {
+  const XLSX = await import("xlsx");
+  const buffer = await file.arrayBuffer();
+  const wb = XLSX.read(buffer, { type: "array", cellDates: true });
+
+  const acharPlanilha = (palavraChave) => wb.SheetNames.find((n) => normalizarCabecalho(n).includes(palavraChave));
+
+  const nomeClientes = acharPlanilha("CLIENTES");
+  const nomeEsc = acharPlanilha("PRODUCAO ESCAVADEIRA") || acharPlanilha("ESCAVADEIRA");
+  const nomePerf = acharPlanilha("PRODUCAO PERFURATRIZ") || acharPlanilha("PERFURATRIZ");
+
+  const paraData = (v) => {
+    if (!v) return "";
+    if (v instanceof Date) return v.toISOString().slice(0, 10);
+    // Proteção extra: se por algum motivo a data vier como número puro do
+    // Excel (dias desde 30/12/1899), converte certinho em vez de tratar
+    // como texto.
+    if (typeof v === "number") {
+      const convertida = XLSX.SSF.parse_date_code(v);
+      if (convertida) {
+        const mm = String(convertida.m).padStart(2, "0");
+        const dd = String(convertida.d).padStart(2, "0");
+        return `${convertida.y}-${mm}-${dd}`;
+      }
+    }
+    return dataOrdenavel(v);
+  };
+
+  const clientes = [];
+  if (nomeClientes) {
+    const matriz = XLSX.utils.sheet_to_json(wb.Sheets[nomeClientes], { header: 1, raw: true });
+    const cab = detectarCabecalho(matriz, ["N DO PEDIDO", "N PEDIDO", "PEDIDO"]);
+    if (cab) {
+      for (let r = cab.linhaIdx + 1; r < matriz.length; r++) {
+        const linha = matriz[r] || [];
+        const pedido = pegar(linha, cab.mapa, "N DO PEDIDO", "N PEDIDO", "PEDIDO");
+        const nome = pegar(linha, cab.mapa, "EMPRESA", "NOME", "CONTATO");
+        if (!pedido && !nome) continue;
+        clientes.push({
+          id: uid(),
+          pedido: String(pedido).trim(),
+          nome: String(nome || pegar(linha, cab.mapa, "CONTATO")).trim(),
+          cpf: String(pegar(linha, cab.mapa, "CPF CNPJ", "CPF")).trim(),
+          telefone: String(pegar(linha, cab.mapa, "TELEFONE")).trim(),
+          email: String(pegar(linha, cab.mapa, "E MAIL")).trim(),
+          endereco: String(pegar(linha, cab.mapa, "ENDERECO")).trim(),
+          status: String(pegar(linha, cab.mapa, "STATUS")).trim() || "Ativo",
+          observacao: String(pegar(linha, cab.mapa, "OBSERVACAO")).trim(),
+        });
+      }
+    }
+  }
+
+  const lerProducao = (nomePlanilha) => {
+    const registros = [];
+    if (!nomePlanilha) return registros;
+    const matriz = XLSX.utils.sheet_to_json(wb.Sheets[nomePlanilha], { header: 1, raw: true });
+    const cab = detectarCabecalho(matriz, ["N DO PEDIDO", "N PEDIDO", "PEDIDO"]);
+    if (!cab) return registros;
+    for (let r = cab.linhaIdx + 1; r < matriz.length; r++) {
+      const linha = matriz[r] || [];
+      const pedido = pegar(linha, cab.mapa, "N DO PEDIDO", "N PEDIDO", "PEDIDO");
+      const data = paraData(pegar(linha, cab.mapa, "DATA"));
+      if (!pedido || !data) continue;
+      const valorDiaria = numeroSeguro(pegar(linha, cab.mapa, "DIARIA"));
+      const frete = numeroSeguro(pegar(linha, cab.mapa, "FRETE"));
+      // "BOTA" é o valor de bota fora (descarte de material) — alinha com
+      // a mesma seção "Retirada de material" usada no lançamento manual,
+      // em vez de só somar escondido dentro do total sem aparecer em
+      // lugar nenhum.
+      const bota = numeroSeguro(pegar(linha, cab.mapa, "BOTA"));
+      const totalLido = numeroSeguro(pegar(linha, cab.mapa, "TOTAL"));
+      // Se a coluna TOTAL veio vazia/zerada mas diária, frete ou bota têm
+      // valor, a fórmula da planilha provavelmente não tinha sido
+      // recalculada — nesse caso, soma diária + frete + bota como
+      // alternativa segura.
+      const total = totalLido > 0 ? totalLido : valorDiaria + frete + bota;
+      registros.push({
+        id: uid(),
+        pedido: String(pedido).trim(),
+        data,
+        cliente: String(pegar(linha, cab.mapa, "CLIENTE")).trim(),
+        endereco: String(pegar(linha, cab.mapa, "ENDERECO")).trim(),
+        equipamento: String(pegar(linha, cab.mapa, "EQUIPAMENTO")).trim(),
+        qtdDias: Number(pegar(linha, cab.mapa, "QTD")) || 1,
+        valorDiaria,
+        frete,
+        // Bota fora vira "Retirada de material" já preenchida, com o valor
+        // a receber igual ao que veio da planilha — mesma seção que
+        // aparece no lançamento manual, não um valor solto sem nome.
+        retiradaMaterial: bota > 0 ? "Bota fora" : "",
+        valorReceberRetirada: bota > 0 ? bota : "",
+        qtdRetirada: bota > 0 ? 1 : "",
+        operador: String(pegar(linha, cab.mapa, "OPERADOR")).trim(),
+        vendedor: "",
+        status: String(pegar(linha, cab.mapa, "STATUS", "PAGO")).trim().toUpperCase() || "EM ABERTO",
+        total,
+      });
+    }
+    return registros;
+  };
+
+  // Escavadeira: "N. PEDIDO" (sem "DO"), e os valores financeiros ficam
+  // em colunas como "R$ DIÁRIA", "R$ FRETE", "R$ DIÁRIA TOTAL" e "SOMA R$
+  // DE M² PERFURADO" — por isso essa leitura é separada.
+  const lerProducaoPerfuratriz = (nomePlanilha) => {
+    const registros = [];
+    if (!nomePlanilha) return registros;
+    const matriz = XLSX.utils.sheet_to_json(wb.Sheets[nomePlanilha], { header: 1, raw: true });
+    const cab = detectarCabecalho(matriz, ["N PEDIDO", "N DO PEDIDO", "PEDIDO"]);
+    if (!cab) return registros;
+    for (let r = cab.linhaIdx + 1; r < matriz.length; r++) {
+      const linha = matriz[r] || [];
+      const pedido = pegar(linha, cab.mapa, "N PEDIDO", "N DO PEDIDO", "PEDIDO");
+      const data = paraData(pegar(linha, cab.mapa, "DATA"));
+      if (!pedido || !data) continue;
+      const valorDiaria = numeroSeguro(pegar(linha, cab.mapa, "R DIARIA"));
+      const frete = numeroSeguro(pegar(linha, cab.mapa, "R FRETE", "FRETE"));
+      const totalDiaria = numeroSeguro(pegar(linha, cab.mapa, "R DIARIA TOTAL"));
+      const totalM2 = numeroSeguro(pegar(linha, cab.mapa, "SOMA R DE M PERFURADO", "SOMA R DE M2 PERFURADO"));
+      const totalLido = numeroSeguro(pegar(linha, cab.mapa, "TOTAL"));
+      const metragem = pegar(linha, cab.mapa, "M PERFURADO", "M2 PERFURADO") || pegar(linha, cab.mapa, "QTD DE FUROS");
+      // Total = soma dos componentes financeiros (diária + m² perfurado +
+      // frete). Se por acaso existir uma coluna "TOTAL" simples também,
+      // usa o maior dos dois — nunca aceita ficar em zero se algum
+      // componente tiver valor.
+      const totalCalculado = totalDiaria + totalM2 + frete || valorDiaria + frete;
+      const total = Math.max(totalLido, totalCalculado);
+      registros.push({
+        id: uid(),
+        pedido: String(pedido).trim(),
+        data,
+        cliente: String(pegar(linha, cab.mapa, "CLIENTE")).trim(),
+        endereco: String(pegar(linha, cab.mapa, "ENDERECO")).trim(),
+        equipamento: String(pegar(linha, cab.mapa, "EQUIPAMENTO")).trim(),
+        qtdDias: Number(pegar(linha, cab.mapa, "QTD")) || 1,
+        metragem: metragem ? String(metragem).trim() : "",
+        valorDiaria,
+        frete,
+        operador: String(pegar(linha, cab.mapa, "OPERADOR")).trim(),
+        vendedor: "",
+        status: String(pegar(linha, cab.mapa, "STATUS")).trim().toUpperCase() || "EM ABERTO",
+        total,
+      });
+    }
+    return registros;
+  };
+
+  const nomeFinanceiro = acharPlanilha("FLUXO DE CAIXA");
+  const financeiro = [];
+  if (nomeFinanceiro) {
+    const matriz = XLSX.utils.sheet_to_json(wb.Sheets[nomeFinanceiro], { header: 1, raw: true });
+    const cab = detectarCabecalho(matriz, ["DESCRICAO", "TIPO"]);
+    if (cab) {
+      for (let r = cab.linhaIdx + 1; r < matriz.length; r++) {
+        const linha = matriz[r] || [];
+        const descricao = pegar(linha, cab.mapa, "DESCRICAO");
+        const valor = pegar(linha, cab.mapa, "VALOR");
+        if (!descricao && !valor) continue;
+        const situacaoRaw = String(pegar(linha, cab.mapa, "SITUACAO")).toUpperCase();
+        const status = situacaoRaw.includes("PAGO") ? "Pago" : "Pendente";
+        const documento = String(pegar(linha, cab.mapa, "NDOCUMENTO", "N DOCUMENTO")).trim();
+        const obs = String(pegar(linha, cab.mapa, "OBSERVACAO")).trim();
+        // A coluna TIPO diz se é conta a pagar ou a receber — sem isso, tudo
+        // ia parar em "Pagar" só porque era o padrão, mesmo quando a planilha
+        // já dizia claramente que era uma entrada (a receber).
+        const tipoRaw = String(pegar(linha, cab.mapa, "TIPO")).toUpperCase();
+        const tipo = tipoRaw.includes("RECEB") || tipoRaw.includes("RECEITA") || tipoRaw.includes("ENTRADA") ? "Receber" : "Pagar";
+        financeiro.push({
+          id: uid(),
+          tipo,
+          descricao: String(descricao).trim(),
+          fornecedor: String(descricao).trim(),
+          pedido: "",
+          valor: numeroSeguro(valor),
+          vencimento: paraData(pegar(linha, cab.mapa, "DATA DE VENCIMENTO", "VENCIMENTO")) || paraData(pegar(linha, cab.mapa, "DATA DE LANCAMENTO")),
+          dataPagamento: paraData(pegar(linha, cab.mapa, "DATA DE PAGAMENTO")),
+          status,
+          formaPagamento: String(pegar(linha, cab.mapa, "FORMA DE PAGAMENTO")).trim(),
+          observacao: [documento && `Documento: ${documento}`, obs].filter(Boolean).join(" · "),
+        });
+      }
+    }
+  }
+
+  const nomeManutencao = acharPlanilha("MANUTENCAO E ABASTECIMENTO") || acharPlanilha("MANUTENCAO");
+  const manutencoes = [];
+  if (nomeManutencao) {
+    const matriz = XLSX.utils.sheet_to_json(wb.Sheets[nomeManutencao], { header: 1, raw: true });
+    const cab = detectarCabecalho(matriz, ["EQUIPAMENTO", "DESCRICAO"]);
+    if (cab) {
+      for (let r = cab.linhaIdx + 1; r < matriz.length; r++) {
+        const linha = matriz[r] || [];
+        const equipamentoNome = pegar(linha, cab.mapa, "EQUIPAMENTO");
+        const data = paraData(pegar(linha, cab.mapa, "DATA"));
+        if (!equipamentoNome && !data) continue;
+        const tipoRaw = String(pegar(linha, cab.mapa, "MANUTENCAO OU ABASTECIMENTO")).toUpperCase();
+        manutencoes.push({
+          id: uid(),
+          maquinaNome: String(equipamentoNome).trim(),
+          tipo: tipoRaw.includes("ABASTEC") ? "Abastecimento" : "Manutenção",
+          data,
+          descricao: String(pegar(linha, cab.mapa, "DESCRICAO")).trim(),
+          horimetro: String(pegar(linha, cab.mapa, "HORIMETRO ATUAL")).trim(),
+          litros: numeroSeguro(pegar(linha, cab.mapa, "LITROS")) || "",
+          valor: numeroSeguro(pegar(linha, cab.mapa, "VALOR")),
+          observacao: String(pegar(linha, cab.mapa, "OBSERVACAO")).trim(),
+          fotos: [],
+        });
+      }
+    }
+  }
+
+  const nomeTarefa = acharPlanilha("TAREFA");
+  const agenda = [];
+  if (nomeTarefa) {
+    // Essa aba é diferente das outras: uma linha por dia, com até várias
+    // colunas de compromissos daquele dia (uma célula = um compromisso).
+    const matriz = XLSX.utils.sheet_to_json(wb.Sheets[nomeTarefa], { header: 1, raw: true });
+    for (let r = 0; r < matriz.length; r++) {
+      const linha = matriz[r] || [];
+      const data = paraData(linha[0]);
+      if (!data || !/^\d{4}-\d{2}-\d{2}/.test(data)) continue;
+      for (let c = 1; c < linha.length; c++) {
+        const texto = String(linha[c] || "").trim();
+        if (!texto) continue;
+        agenda.push({
+          id: uid(),
+          titulo: texto,
+          tipo: "Compromisso",
+          data,
+          hora: "",
+          maquinaId: "",
+          pedido: "",
+          observacao: "",
+          status: "Pendente",
+        });
+      }
+    }
+  }
+
+  return {
+    clientes,
+    producaoEsc: lerProducao(nomeEsc),
+    producaoPerf: lerProducaoPerfuratriz(nomePerf),
+    financeiro,
+    manutencoes,
+    agenda,
+  };
+}
+
+function ImportarDadosSection({ clientes, producaoEsc, producaoPerf, financeiro, manutencoes, agenda, maquinas, onImportarClientes, onImportarProducaoEsc, onImportarProducaoPerf, onImportarFinanceiro, onImportarManutencoes, onImportarAgenda }) {
+  const [processando, setProcessando] = useState(false);
+  const [resultado, setResultado] = useState(null);
+  const [erro, setErro] = useState("");
+  const fileRef = React.useRef(null);
+
+  const chaveCliente = (c) => `${String(c.pedido).trim()}|${String(c.nome).trim().toLowerCase()}`;
+  const chaveProducao = (r) => `${String(r.pedido).trim()}|${String(r.data).trim()}|${String(r.equipamento).trim().toLowerCase()}`;
+  // Sem o valor na chave — assim, se o valor de uma conta for corrigido
+  // numa reimportação, o sistema entende que é a MESMA conta (não cria
+  // uma duplicata só porque o número mudou).
+  const chaveFinanceiro = (c) => `${String(c.tipo).trim().toLowerCase()}|${String(c.descricao).trim().toLowerCase()}|${String(c.vencimento).trim()}`;
+  const chaveManutencao = (r) => `${String(r.maquinaNome || "").trim().toLowerCase()}|${String(r.data).trim()}|${String(r.tipo).trim()}|${String(r.descricao).trim().toLowerCase()}`;
+  const chaveAgenda = (r) => `${String(r.data).trim()}|${String(r.titulo).trim().toLowerCase()}`;
+
+  const resolverMaquinaId = (nome) => {
+    const alvo = String(nome || "").trim().toLowerCase();
+    const achada = (maquinas || []).find((m) => m.nome.trim().toLowerCase() === alvo);
+    return achada?.id || "";
+  };
+
+  const processarArquivo = async (file) => {
+    setProcessando(true);
+    setErro("");
+    setResultado(null);
+    try {
+      const ehExcel = /\.(xlsx|xlsm|xls)$/i.test(file.name);
+      let pacote;
+      if (ehExcel) {
+        try {
+          pacote = await lerExcelParaPacote(file);
+        } catch (e) {
+          setErro("A leitura de Excel só funciona no site publicado (não nesta pré-visualização do Claude). Se estiver testando aqui, use um arquivo .json.");
+          setProcessando(false);
+          return;
+        }
+      } else {
+        const texto = await file.text();
+        pacote = JSON.parse(texto);
+      }
+
+      const existentesCliente = new Set(clientes.map(chaveCliente));
+      const novosClientes = (pacote.clientes || []).filter((c) => c.pedido && c.nome && !existentesCliente.has(chaveCliente(c)));
+
+      const existentesEsc = new Set(producaoEsc.map(chaveProducao));
+      const novosEsc = (pacote.producaoEsc || []).filter((r) => r.pedido && r.data && !existentesEsc.has(chaveProducao(r)));
+
+      const existentesPerf = new Set(producaoPerf.map(chaveProducao));
+      const novosPerf = (pacote.producaoPerf || []).filter((r) => r.pedido && r.data && !existentesPerf.has(chaveProducao(r)));
+
+      const existentesFin = new Set((financeiro || []).map(chaveFinanceiro));
+      const novosFinanceiro = (pacote.financeiro || []).filter((c) => c.descricao && !existentesFin.has(chaveFinanceiro(c)));
+
+      const existentesManut = new Set((manutencoes || []).map(chaveManutencao));
+      const novasManutencoes = (pacote.manutencoes || [])
+        .filter((r) => r.maquinaNome && r.data && !existentesManut.has(chaveManutencao(r)))
+        .map((r) => ({ ...r, maquinaId: resolverMaquinaId(r.maquinaNome) }));
+
+      const existentesAgenda = new Set((agenda || []).map(chaveAgenda));
+      const novaAgenda = (pacote.agenda || []).filter((r) => r.data && r.titulo && !existentesAgenda.has(chaveAgenda(r)));
+
+      // A planilha usa fórmulas pra puxar o nome do cliente em cada linha de
+      // produção — quando essa fórmula falha (cliente não encontrado na hora),
+      // ela grava literalmente "0". Em vez de confiar nesse texto, a gente
+      // sempre recalcula o cliente certo aqui, batendo o pedido contra a
+      // lista de clientes atual (incluindo os que acabaram de ser importados
+      // agora mesmo).
+      const todosClientesAtualizados = [...clientes, ...novosClientes];
+      const buscarClientePorPedido = (pedido) =>
+        todosClientesAtualizados.find((c) => String(c.pedido).trim() === String(pedido).trim());
+
+      const corrigirClienteEndereco = (registros) =>
+        registros.map((r) => {
+          const cli = buscarClientePorPedido(r.pedido);
+          return {
+            ...r,
+            cliente: cli ? cli.nome : (r.cliente && r.cliente !== "0" ? r.cliente : "-"),
+            endereco: cli ? cli.endereco : (r.endereco && r.endereco !== "0" ? r.endereco : "-"),
+          };
+        });
+
+      const novosEscCorrigidos = corrigirClienteEndereco(novosEsc);
+      const novosPerfCorrigidos = corrigirClienteEndereco(novosPerf);
+
+      setResultado({ novosClientes, novosEsc: novosEscCorrigidos, novosPerf: novosPerfCorrigidos, novosFinanceiro, novasManutencoes, novaAgenda, pacote });
+    } catch (e) {
+      setErro("Não consegui ler esse arquivo. Confirme que é uma planilha (.xlsx, .xlsm) ou um .json preparado corretamente.");
+    }
+    setProcessando(false);
+  };
+
+  const confirmarImportacao = async () => {
+    if (!resultado) return;
+    setProcessando(true);
+    if (resultado.novosClientes.length > 0) {
+      await onImportarClientes([...clientes, ...resultado.novosClientes.map((c) => ({ ...c, id: uid() }))]);
+    }
+    // Gera, na hora, a conta de Financeiro correspondente a cada lançamento
+    // de Produção importado — sem esperar o processo de sincronização
+    // automática rodar depois, que é assíncrono e podia dar a impressão de
+    // que "não puxou" o Financeiro logo após importar.
+    let contasGeradasDeProducao = [];
+    if (resultado.novosEsc.length > 0) {
+      const novosEscComId = resultado.novosEsc.map((r) => ({ ...r, id: uid() }));
+      await onImportarProducaoEsc([...producaoEsc, ...novosEscComId]);
+      contasGeradasDeProducao.push(...novosEscComId.map((r) => gerarContaFinanceiraDeProducao(r, "Escavadeira")));
+    }
+    if (resultado.novosPerf.length > 0) {
+      const novosPerfComId = resultado.novosPerf.map((r) => ({ ...r, id: uid() }));
+      await onImportarProducaoPerf([...producaoPerf, ...novosPerfComId]);
+      contasGeradasDeProducao.push(...novosPerfComId.map((r) => gerarContaFinanceiraDeProducao(r, "Perfuratriz")));
+    }
+    const contasManuais = resultado.novosFinanceiro.length > 0 ? resultado.novosFinanceiro.map((c) => ({ ...c, id: uid() })) : [];
+    if (contasGeradasDeProducao.length > 0 || contasManuais.length > 0) {
+      await onImportarFinanceiro([...financeiro, ...contasGeradasDeProducao, ...contasManuais]);
+    }
+    if (resultado.novasManutencoes.length > 0) {
+      // Mantém o nome do equipamento como veio da planilha, mesmo quando o
+      // sistema não conseguiu casar com nenhuma máquina cadastrada — assim
+      // a informação não se perde, e dá pra corrigir depois.
+      await onImportarManutencoes([...manutencoes, ...resultado.novasManutencoes.map((r) => ({ ...r, id: uid() }))]);
+    }
+    if (resultado.novaAgenda.length > 0) {
+      await onImportarAgenda([...agenda, ...resultado.novaAgenda.map((r) => ({ ...r, id: uid() }))]);
+    }
+    await registrarLog(
+      "Importação",
+      `${resultado.novosClientes.length} clientes, ${resultado.novosEsc.length} produção esc., ${resultado.novosPerf.length} produção perf. (${contasGeradasDeProducao.length} conta(s) no Financeiro geradas junto), ${contasManuais.length} financeiro manual, ${resultado.novasManutencoes.length} manutenção, ${resultado.novaAgenda.length} agenda`
+    );
+    setProcessando(false);
+    setResultado({ ...resultado, concluido: true });
+  };
+
+  return (
+    <div style={{ background: "var(--bg-panel)", border: "1px solid var(--border-soft)", borderRadius: "9px", padding: "20px", marginBottom: "18px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
+        <Upload size={18} style={{ color: "var(--amber)" }} />
+        <h3 className="tl-display" style={{ fontSize: "18px", fontWeight: 700 }}>Importar dados</h3>
+      </div>
+      <p style={{ fontSize: "12.5px", color: "var(--text-muted)", marginBottom: "16px", maxWidth: "560px" }}>
+        Adiciona clientes, produção, financeiro e manutenção direto de uma planilha Excel (.xlsx, .xlsm) — ou de um arquivo .json preparado. Só adiciona o que ainda não existe no sistema — nunca duplica nem substitui nada.
+      </p>
+
+      <input
+        ref={fileRef}
+        type="file"
+        accept=".xlsx,.xlsm,.xls,.json,application/json,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel.sheet.macroEnabled.12"
+        style={{ display: "none" }}
+        onChange={(e) => e.target.files?.[0] && processarArquivo(e.target.files[0])}
+      />
+      <Button icon={Upload} variant="subtle" disabled={processando} onClick={() => fileRef.current?.click()}>
+        {processando ? "Processando..." : "Escolher arquivo (.xlsx, .xlsm ou .json)"}
+      </Button>
+
+      {erro && <p style={{ fontSize: "12.5px", color: "var(--danger)", marginTop: "12px" }}>{erro}</p>}
+
+      {resultado && !resultado.concluido && (
+        <div style={{ marginTop: "16px", background: "var(--bg-base)", border: "1px solid var(--border-soft)", borderRadius: "7px", padding: "14px" }}>
+          <p style={{ fontSize: "13px", marginBottom: "10px" }}>Encontrado pra importar:</p>
+          <ul style={{ fontSize: "13px", color: "var(--text-muted)", marginBottom: "14px", paddingLeft: "18px" }}>
+            <li>{resultado.novosClientes.length} cliente(s) novo(s)</li>
+            <li>{resultado.novosEsc.length} lançamento(s) novo(s) de Produção</li>
+            <li>{resultado.novosFinanceiro.length} conta(s) nova(s) no Financeiro</li>
+            <li>{resultado.novasManutencoes.length} registro(s) novo(s) de Manutenção/Abastecimento</li>
+            <li>{resultado.novaAgenda.length} compromisso(s) novo(s) na Agenda</li>
+          </ul>
+
+          {resultado.novosEsc.length > 0 && (
+            <PreviaImportacao titulo="Prévia — Produção (3 primeiras linhas novas)" itens={resultado.novosEsc} />
+          )}
+          {resultado.novosClientes.length > 0 && (
+            <PreviaImportacaoCliente titulo="Prévia — Clientes (3 primeiros novos)" itens={resultado.novosClientes} />
+          )}
+          {resultado.novosFinanceiro.length > 0 && (
+            <PreviaImportacaoFinanceiro titulo="Prévia — Financeiro (3 primeiras contas novas)" itens={resultado.novosFinanceiro} />
+          )}
+          {resultado.novasManutencoes.length > 0 && (
+            <PreviaImportacaoManutencao titulo="Prévia — Manutenção/Abastecimento (3 primeiros novos)" itens={resultado.novasManutencoes} />
+          )}
+
+          {(resultado.novosClientes.length + resultado.novosEsc.length + resultado.novosPerf.length + resultado.novosFinanceiro.length + resultado.novasManutencoes.length + resultado.novaAgenda.length) === 0 ? (
+            <p style={{ fontSize: "12.5px", color: "var(--text-faint)" }}>Nada novo pra importar — tudo desse arquivo já está no sistema.</p>
+          ) : (
+            <Button size="sm" onClick={confirmarImportacao} disabled={processando}>
+              {processando ? "Importando..." : "Confirmar importação"}
+            </Button>
+          )}
+        </div>
+      )}
+      {resultado?.concluido && (
+        <p style={{ fontSize: "12.5px", color: "var(--success)", marginTop: "12px" }}>✓ Importação concluída com sucesso.</p>
+      )}
+    </div>
+  );
+}
+
+function PreviaImportacaoFinanceiro({ titulo, itens }) {
+  return (
+    <div style={{ marginBottom: "16px" }}>
+      <p style={{ fontSize: "11.5px", color: "var(--text-faint)", marginBottom: "6px", textTransform: "uppercase" }}>{titulo}</p>
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "11.5px" }}>
+          <thead>
+            <tr style={{ color: "var(--text-faint)", textAlign: "left" }}>
+              <th style={{ padding: "4px 8px" }}>Descrição</th>
+              <th style={{ padding: "4px 8px" }}>Valor</th>
+              <th style={{ padding: "4px 8px" }}>Vencimento</th>
+              <th style={{ padding: "4px 8px" }}>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {itens.slice(0, 3).map((it, i) => (
+              <tr key={i} style={{ borderTop: "1px solid var(--border-soft)" }}>
+                <td style={{ padding: "4px 8px" }}>{it.descricao || "-"}</td>
+                <td style={{ padding: "4px 8px" }}>{money(it.valor)}</td>
+                <td style={{ padding: "4px 8px" }}>{it.vencimento || "-"}</td>
+                <td style={{ padding: "4px 8px" }}>{it.status || "-"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function PreviaImportacaoManutencao({ titulo, itens }) {
+  return (
+    <div style={{ marginBottom: "16px" }}>
+      <p style={{ fontSize: "11.5px", color: "var(--text-faint)", marginBottom: "6px", textTransform: "uppercase" }}>{titulo}</p>
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "11.5px" }}>
+          <thead>
+            <tr style={{ color: "var(--text-faint)", textAlign: "left" }}>
+              <th style={{ padding: "4px 8px" }}>Máquina</th>
+              <th style={{ padding: "4px 8px" }}>Tipo</th>
+              <th style={{ padding: "4px 8px" }}>Data</th>
+              <th style={{ padding: "4px 8px" }}>Descrição</th>
+            </tr>
+          </thead>
+          <tbody>
+            {itens.slice(0, 3).map((it, i) => (
+              <tr key={i} style={{ borderTop: "1px solid var(--border-soft)" }}>
+                <td style={{ padding: "4px 8px" }}>{it.maquinaNome || "-"}{!it.maquinaId && <span style={{ color: "var(--danger)" }}> (sem cadastro)</span>}</td>
+                <td style={{ padding: "4px 8px" }}>{it.tipo || "-"}</td>
+                <td style={{ padding: "4px 8px" }}>{it.data || "-"}</td>
+                <td style={{ padding: "4px 8px" }}>{it.descricao || "-"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function PreviaImportacao({ titulo, itens }) {
+  return (
+    <div style={{ marginBottom: "16px" }}>
+      <p style={{ fontSize: "11.5px", color: "var(--text-faint)", marginBottom: "6px", textTransform: "uppercase" }}>{titulo}</p>
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "11.5px" }}>
+          <thead>
+            <tr style={{ color: "var(--text-faint)", textAlign: "left" }}>
+              <th style={{ padding: "4px 8px" }}>Pedido</th>
+              <th style={{ padding: "4px 8px" }}>Data</th>
+              <th style={{ padding: "4px 8px" }}>Cliente</th>
+              <th style={{ padding: "4px 8px" }}>Equipamento</th>
+              <th style={{ padding: "4px 8px" }}>Operador</th>
+              <th style={{ padding: "4px 8px" }}>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {itens.slice(0, 3).map((it, i) => (
+              <tr key={i} style={{ borderTop: "1px solid var(--border-soft)" }}>
+                <td style={{ padding: "4px 8px" }}>{it.pedido || "-"}</td>
+                <td style={{ padding: "4px 8px" }}>{it.data || "-"}</td>
+                <td style={{ padding: "4px 8px" }}>{it.cliente || "-"}</td>
+                <td style={{ padding: "4px 8px" }}>{it.equipamento || "-"}</td>
+                <td style={{ padding: "4px 8px" }}>{it.operador || "-"}</td>
+                <td style={{ padding: "4px 8px" }}>{money(it.total)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function PreviaImportacaoCliente({ titulo, itens }) {
+  return (
+    <div style={{ marginBottom: "16px" }}>
+      <p style={{ fontSize: "11.5px", color: "var(--text-faint)", marginBottom: "6px", textTransform: "uppercase" }}>{titulo}</p>
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "11.5px" }}>
+          <thead>
+            <tr style={{ color: "var(--text-faint)", textAlign: "left" }}>
+              <th style={{ padding: "4px 8px" }}>Pedido</th>
+              <th style={{ padding: "4px 8px" }}>Nome</th>
+              <th style={{ padding: "4px 8px" }}>Telefone</th>
+              <th style={{ padding: "4px 8px" }}>Endereço</th>
+              <th style={{ padding: "4px 8px" }}>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {itens.slice(0, 3).map((it, i) => (
+              <tr key={i} style={{ borderTop: "1px solid var(--border-soft)" }}>
+                <td style={{ padding: "4px 8px" }}>{it.pedido || "-"}</td>
+                <td style={{ padding: "4px 8px" }}>{it.nome || "-"}</td>
+                <td style={{ padding: "4px 8px" }}>{it.telefone || "-"}</td>
+                <td style={{ padding: "4px 8px" }}>{it.endereco || "-"}</td>
+                <td style={{ padding: "4px 8px" }}>{it.status || "-"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+
+function CorrigirClientesDuplicadosSection({ clientes, onChangeClientes }) {
+  const [processando, setProcessando] = useState(false);
+  const [resultado, setResultado] = useState("");
+  const [preview, setPreview] = useState(null);
+
+  const normalizar = (s) => String(s || "").trim().toLowerCase().replace(/\s+/g, " ");
+
+  const analisar = () => {
+    setResultado("");
+    // 1) Quem não tem nº de pedido recebe o próximo disponível, em ordem.
+    const numeros = clientes.map((c) => parseInt(String(c.pedido).replace(/\D/g, ""), 10)).filter((n) => !isNaN(n));
+    let proximo = numeros.length > 0 ? Math.max(...numeros) + 1 : 1;
+    const semPedido = clientes.filter((c) => !String(c.pedido || "").trim()).length;
+
+    const comPedido = clientes.map((c) => {
+      if (String(c.pedido || "").trim()) return c;
+      const atribuido = String(proximo);
+      proximo++;
+      return { ...c, pedido: atribuido };
+    });
+
+    // 2) Duplicata = mesmo nome E mesmo endereço (normalizados). Nome igual
+    // com endereço diferente NÃO é considerado duplicata — pode ser outra
+    // obra/local do mesmo cliente.
+    const grupos = new Map();
+    comPedido.forEach((c) => {
+      const chave = `${normalizar(c.nome)}|${normalizar(c.endereco)}`;
+      if (!grupos.has(chave)) grupos.set(chave, []);
+      grupos.get(chave).push(c);
+    });
+
+    const duplicatas = [];
+    grupos.forEach((grupo) => {
+      if (grupo.length > 1) duplicatas.push(grupo);
+    });
+
+    setPreview({ comPedido, semPedidoCorrigido: semPedido, duplicatas });
+  };
+
+  const aplicar = async () => {
+    if (!preview) return;
+    setProcessando(true);
+    const final = [];
+    const grupos = new Map();
+    preview.comPedido.forEach((c) => {
+      const chave = `${normalizar(c.nome)}|${normalizar(c.endereco)}`;
+      if (!grupos.has(chave)) grupos.set(chave, []);
+      grupos.get(chave).push(c);
+    });
+    let removidas = 0;
+    grupos.forEach((grupo) => {
+      if (grupo.length === 1) {
+        final.push(grupo[0]);
+      } else {
+        removidas += grupo.length - 1;
+        // Mantém o registro mais completo (mais campos preenchidos) do grupo.
+        const melhor = grupo.reduce((a, b) =>
+          Object.values(b).filter((v) => v !== "" && v !== null && v !== undefined).length >
+          Object.values(a).filter((v) => v !== "" && v !== null && v !== undefined).length
+            ? b
+            : a
+        );
+        final.push(melhor);
+      }
+    });
+    await onChangeClientes(final);
+    setProcessando(false);
+    setResultado(`✓ ${preview.semPedidoCorrigido} cliente(s) receberam nº de pedido · ${removidas} duplicata(s) removida(s).`);
+    setPreview(null);
+  };
+
+  return (
+    <div style={{ background: "var(--bg-panel)", border: "1px solid var(--border-soft)", borderRadius: "9px", padding: "20px", marginBottom: "18px" }}>
+      <h3 className="tl-display" style={{ fontSize: "18px", fontWeight: 700, marginBottom: "10px" }}>Corrigir clientes sem pedido e duplicados</h3>
+      <p style={{ fontSize: "12.5px", color: "var(--text-muted)", marginBottom: "16px", maxWidth: "600px" }}>
+        Atribui automaticamente um número de pedido pra quem está sem, e identifica clientes duplicados — considerando
+        duplicata apenas quando o <strong>nome e o endereço</strong> forem iguais (nome repetido com endereço diferente não
+        é mexido, pode ser outra obra do mesmo cliente).
+      </p>
+
+      {!preview ? (
+        <Button icon={Search} variant="subtle" disabled={processando} onClick={analisar}>
+          Analisar clientes
+        </Button>
+      ) : (
+        <div>
+          <div style={{ background: "var(--bg-base)", border: "1px solid var(--border-soft)", borderRadius: "8px", padding: "14px", marginBottom: "14px" }}>
+            <p style={{ fontSize: "13px", marginBottom: "8px" }}>
+              <strong>{preview.semPedidoCorrigido}</strong> cliente(s) sem pedido vão receber um número novo.
+            </p>
+            {preview.duplicatas.length === 0 ? (
+              <p style={{ fontSize: "13px", color: "var(--success)" }}>Nenhuma duplicata encontrada (nome + endereço iguais).</p>
+            ) : (
+              <>
+                <p style={{ fontSize: "13px", marginBottom: "8px" }}>
+                  <strong>{preview.duplicatas.length}</strong> grupo(s) de duplicata encontrados:
+                </p>
+                <div style={{ maxHeight: "220px", overflowY: "auto" }}>
+                  {preview.duplicatas.map((grupo, i) => (
+                    <div key={i} style={{ fontSize: "12px", color: "var(--text-muted)", padding: "6px 0", borderBottom: "1px solid var(--border-soft)" }}>
+                      <strong style={{ color: "var(--text-primary)" }}>{grupo[0].nome}</strong> — {grupo[0].endereco || "sem endereço"} ({grupo.length}x, pedidos: {grupo.map((c) => c.pedido).join(", ")})
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+          <div style={{ display: "flex", gap: "10px" }}>
+            <Button disabled={processando} onClick={aplicar}>{processando ? "Aplicando..." : "Aplicar correção"}</Button>
+            <Button variant="ghost" onClick={() => setPreview(null)}>Cancelar</Button>
+          </div>
+        </div>
+      )}
+      {resultado && <p style={{ fontSize: "12.5px", color: "var(--success)", marginTop: "10px" }}>{resultado}</p>}
+    </div>
+  );
+}
+
+function ZerarFinanceiroSection({ financeiro, onChangeFinanceiro }) {
+  const [confirmando, setConfirmando] = useState(false);
+  const [feito, setFeito] = useState(false);
+
+  const zerar = async () => {
+    await onChangeFinanceiro([]);
+    setConfirmando(false);
+    setFeito(true);
+  };
+
+  return (
+    <div style={{ background: "var(--bg-panel)", border: "1px solid #5A2020", borderRadius: "9px", padding: "20px", marginBottom: "18px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
+        <AlertTriangle size={18} style={{ color: "var(--danger)" }} />
+        <h3 className="tl-display" style={{ fontSize: "18px", fontWeight: 700 }}>Zerar Financeiro</h3>
+      </div>
+      <p style={{ fontSize: "12.5px", color: "var(--text-muted)", marginBottom: "16px", maxWidth: "560px" }}>
+        Apaga <strong>todos</strong> os lançamentos de Contas a Pagar e a Receber, pra você reimportar do zero com a planilha
+        atualizada. Não afeta Produção, Manutenção, Clientes nem o resto do sistema — só o Financeiro.
+      </p>
+      {!confirmando ? (
+        <Button icon={Trash2} variant="subtle" style={{ color: "var(--danger)", borderColor: "var(--danger)" }} onClick={() => setConfirmando(true)}>
+          Zerar Financeiro ({financeiro.length} lançamento{financeiro.length === 1 ? "" : "s"})
+        </Button>
+      ) : (
+        <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+          <span style={{ fontSize: "13px", color: "var(--danger)", fontWeight: 600 }}>
+            Tem certeza? Isso apaga {financeiro.length} lançamento(s) sem volta.
+          </span>
+          <Button variant="subtle" style={{ background: "var(--danger)", color: "#fff", borderColor: "var(--danger)" }} onClick={zerar}>
+            Sim, apagar tudo
+          </Button>
+          <Button variant="ghost" onClick={() => setConfirmando(false)}>Cancelar</Button>
+        </div>
+      )}
+      {feito && <p style={{ fontSize: "12.5px", color: "var(--success)", marginTop: "10px" }}>✓ Financeiro zerado. Já pode importar a planilha nova.</p>}
+    </div>
+  );
+}
+
+function BackupSection() {
+  const [baixando, setBaixando] = useState(false);
+  const [feito, setFeito] = useState("");
+
+  const baixar = async () => {
+    setBaixando(true);
+    setFeito("");
+    try {
+      const deuCertoExcel = await baixarBackupExcel();
+      if (deuCertoExcel) {
+        setFeito("✓ Backup baixado em Excel com sucesso.");
+      } else {
+        await baixarBackupCompleto();
+        setFeito("✓ Backup baixado em JSON (o Excel só funciona no site publicado, não nesta pré-visualização).");
+      }
+      setTimeout(() => setFeito(""), 6000);
+    } catch (e) {
+      window.alert("Não consegui gerar o backup agora. Verifique sua internet e tente de novo.");
+    }
+    setBaixando(false);
+  };
+
+  return (
+    <div style={{ background: "var(--bg-panel)", border: "1px solid var(--border-soft)", borderRadius: "9px", padding: "20px", marginBottom: "18px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
+        <Download size={18} style={{ color: "var(--amber)" }} />
+        <h3 className="tl-display" style={{ fontSize: "18px", fontWeight: 700 }}>Backup</h3>
+      </div>
+      <p style={{ fontSize: "12.5px", color: "var(--text-muted)", marginBottom: "16px", maxWidth: "560px" }}>
+        Baixa uma cópia completa de todos os dados do sistema (clientes, produção, financeiro, tudo) numa planilha Excel — cada área do sistema vira uma aba. Guarde esse arquivo num lugar seguro — Google Drive, e-mail pra si mesmo, pen drive. Recomendado fazer isso pelo menos uma vez por semana.
+      </p>
+      <Button icon={Download} onClick={baixar} disabled={baixando}>
+        {baixando ? "Gerando backup..." : "Baixar backup completo"}
+      </Button>
+      {feito && <p style={{ fontSize: "12.5px", color: "var(--success)", marginTop: "10px" }}>{feito}</p>}
+    </div>
+  );
+}
+
+// Diferente de "Importar dados" (que só soma o que ainda não existe),
+// isso SUBSTITUI por completo os dados de uma área — pra quando algo deu
+// errado e você tem um backup .json confiável que reflete o estado
+// correto de antes do problema.
+function RestaurarBackupSection({
+  onChangeClientes,
+  onChangeProducaoEsc,
+  onChangeProducaoPerf,
+  onChangeFinanceiro,
+  onChangeManutencoes,
+  onChangeAgenda,
+  onChangeMaquinas,
+  onChangeOperadores,
+  onChangeVendedores,
+  onChangeStatusClientes,
+  onChangeFuncionarios,
+  onChangeMotoristas,
+  onChangeCaminhoes,
+  onChangeEmpresasRetirada,
+  requireAdmin,
+}) {
+  const [arquivo, setArquivo] = useState(null);
+  const [dadosBackup, setDadosBackup] = useState(null);
+  const [selecionados, setSelecionados] = useState({});
+  const [erro, setErro] = useState("");
+  const [restaurando, setRestaurando] = useState(false);
+  const [feito, setFeito] = useState("");
+  const fileRef = useRef(null);
+
+  const AREAS = [
+    { key: "clientes", label: "Clientes", onChange: onChangeClientes },
+    { key: "producaoEsc", label: "Produção Concreto", onChange: onChangeProducaoEsc },
+    { key: "financeiro", label: "Financeiro", onChange: onChangeFinanceiro },
+    { key: "manutencoes", label: "Manutenção", onChange: onChangeManutencoes },
+    { key: "agenda", label: "Agenda", onChange: onChangeAgenda },
+    { key: "maquinas", label: "Betoneiras", onChange: onChangeMaquinas },
+    { key: "vendedores", label: "Vendedores", onChange: onChangeVendedores },
+    { key: "statusClientes", label: "Status de clientes", onChange: onChangeStatusClientes },
+    { key: "funcionarios", label: "Funcionários", onChange: onChangeFuncionarios },
+    { key: "motoristas", label: "Motoristas", onChange: onChangeMotoristas },
+    { key: "caminhoes", label: "Caminhões", onChange: onChangeCaminhoes },
+  ];
+
+  const lerArquivo = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setErro("");
+    setFeito("");
+    setDadosBackup(null);
+    setSelecionados({});
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const json = JSON.parse(evt.target.result);
+        setDadosBackup(json);
+        setArquivo(file.name);
+      } catch (err) {
+        setErro("Não consegui ler esse arquivo — confirme que é um backup .json gerado por esse sistema (o botão \"Baixar backup completo\" ali em cima).");
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const toggleArea = (key) => setSelecionados((s) => ({ ...s, [key]: !s[key] }));
+
+  const restaurar = () => {
+    const areasEscolhidas = AREAS.filter((a) => selecionados[a.key] && Array.isArray(dadosBackup[a.key]));
+    if (areasEscolhidas.length === 0) return;
+    requireAdmin(async () => {
+      setRestaurando(true);
+      for (const area of areasEscolhidas) {
+        await area.onChange(dadosBackup[area.key]);
+      }
+      await registrarLog(
+        "Restauração de backup",
+        `Substituiu por completo: ${areasEscolhidas.map((a) => a.label).join(", ")} (arquivo: ${arquivo})`
+      );
+      setFeito(`✓ Restaurado com sucesso: ${areasEscolhidas.map((a) => a.label).join(", ")}.`);
+      setRestaurando(false);
+      setDadosBackup(null);
+      setSelecionados({});
+      setArquivo(null);
+      if (fileRef.current) fileRef.current.value = "";
+    });
+  };
+
+  const areasNoArquivo = dadosBackup ? AREAS.filter((a) => Array.isArray(dadosBackup[a.key])) : [];
+  const algumaMarcada = Object.values(selecionados).some(Boolean);
+
+  return (
+    <div style={{ background: "var(--bg-panel)", border: "1px solid #E8A63D", borderRadius: "9px", padding: "20px", marginBottom: "18px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
+        <Upload size={18} style={{ color: "var(--amber)" }} />
+        <h3 className="tl-display" style={{ fontSize: "18px", fontWeight: 700 }}>Restaurar backup</h3>
+      </div>
+      <p style={{ fontSize: "12.5px", color: "var(--text-muted)", marginBottom: "16px", maxWidth: "560px" }}>
+        Use isso quando algo deu errado e você tem um backup .json confiável de antes do problema. Diferente de "Importar dados" (que só soma), isso <strong>substitui por completo</strong> os dados da área escolhida pelo que está no arquivo — não tem como desfazer depois de confirmado.
+      </p>
+
+      <input ref={fileRef} type="file" accept=".json" onChange={lerArquivo} style={{ marginBottom: "16px" }} />
+
+      {erro && <p style={{ fontSize: "12.5px", color: "var(--danger)", marginBottom: "12px" }}>{erro}</p>}
+
+      {dadosBackup && (
+        <div>
+          <p style={{ fontSize: "12.5px", color: "var(--text-muted)", marginBottom: "10px" }}>
+            Backup de {dadosBackup._geradoEm ? new Date(dadosBackup._geradoEm).toLocaleString("pt-BR") : "data desconhecida"}. Marque o que substituir:
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: "7px", marginBottom: "16px" }}>
+            {areasNoArquivo.map((a) => (
+              <label key={a.key} style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", cursor: "pointer" }}>
+                <input type="checkbox" checked={!!selecionados[a.key]} onChange={() => toggleArea(a.key)} />
+                {a.label} <span style={{ color: "var(--text-faint)" }}>({dadosBackup[a.key].length} registro{dadosBackup[a.key].length === 1 ? "" : "s"} no backup)</span>
+              </label>
+            ))}
+          </div>
+          <Button variant="danger" onClick={restaurar} disabled={restaurando || !algumaMarcada}>
+            {restaurando ? "Restaurando..." : "Substituir as áreas marcadas"}
+          </Button>
+        </div>
+      )}
+
+      {feito && <p style={{ fontSize: "12.5px", color: "var(--success)", marginTop: "10px" }}>{feito}</p>}
+    </div>
+  );
+}
+
+// Corrige o status (EM ABERTO / BOLETO / PIX / PAGO) dos lançamentos de
+// Produção comparando linha por linha com a planilha original — usa a
+// mesma chave (pedido + data + equipamento) que o "Importar dados" já usa,
+// pra achar exatamente o registro certo mesmo quando o mesmo pedido tem
+// vários lançamentos com status diferentes entre si. Ao corrigir o status
+// na Produção, o Financeiro se ajusta sozinho (já é sincronizado daqui).
+// Compara linha por linha a planilha original com o que está no app, em
+// 4 áreas diferentes ao mesmo tempo — e corrige só o que estiver
+// diferente, sem apagar nem duplicar nada. Corrigir o status da Produção
+// já ajusta o Financeiro (Contas a Receber) sozinho, por isso essas duas
+// áreas aparecem juntas num preview só.
+const STATUS_CANONICO = { ATIVO: "Ativo", INATIVO: "Inativo", POTENCIAL: "Potencial" };
+const normalizarStatusCliente = (v) => {
+  const limpo = String(v || "").trim();
+  return STATUS_CANONICO[limpo.toUpperCase()] || limpo;
+};
+const STATUS_FINANCEIRO_PLANILHA = { PAGO: "Pago", "EM ABERTO": "Pendente", ATRASADO: "Pendente" };
+
+// Revisa lançamentos marcados como PAGO onde o "valor pago" salvo é menor
+// que o total calculado agora — pode ser um pagamento parcial de verdade,
+// ou pode ser sobra do bug antigo (quando marcava PAGO antes de terminar
+// de preencher os campos). Mostra um por um pra decidir, não corrige tudo
+// sozinho sem confirmação.
+function RevisarPagamentosSection({ producaoEsc, producaoPerf, onChangeProducaoEsc, onChangeProducaoPerf }) {
+  const [ignorados, setIgnorados] = useState(new Set());
+
+  const divergentes = useMemo(() => {
+    const deLista = (lista, origem) =>
+      lista
+        .filter((r) => r.status === "PAGO")
+        .map((r) => ({ ...r, origem, totalCalculado: calcularTotalProducao(r) }))
+        .filter((r) => {
+          const valorPago = r.valorPago !== "" && r.valorPago !== undefined ? numeroSeguro(r.valorPago) : r.totalCalculado;
+          return r.totalCalculado - valorPago > 0.005;
+        });
+    return [...deLista(producaoEsc, "Concreto")].filter((r) => !ignorados.has(r.id));
+  }, [producaoEsc, producaoPerf, ignorados]);
+
+  const corrigirParaIntegral = (item) => {
+    const atualizar = (lista, onChange) => {
+      if (!lista.some((r) => r.id === item.id)) return false;
+      onChange(lista.map((r) => (r.id === item.id ? { ...r, valorPago: item.totalCalculado, dataProximoPagamento: "" } : r)));
+      return true;
+    };
+    if (!atualizar(producaoEsc, onChangeProducaoEsc)) atualizar(producaoPerf, onChangeProducaoPerf);
+  };
+
+  const ignorar = (id) => setIgnorados((s) => new Set([...s, id]));
+
+  if (divergentes.length === 0) {
+    return (
+      <div style={{ background: "var(--bg-panel)", border: "1px solid var(--border-soft)", borderRadius: "9px", padding: "20px", marginBottom: "18px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
+          <Check size={18} style={{ color: "var(--success)" }} />
+          <h3 className="tl-display" style={{ fontSize: "18px", fontWeight: 700 }}>Valores pagos em dia</h3>
+        </div>
+        <p style={{ fontSize: "12.5px", color: "var(--text-muted)" }}>
+          Nenhum lançamento marcado como PAGO com o valor pago desatualizado no momento.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ background: "var(--bg-panel)", border: "1px solid var(--border-soft)", borderRadius: "9px", padding: "20px", marginBottom: "18px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
+        <AlertTriangle size={18} style={{ color: "var(--amber)" }} />
+        <h3 className="tl-display" style={{ fontSize: "18px", fontWeight: 700 }}>Revisar valores pagos ({divergentes.length})</h3>
+      </div>
+      <p style={{ fontSize: "12.5px", color: "var(--text-muted)", marginBottom: "16px", maxWidth: "560px" }}>
+        Esses lançamentos estão como PAGO, mas o "valor pago" salvo é menor que o total calculado agora — pode ser um pagamento parcial de verdade, ou sobra de um bug antigo já corrigido. Confere um por um: se foi pagamento integral, corrige; se foi parcial mesmo, ignora.
+      </p>
+      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+        {divergentes.map((item) => {
+          const valorPagoSalvo = item.valorPago !== "" && item.valorPago !== undefined ? numeroSeguro(item.valorPago) : 0;
+          return (
+            <div key={item.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px", background: "var(--bg-base)", border: "1px solid var(--border-soft)", borderRadius: "6px", fontSize: "13px" }}>
+              <div>
+                <strong>Pedido #{item.pedido || "-"}</strong>
+                <span style={{ color: "var(--text-muted)" }}> · {item.origem} · {fmtDate(item.data)} · {item.cliente || "-"}</span>
+                <div style={{ fontSize: "11.5px", color: "var(--text-faint)", marginTop: "2px" }}>
+                  Pago salvo: <strong className="tl-mono">{money(valorPagoSalvo)}</strong> — Total calculado: <strong className="tl-mono">{money(item.totalCalculado)}</strong>
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: "6px", flexShrink: 0 }}>
+                <button
+                  onClick={() => ignorar(item.id)}
+                  className="tl-focus"
+                  style={{ background: "none", border: "1px solid var(--border-soft)", borderRadius: "5px", padding: "6px 10px", fontSize: "12px", color: "var(--text-muted)", cursor: "pointer" }}
+                >
+                  Ignorar (foi parcial mesmo)
+                </button>
+                <button
+                  onClick={() => corrigirParaIntegral(item)}
+                  className="tl-focus"
+                  style={{ background: "var(--accent)", color: "var(--accent-text)", border: "none", borderRadius: "5px", padding: "6px 12px", fontSize: "12px", fontWeight: 600, cursor: "pointer" }}
+                >
+                  Corrigir pra pago integral
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function SincronizarPlanilhaSection({
+  clientes,
+  producaoEsc,
+  producaoPerf,
+  financeiro,
+  onChangeClientes,
+  onChangeProducaoEsc,
+  onChangeProducaoPerf,
+  onChangeFinanceiro,
+  requireAdmin,
+}) {
+  const [processando, setProcessando] = useState(false);
+  const [preview, setPreview] = useState(null);
+  const [erro, setErro] = useState("");
+  const [feito, setFeito] = useState("");
+  const fileRef = useRef(null);
+
+  const chaveProducao = (pedido, data, equipamento) =>
+    `${String(pedido).trim()}|${String(data).trim()}|${String(equipamento).trim().toLowerCase()}`;
+  const chaveCliente = (pedido, nome) => `${String(pedido).trim()}|${String(nome).trim().toLowerCase()}`;
+  const chaveFinanceiroPagar = (descricao, vencimento) => `${String(descricao).trim().toLowerCase()}|${String(vencimento).trim()}`;
+
+  const processarArquivo = async (file) => {
+    setProcessando(true);
+    setErro("");
+    setPreview(null);
+    setFeito("");
+    try {
+      const XLSX = await import("xlsx");
+      const buffer = await file.arrayBuffer();
+      const wb = XLSX.read(buffer, { type: "array", cellDates: true });
+      const acharPlanilha = (palavraChave) => wb.SheetNames.find((n) => normalizarCabecalho(n).includes(palavraChave));
+
+      const paraData = (v) => {
+        if (!v) return "";
+        if (v instanceof Date) return v.toISOString().slice(0, 10);
+        if (typeof v === "number") {
+          const c = XLSX.SSF.parse_date_code(v);
+          if (c) return `${c.y}-${String(c.m).padStart(2, "0")}-${String(c.d).padStart(2, "0")}`;
+        }
+        return dataOrdenavel(v);
+      };
+
+      // --- Produção Escavadeira / Perfuratriz (status + vendedor) ---
+      const lerStatusProducao = (nomePlanilha) => {
+        const mapa = new Map();
+        if (!nomePlanilha) return mapa;
+        const matriz = XLSX.utils.sheet_to_json(wb.Sheets[nomePlanilha], { header: 1, raw: true });
+        const cab = detectarCabecalho(matriz, ["N DO PEDIDO", "N PEDIDO", "PEDIDO"]);
+        if (!cab) return mapa;
+        for (let r = cab.linhaIdx + 1; r < matriz.length; r++) {
+          const linha = matriz[r] || [];
+          const pedido = pegar(linha, cab.mapa, "N DO PEDIDO", "N PEDIDO", "PEDIDO");
+          const data = paraData(pegar(linha, cab.mapa, "DATA"));
+          const equipamento = pegar(linha, cab.mapa, "EQUIPAMENTO");
+          const status = String(pegar(linha, cab.mapa, "STATUS", "PAGO")).trim().toUpperCase();
+          const vendedor = String(pegar(linha, cab.mapa, "VENDEDOR")).trim();
+          if (!pedido || !data) continue;
+          mapa.set(chaveProducao(pedido, data, equipamento), { status, vendedor });
+        }
+        return mapa;
+      };
+      const nomeEsc = acharPlanilha("PRODUCAO ESCAVADEIRA") || acharPlanilha("ESCAVADEIRA");
+      const nomePerf = acharPlanilha("PRODUCAO PERFURATRIZ") || acharPlanilha("PERFURATRIZ");
+      const statusEscPlanilha = lerStatusProducao(nomeEsc);
+      const statusPerfPlanilha = lerStatusProducao(nomePerf);
+
+      const compararProducao = (lista, mapaPlanilha) => {
+        const mudancas = [];
+        lista.forEach((r) => {
+          const info = mapaPlanilha.get(chaveProducao(r.pedido, r.data, r.equipamento));
+          if (!info) return;
+          const statusAtual = String(r.status || "").trim().toUpperCase();
+          const vendedorAtual = String(r.vendedor || "").trim();
+          const mudouStatus = !!info.status && info.status !== statusAtual;
+          const mudouVendedor = !!info.vendedor && info.vendedor !== vendedorAtual;
+          if (mudouStatus || mudouVendedor) {
+            mudancas.push({
+              id: r.id,
+              pedido: r.pedido,
+              data: r.data,
+              equipamento: r.equipamento,
+              cliente: r.cliente,
+              statusAntigo: r.status,
+              statusNovo: mudouStatus ? info.status : r.status,
+              vendedorAntigo: r.vendedor,
+              vendedorNovo: mudouVendedor ? info.vendedor : r.vendedor,
+              mudouStatus,
+              mudouVendedor,
+            });
+          }
+        });
+        return mudancas;
+      };
+      const mudancasEsc = compararProducao(producaoEsc, statusEscPlanilha);
+      const mudancasPerf = compararProducao(producaoPerf, statusPerfPlanilha);
+
+      // --- Clientes (status) ---
+      // A planilha tem duas colunas separadas — "EMPRESA" e "CLIENTE" — e
+      // qualquer uma pode estar vazia ou com o valor errado dependendo do
+      // pedido. Por isso guarda os dois jeitos de bater (por empresa e por
+      // nome) e tenta os dois lados no app também.
+      const nomeClientesPlanilha = acharPlanilha("CLIENTES");
+      const statusClientesPorEmpresa = new Map();
+      const statusClientesPorNome = new Map();
+      if (nomeClientesPlanilha) {
+        const matriz = XLSX.utils.sheet_to_json(wb.Sheets[nomeClientesPlanilha], { header: 1, raw: true });
+        const cab = detectarCabecalho(matriz, ["N DO PEDIDO", "N PEDIDO", "PEDIDO"]);
+        if (cab) {
+          for (let r = cab.linhaIdx + 1; r < matriz.length; r++) {
+            const linha = matriz[r] || [];
+            const pedido = pegar(linha, cab.mapa, "N DO PEDIDO", "N PEDIDO", "PEDIDO");
+            const empresaPlanilha = pegar(linha, cab.mapa, "EMPRESA");
+            const nomePlanilha = pegar(linha, cab.mapa, "CLIENTE", "NOME", "CONTATO");
+            const status = normalizarStatusCliente(pegar(linha, cab.mapa, "STATUS"));
+            if (!pedido || !status) continue;
+            if (empresaPlanilha) statusClientesPorEmpresa.set(chaveCliente(pedido, empresaPlanilha), status);
+            if (nomePlanilha) statusClientesPorNome.set(chaveCliente(pedido, nomePlanilha), status);
+          }
+        }
+      }
+      const mudancasClientes = [];
+      clientes.forEach((c) => {
+        const statusNovo =
+          (c.empresa && statusClientesPorEmpresa.get(chaveCliente(c.pedido, c.empresa))) ||
+          statusClientesPorNome.get(chaveCliente(c.pedido, c.nome)) ||
+          statusClientesPorEmpresa.get(chaveCliente(c.pedido, c.nome));
+        if (statusNovo && statusNovo !== String(c.status || "").trim()) {
+          mudancasClientes.push({ id: c.id, pedido: c.pedido, nome: c.nome, statusAntigo: c.status, statusNovo });
+        }
+      });
+
+      // --- Financeiro · Contas a Pagar (via aba Fluxo de Caixa) ---
+      const nomeFluxo = acharPlanilha("FLUXO DE CAIXA");
+      const statusPagarPlanilha = new Map();
+      if (nomeFluxo) {
+        const matriz = XLSX.utils.sheet_to_json(wb.Sheets[nomeFluxo], { header: 1, raw: true });
+        const cab = detectarCabecalho(matriz, ["DESCRICAO"]);
+        if (cab) {
+          for (let r = cab.linhaIdx + 1; r < matriz.length; r++) {
+            const linha = matriz[r] || [];
+            const tipo = String(pegar(linha, cab.mapa, "TIPO")).trim().toUpperCase();
+            if (tipo !== "SAIDA") continue;
+            const descricao = pegar(linha, cab.mapa, "DESCRICAO");
+            const vencimento = paraData(pegar(linha, cab.mapa, "DATA DE VENCIMENTO"));
+            const situacao = String(pegar(linha, cab.mapa, "SITUACAO")).trim().toUpperCase();
+            const statusApp = STATUS_FINANCEIRO_PLANILHA[situacao];
+            if (!descricao || !vencimento || !statusApp) continue;
+            statusPagarPlanilha.set(chaveFinanceiroPagar(descricao, vencimento), statusApp);
+          }
+        }
+      }
+      const mudancasFinanceiroPagar = [];
+      (financeiro || []).forEach((c) => {
+        if (c.tipo !== "Pagar") return;
+        const statusNovo = statusPagarPlanilha.get(chaveFinanceiroPagar(c.descricao, c.vencimento));
+        if (statusNovo && statusNovo !== String(c.status || "").trim()) {
+          mudancasFinanceiroPagar.push({ id: c.id, descricao: c.descricao, vencimento: c.vencimento, statusAntigo: c.status, statusNovo });
+        }
+      });
+
+      if (
+        statusEscPlanilha.size === 0 &&
+        statusPerfPlanilha.size === 0 &&
+        statusClientesPorEmpresa.size === 0 &&
+        statusClientesPorNome.size === 0 &&
+        statusPagarPlanilha.size === 0
+      ) {
+        setErro("Não encontrei nenhuma área reconhecível nessa planilha (Produção, Clientes ou Fluxo de Caixa). Confirme que é a planilha certa.");
+        setProcessando(false);
+        return;
+      }
+
+      setPreview({ mudancasEsc, mudancasPerf, mudancasClientes, mudancasFinanceiroPagar, nomeArquivo: file.name });
+    } catch (e) {
+      setErro("Não consegui ler esse arquivo. Confirme que é uma planilha Excel (.xlsx, .xlsm) no formato original do sistema.");
+    }
+    setProcessando(false);
+  };
+
+  const confirmar = () => {
+    if (!preview) return;
+    const total = preview.mudancasEsc.length + preview.mudancasPerf.length + preview.mudancasClientes.length + preview.mudancasFinanceiroPagar.length;
+    if (total === 0) return;
+    requireAdmin(async () => {
+      setProcessando(true);
+      if (preview.mudancasEsc.length > 0) {
+        const porId = new Map(preview.mudancasEsc.map((m) => [m.id, m]));
+        await onChangeProducaoEsc(producaoEsc.map((r) => (porId.has(r.id) ? { ...r, status: porId.get(r.id).statusNovo, vendedor: porId.get(r.id).vendedorNovo } : r)));
+      }
+      if (preview.mudancasPerf.length > 0) {
+        const porId = new Map(preview.mudancasPerf.map((m) => [m.id, m]));
+        await onChangeProducaoPerf(producaoPerf.map((r) => (porId.has(r.id) ? { ...r, status: porId.get(r.id).statusNovo, vendedor: porId.get(r.id).vendedorNovo } : r)));
+      }
+      if (preview.mudancasClientes.length > 0) {
+        const porId = new Map(preview.mudancasClientes.map((m) => [m.id, m.statusNovo]));
+        await onChangeClientes(clientes.map((c) => (porId.has(c.id) ? { ...c, status: porId.get(c.id) } : c)));
+      }
+      if (preview.mudancasFinanceiroPagar.length > 0) {
+        const porId = new Map(preview.mudancasFinanceiroPagar.map((m) => [m.id, m.statusNovo]));
+        await onChangeFinanceiro(financeiro.map((c) => (porId.has(c.id) ? { ...c, status: porId.get(c.id) } : c)));
+      }
+      await registrarLog("Sincronização com planilha", `${total} registro(s) corrigido(s) a partir de ${preview.nomeArquivo}`);
+      setFeito(`✓ ${total} registro(s) corrigido(s). O Financeiro (Contas a Receber) já se ajusta sozinho a partir da Produção.`);
+      setPreview(null);
+      setProcessando(false);
+      if (fileRef.current) fileRef.current.value = "";
+    });
+  };
+
+  const totalMudancas = preview
+    ? preview.mudancasEsc.length + preview.mudancasPerf.length + preview.mudancasClientes.length + preview.mudancasFinanceiroPagar.length
+    : 0;
+
+  const GRUPOS = preview
+    ? [
+        { titulo: "Produção Concreto", itens: preview.mudancasEsc, render: (m) => `Pedido #${m.pedido} · ${fmtDate(m.data)} · ${m.equipamento} · ${m.cliente}` },
+        { titulo: "Clientes", itens: preview.mudancasClientes, render: (m) => `Pedido #${m.pedido} · ${m.nome}` },
+        { titulo: "Financeiro · Contas a Pagar", itens: preview.mudancasFinanceiroPagar, render: (m) => `${m.descricao} · vence ${fmtDate(m.vencimento)}` },
+      ].filter((g) => g.itens.length > 0)
+    : [];
+
+  return (
+    <div style={{ background: "var(--bg-panel)", border: "1px solid var(--border-soft)", borderRadius: "9px", padding: "20px", marginBottom: "18px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
+        <RefreshCw size={18} style={{ color: "var(--amber)" }} />
+        <h3 className="tl-display" style={{ fontSize: "18px", fontWeight: 700 }}>Sincronizar com a planilha</h3>
+      </div>
+      <p style={{ fontSize: "12.5px", color: "var(--text-muted)", marginBottom: "16px", maxWidth: "560px" }}>
+        Envia a planilha original e o sistema compara, ao mesmo tempo: status e vendedor da Produção, status dos Clientes, e status do Financeiro · Contas a Pagar (aba Fluxo de Caixa). Só corrige o que estiver diferente — nada é apagado nem duplicado. Corrigir a Produção já ajusta o Financeiro · Contas a Receber e o ranking de Vendedores sozinho.
+      </p>
+
+      <input ref={fileRef} type="file" accept=".xlsx,.xlsm,.xls" onChange={(e) => e.target.files[0] && processarArquivo(e.target.files[0])} disabled={processando} style={{ marginBottom: "16px" }} />
+
+      {processando && <p style={{ fontSize: "12.5px", color: "var(--text-muted)" }}>Lendo planilha...</p>}
+      {erro && <p style={{ fontSize: "12.5px", color: "var(--danger)", marginBottom: "12px" }}>{erro}</p>}
+
+      {preview && (
+        <div>
+          {totalMudancas === 0 ? (
+            <p style={{ fontSize: "13px", color: "var(--text-muted)" }}>Nenhuma diferença encontrada — tudo já está batendo com a planilha.</p>
+          ) : (
+            <>
+              <p style={{ fontSize: "13px", marginBottom: "10px" }}>
+                <strong>{totalMudancas}</strong> registro(s) com diferença em relação à planilha:
+              </p>
+              {GRUPOS.map((g) => (
+                <div key={g.titulo} style={{ marginBottom: "14px" }}>
+                  <div className="tl-mono" style={{ fontSize: "11px", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: "6px" }}>
+                    {g.titulo} ({g.itens.length})
+                  </div>
+                  <div style={{ maxHeight: "220px", overflowY: "auto", border: "1px solid var(--border-soft)", borderRadius: "6px" }}>
+                    {g.itens.slice(0, 200).map((m) => (
+                      <div key={m.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", fontSize: "12.5px", borderBottom: "1px solid var(--border-soft)" }}>
+                        <div>{g.render(m)}</div>
+                        <div className="tl-mono" style={{ textAlign: "right" }}>
+                          {"mudouStatus" in m ? (
+                            <>
+                              {m.mudouStatus && (
+                                <div>
+                                  <span style={{ color: "var(--text-faint)" }}>{m.statusAntigo || "-"}</span>
+                                  {" → "}
+                                  <strong style={{ color: "var(--success)" }}>{m.statusNovo}</strong>
+                                </div>
+                              )}
+                              {m.mudouVendedor && (
+                                <div style={{ fontSize: "11.5px" }}>
+                                  <span style={{ color: "var(--text-faint)" }}>{m.vendedorAntigo || "(sem vendedor)"}</span>
+                                  {" → "}
+                                  <strong style={{ color: "var(--accent)" }}>{m.vendedorNovo}</strong>
+                                </div>
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              <span style={{ color: "var(--text-faint)" }}>{m.statusAntigo || "-"}</span>
+                              {" → "}
+                              <strong style={{ color: "var(--success)" }}>{m.statusNovo}</strong>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    {g.itens.length > 200 && (
+                      <div style={{ padding: "8px 12px", fontSize: "12px", color: "var(--text-faint)" }}>e mais {g.itens.length - 200}...</div>
+                    )}
+                  </div>
+                </div>
+              ))}
+              <Button onClick={confirmar} disabled={processando}>
+                Corrigir esses {totalMudancas} registro(s)
+              </Button>
+            </>
+          )}
+        </div>
+      )}
+
+      {feito && <p style={{ fontSize: "12.5px", color: "var(--success)", marginTop: "10px" }}>{feito}</p>}
+    </div>
+  );
+}
+
+
+function UsuariosManager({ usuarios, onChange }) {
+  const [novoNome, setNovoNome] = useState("");
+  const [novaSenha, setNovaSenha] = useState("");
+  const [novoPapel, setNovoPapel] = useState("operador");
+  const [erro, setErro] = useState("");
+
+  const adicionar = async (e) => {
+    e.preventDefault();
+    setErro("");
+    if (!novoNome.trim()) return;
+    if (usuarios.some((u) => u.nome.toLowerCase() === novoNome.trim().toLowerCase())) {
+      setErro("Já existe um usuário com esse nome.");
+      return;
+    }
+    if (novaSenha.length < 4) {
+      setErro("Use pelo menos 4 caracteres na senha.");
+      return;
+    }
+    const hash = await hashPassword(novaSenha);
+    onChange([...usuarios, { id: uid(), nome: novoNome.trim(), senhaHash: hash, admin: novoPapel === "admin", campo: novoPapel === "campo", ativo: true, tourVisto: false }]);
+    setNovoNome("");
+    setNovaSenha("");
+    setNovoPapel("operador");
+  };
+
+  const remover = (id) => {
+    onChange(usuarios.filter((u) => u.id !== id));
+  };
+
+  const ciclarPapel = (id) => {
+    onChange(
+      usuarios.map((u) => {
+        if (u.id !== id) return u;
+        if (!u.admin && !u.campo) return { ...u, admin: true, campo: false };
+        if (u.admin) return { ...u, admin: false, campo: true };
+        return { ...u, admin: false, campo: false };
+      })
+    );
+  };
+
+  return (
+    <div>
+      <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginBottom: "14px" }}>
+        {usuarios.length === 0 && <p style={{ fontSize: "12.5px", color: "var(--text-faint)" }}>Nenhum usuário cadastrado ainda.</p>}
+        {usuarios.map((u) => (
+          <div key={u.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--bg-base)", border: "1px solid var(--border-soft)", borderRadius: "5px", padding: "8px 12px", fontSize: "13px" }}>
+            <span>{u.nome}</span>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <button
+                type="button"
+                onClick={() => ciclarPapel(u.id)}
+                className="tl-focus"
+                title="Clique para trocar o papel (Operador / Administrador / Campo)"
+                style={{
+                  fontSize: "10.5px",
+                  fontWeight: 600,
+                  padding: "3px 9px",
+                  borderRadius: "4px",
+                  border: "1px solid var(--border)",
+                  cursor: "pointer",
+                  background: u.admin ? "var(--rust)" : u.campo ? "var(--amber)" : "var(--bg-panel-raised)",
+                  color: u.admin ? "#fff" : u.campo ? "#1a1a1a" : "var(--text-muted)",
+                }}
+              >
+                {u.admin ? "ADMINISTRADOR" : u.campo ? "CAMPO" : "OPERADOR"}
+              </button>
+              <button type="button" onClick={() => remover(u.id)} className="tl-focus" style={{ background: "none", border: "none", color: "var(--danger)", cursor: "pointer", padding: "2px" }}>
+                <X size={14} />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+      <form onSubmit={adicionar} style={{ display: "flex", gap: "6px", flexWrap: "wrap", alignItems: "center" }}>
+        <Input value={novoNome} onChange={(e) => setNovoNome(e.target.value)} placeholder="Nome da pessoa" style={{ flex: 1, minWidth: "140px" }} />
+        <Input type="password" value={novaSenha} onChange={(e) => setNovaSenha(e.target.value)} placeholder="Senha" style={{ width: "140px" }} />
+        <Select value={novoPapel} onChange={(e) => setNovoPapel(e.target.value)} style={{ width: "150px" }}>
+          <option value="operador">Operador</option>
+          <option value="admin">Administrador</option>
+          <option value="campo">Campo (só balança/bomba)</option>
+        </Select>
+        <Button type="submit" size="sm" variant="subtle" icon={Plus}>Adicionar</Button>
+      </form>
+      {erro && <p style={{ fontSize: "12px", color: "var(--danger)", marginTop: "8px" }}>{erro}</p>}
+    </div>
+  );
+}
+
+function LogAcessoLista({ logAcessos }) {
+  const [verDados, setVerDados] = useState(null); // log selecionado, pra ver o que foi excluído
+  const ordenado = [...(logAcessos || [])].sort((a, b) => (b.dataHora || "").localeCompare(a.dataHora || "")).slice(0, 50);
+  if (ordenado.length === 0) {
+    return <p style={{ fontSize: "12.5px", color: "var(--text-faint)" }}>Nenhum acesso registrado ainda.</p>;
+  }
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "6px", maxHeight: "320px", overflowY: "auto" }}>
+      {ordenado.map((l) => {
+        const dt = new Date(l.dataHora);
+        const dataFmt = isNaN(dt.getTime()) ? "-" : dt.toLocaleString("pt-BR");
+        return (
+          <div key={l.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "12.5px", padding: "7px 10px", background: "var(--bg-base)", border: "1px solid var(--border-soft)", borderRadius: "5px" }}>
+            <div>
+              <span style={{ fontWeight: 600 }}>{l.usuario}</span>
+              <span style={{ color: "var(--text-faint)" }}> · {l.tipo === "Login" ? "entrou no sistema" : `excluiu ${l.detalhe}`}</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              {l.dadosExcluidos && (
+                <button
+                  onClick={() => setVerDados(l)}
+                  className="tl-focus"
+                  style={{ background: "none", border: "1px solid var(--border-soft)", borderRadius: "4px", padding: "2px 7px", fontSize: "11px", color: "var(--text-muted)", cursor: "pointer", whiteSpace: "nowrap" }}
+                >
+                  Ver dados
+                </button>
+              )}
+              <span className="tl-mono" style={{ color: "var(--text-faint)", fontSize: "11px" }}>{dataFmt}</span>
+            </div>
+          </div>
+        );
+      })}
+      {verDados && (
+        <Modal title={`O que foi excluído — ${verDados.detalhe}`} onClose={() => setVerDados(null)}>
+          <p style={{ fontSize: "12px", color: "var(--text-faint)", marginBottom: "14px" }}>
+            Excluído por <strong>{verDados.usuario}</strong> em {new Date(verDados.dataHora).toLocaleString("pt-BR")}
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: "1px", border: "1px solid var(--border-soft)", borderRadius: "6px", overflow: "hidden" }}>
+            {Object.entries(verDados.dadosExcluidos)
+              .filter(([campo, valor]) => valor !== "" && valor !== null && valor !== undefined && !Array.isArray(valor) && campo !== "id")
+              .map(([campo, valor]) => (
+                <div key={campo} style={{ display: "flex", justifyContent: "space-between", gap: "12px", padding: "7px 10px", background: "var(--bg-base)", fontSize: "12.5px" }}>
+                  <span style={{ color: "var(--text-faint)", textTransform: "capitalize" }}>{campo}</span>
+                  <span style={{ fontWeight: 500, textAlign: "right", wordBreak: "break-word" }}>{String(valor)}</span>
+                </div>
+              ))}
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+function OperadoresManager({ itens, onChange }) {
+  const [novoNome, setNovoNome] = useState("");
+  const [novoTelefone, setNovoTelefone] = useState("");
+
+  const adicionar = (e) => {
+    e.preventDefault();
+    if (!novoNome.trim()) return;
+    onChange([...itens, { id: uid(), nome: novoNome.trim(), telefone: novoTelefone.trim() }]);
+    setNovoNome("");
+    setNovoTelefone("");
+  };
+
+  const remover = (id) => onChange(itens.filter((i) => i.id !== id));
+  const atualizarTelefone = (id, telefone) => onChange(itens.map((i) => (i.id === id ? { ...i, telefone } : i)));
+
+  return (
+    <div>
+      <div className="tl-mono" style={{ fontSize: "11px", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: "8px" }}>
+        Operadores <span style={{ textTransform: "none", color: "var(--text-faint)" }}>(com WhatsApp, pra Ordem de Serviço)</span>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginBottom: "10px", maxHeight: "220px", overflowY: "auto" }}>
+        {itens.length === 0 && <p style={{ fontSize: "12.5px", color: "var(--text-faint)" }}>Nenhum cadastrado ainda.</p>}
+        {porNome(itens).map((i) => (
+          <div key={i.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "6px", background: "var(--bg-base)", border: "1px solid var(--border-soft)", borderRadius: "5px", padding: "6px 10px", fontSize: "13px" }}>
+            <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{i.nome}</span>
+            <Input
+              value={i.telefone || ""}
+              onChange={(e) => atualizarTelefone(i.id, formatarTelefone(e.target.value))}
+              placeholder="(00) 00000-0000"
+              style={{ width: "150px", fontSize: "12px", padding: "5px 8px" }}
+            />
+            <button type="button" onClick={() => remover(i.id)} className="tl-focus" style={{ background: "none", border: "none", color: "var(--danger)", cursor: "pointer", padding: "2px", flexShrink: 0 }}>
+              <X size={13} />
+            </button>
+          </div>
+        ))}
+      </div>
+      <form onSubmit={adicionar} style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+        <Input value={novoNome} onChange={(e) => setNovoNome(e.target.value)} placeholder="Ex: Cícero" style={{ flex: "1 1 140px", minWidth: "140px" }} />
+        <Input value={novoTelefone} onChange={(e) => setNovoTelefone(formatarTelefone(e.target.value))} placeholder="WhatsApp" style={{ flex: "1 1 130px", minWidth: "130px" }} />
+        <Button type="submit" size="sm" variant="subtle" icon={Plus} style={{ flexShrink: 0 }}>Add</Button>
+      </form>
+    </div>
+  );
+}
+
+function CadastroSimples({ titulo, itens, onChange, comTipo, placeholder }) {
+  const [novoNome, setNovoNome] = useState("");
+  const [novoTipo, setNovoTipo] = useState("Betoneira Estacionária");
+
+  const adicionar = (e) => {
+    e.preventDefault();
+    if (!novoNome.trim()) return;
+    const item = comTipo ? { id: uid(), nome: novoNome.trim(), tipo: novoTipo } : { id: uid(), nome: novoNome.trim() };
+    onChange([...itens, item]);
+    setNovoNome("");
+  };
+
+  const remover = (id) => {
+    onChange(itens.filter((i) => i.id !== id));
+  };
+
+  return (
+    <div>
+      <div className="tl-mono" style={{ fontSize: "11px", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: "8px" }}>{titulo}</div>
+      <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginBottom: "10px", maxHeight: "180px", overflowY: "auto" }}>
+        {itens.length === 0 && <p style={{ fontSize: "12.5px", color: "var(--text-faint)" }}>Nenhum cadastrado ainda.</p>}
+        {porNome(itens).map((i) => (
+          <div key={i.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--bg-base)", border: "1px solid var(--border-soft)", borderRadius: "5px", padding: "6px 10px", fontSize: "13px" }}>
+            <span>{i.nome}{comTipo && i.tipo ? <span style={{ color: "var(--text-faint)" }}> · {i.tipo}</span> : null}</span>
+            <button type="button" onClick={() => remover(i.id)} className="tl-focus" style={{ background: "none", border: "none", color: "var(--danger)", cursor: "pointer", padding: "2px" }}>
+              <X size={13} />
+            </button>
+          </div>
+        ))}
+      </div>
+      <form onSubmit={adicionar} style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+        <Input value={novoNome} onChange={(e) => setNovoNome(e.target.value)} placeholder={placeholder || "Nome"} style={{ flex: "1 1 140px", minWidth: "140px" }} />
+        {comTipo && (
+          <Select value={novoTipo} onChange={(e) => setNovoTipo(e.target.value)} style={{ flex: "1 1 130px", minWidth: "130px" }}>
+            <option>Betoneira Estacionária</option>
+            <option>Caminhão Betoneira</option>
+            <option>Outro</option>
+          </Select>
+        )}
+        <Button type="submit" size="sm" variant="subtle" icon={Plus} style={{ flexShrink: 0 }}>Add</Button>
+      </form>
+    </div>
+  );
+}
+
+function PasswordField({ icon: Icon, title, description, onSave }) {
+  const [pw, setPw] = useState("");
+  const [pw2, setPw2] = useState("");
+  const [error, setError] = useState("");
+  const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setSaved(false);
+    if (pw.length < 4) {
+      setError("Use pelo menos 4 caracteres.");
+      return;
+    }
+    if (pw !== pw2) {
+      setError("As senhas não coincidem.");
+      return;
+    }
+    setSaving(true);
+    const hash = await hashPassword(pw);
+    await onSave(hash);
+    setSaving(false);
+    setSaved(true);
+    setPw("");
+    setPw2("");
+  };
+
+  return (
+    <div style={{ background: "var(--bg-panel)", border: "1px solid var(--border-soft)", borderRadius: "9px", padding: "20px", maxWidth: "420px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
+        <Icon size={18} style={{ color: "var(--amber)" }} />
+        <h3 className="tl-display" style={{ fontSize: "18px", fontWeight: 700 }}>{title}</h3>
+      </div>
+      <p style={{ fontSize: "12.5px", color: "var(--text-muted)", marginBottom: "18px", lineHeight: 1.5 }}>
+        {description}
+      </p>
+
+      <form onSubmit={handleSubmit}>
+        <Field label="Nova senha">
+          <Input type="password" value={pw} onChange={(e) => setPw(e.target.value)} required />
+        </Field>
+        <Field label="Confirmar nova senha">
+          <Input type="password" value={pw2} onChange={(e) => setPw2(e.target.value)} required />
+        </Field>
+
+        {error && (
+          <p style={{ fontSize: "12.5px", color: "var(--danger)", marginTop: "-8px", marginBottom: "14px" }}>{error}</p>
+        )}
+        {saved && (
+          <p style={{ fontSize: "12.5px", color: "var(--success)", marginTop: "-8px", marginBottom: "14px" }}>Senha alterada com sucesso.</p>
+        )}
+
+        <Button type="submit" disabled={saving}>{saving ? "Salvando..." : "Salvar nova senha"}</Button>
+      </form>
+    </div>
+  );
+}
+
+// Dados da empresa (nome, CNPJ, endereço) — usados nos PDFs gerados pelo
+// sistema (proposta, relatório, recibo, etc). Ficam em branco por padrão,
+// pra qualquer cópia nova do sistema nascer sem dado de empresa nenhuma
+// fixo no código — cada cliente preenche o dele aqui.
+// Redimensiona e converte a imagem escolhida pra PNG base64 — usado tanto
+// no menu lateral quanto no cabeçalho dos PDFs, então mantém transparência.
+function converterLogoParaPng(file, maxDim = 400) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("Falha ao ler arquivo"));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error("Falha ao carregar imagem"));
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > maxDim || height > maxDim) {
+          const scale = maxDim / Math.max(width, height);
+          width = Math.round(width * scale);
+          height = Math.round(height * scale);
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/png"));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function DadosEmpresaSection({ prefs, onPrefsChanged }) {
+  const [nome, setNome] = useState(prefs.nomeEmpresa || "");
+  const [cnpj, setCnpj] = useState(prefs.cnpjEmpresa || "");
+  const [endereco, setEndereco] = useState(prefs.enderecoEmpresa || "");
+  const [coordenadasUsina, setCoordenadasUsina] = useState(prefs.coordenadasUsina || "");
+  const [googleMapsApiKey, setGoogleMapsApiKey] = useState(prefs.googleMapsApiKey || "");
+  const [salvo, setSalvo] = useState(false);
+  const [enviandoLogo, setEnviandoLogo] = useState(false);
+  const fileRef = React.useRef(null);
+
+  const salvar = (e) => {
+    e.preventDefault();
+    onPrefsChanged({
+      ...prefs,
+      nomeEmpresa: nome.trim(),
+      cnpjEmpresa: cnpj.trim(),
+      enderecoEmpresa: endereco.trim(),
+      coordenadasUsina: coordenadasUsina.trim(),
+      googleMapsApiKey: googleMapsApiKey.trim(),
+    });
+    setSalvo(true);
+    setTimeout(() => setSalvo(false), 2500);
+  };
+
+  const enviarLogo = async (file) => {
+    if (!file) return;
+    setEnviandoLogo(true);
+    try {
+      const pngDataUrl = await converterLogoParaPng(file);
+      // Mesmo arquivo serve pro menu lateral e pro cabeçalho dos PDFs.
+      onPrefsChanged({ ...prefs, logoPersonalizado: pngDataUrl, logoPngPersonalizado: pngDataUrl });
+    } catch (e) {
+      console.error("Falha ao processar logo", e);
+    }
+    setEnviandoLogo(false);
+  };
+
+  const removerLogo = () => {
+    onPrefsChanged({ ...prefs, logoPersonalizado: "", logoPngPersonalizado: "" });
+  };
+
+  return (
+    <div style={{ background: "var(--bg-panel)", border: "1px solid var(--border-soft)", borderRadius: "9px", padding: "20px", marginBottom: "18px" }}>
+      <h3 className="tl-display" style={{ fontSize: "18px", fontWeight: 700, marginBottom: "6px" }}>Dados da empresa</h3>
+      <p style={{ fontSize: "12.5px", color: "var(--text-muted)", marginBottom: "16px", maxWidth: "560px" }}>
+        Aparecem no menu lateral e no cabeçalho de todo PDF gerado pelo sistema (propostas, recibos, relatórios, etc).
+      </p>
+
+      <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "20px" }}>
+        <div style={{ width: "64px", height: "64px", borderRadius: "9px", border: "1px solid var(--border-soft)", background: "var(--bg-base)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 }}>
+          {prefs.logoPersonalizado ? (
+            <img src={prefs.logoPersonalizado} alt="Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+          ) : (
+            <Truck size={26} style={{ color: "var(--text-faint)" }} />
+          )}
+        </div>
+        <div>
+          <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => e.target.files?.[0] && enviarLogo(e.target.files[0])} />
+          <div style={{ display: "flex", gap: "8px" }}>
+            <Button type="button" variant="subtle" size="sm" icon={Upload} disabled={enviandoLogo} onClick={() => fileRef.current?.click()}>
+              {enviandoLogo ? "Enviando..." : prefs.logoPersonalizado ? "Trocar foto" : "Enviar foto da logo"}
+            </Button>
+            {prefs.logoPersonalizado && (
+              <Button type="button" variant="ghost" size="sm" icon={Trash2} onClick={removerLogo}>Remover</Button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <form onSubmit={salvar}>
+        <Field label="Nome da empresa">
+          <Input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Ex: Locadora Silva Ltda" />
+        </Field>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "0 16px" }}>
+          <Field label="CNPJ">
+            <Input value={cnpj} onChange={(e) => setCnpj(e.target.value)} placeholder="00.000.000/0001-00" />
+          </Field>
+          <Field label="Endereço">
+            <Input value={endereco} onChange={(e) => setEndereco(e.target.value)} placeholder="Rua, número, bairro, cidade - UF" />
+          </Field>
+        </div>
+
+        <div style={{ borderTop: "1px solid var(--border-soft)", marginTop: "8px", paddingTop: "16px" }}>
+          <h4 className="tl-display" style={{ fontSize: "14px", fontWeight: 700, marginBottom: "4px" }}>Distância até a obra (opcional)</h4>
+          <p style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "12px", maxWidth: "560px" }}>
+            Preenchendo os dois campos abaixo, a Central de Balança passa a mostrar quantos km de estrada tem entre a
+            usina e a obra de cada cliente. Sem eles, essa informação simplesmente não aparece — o resto do sistema
+            continua igual.
+          </p>
+          <Field label="Coordenadas da usina" hint='No Google Maps, clique com o botão direito no local da usina e depois no número que aparece (ex: "-23.668, -46.447") — copia e cola aqui'>
+            <Input value={coordenadasUsina} onChange={(e) => setCoordenadasUsina(e.target.value)} placeholder="-23.668, -46.447" />
+          </Field>
+          <Field label="Chave da API do Google Maps (Distance Matrix)" hint="Criada em console.cloud.google.com — sem essa chave, a distância não é calculada">
+            <Input value={googleMapsApiKey} onChange={(e) => setGoogleMapsApiKey(e.target.value)} placeholder="AIza..." />
+          </Field>
+        </div>
+
+        <Button type="submit">{salvo ? "Salvo!" : "Salvar dados da empresa"}</Button>
+      </form>
+    </div>
+  );
+}
+
+function ConfiguracoesModule({ onPasswordChanged, onAppPasswordChanged, prefs, onPrefsChanged, maquinas, onChangeMaquinas, operadores, onChangeOperadores, vendedores, onChangeVendedores, usuarios, onChangeUsuarios, logAcessos, onChangeLogAcessos, clientes, onChangeClientes, producaoEsc, onChangeProducaoEsc, producaoPerf, onChangeProducaoPerf, statusClientes, onChangeStatusClientes, financeiro, onChangeFinanceiro, manutencoes, onChangeManutencoes, agenda, onChangeAgenda, funcionarios, onChangeFuncionarios, motoristas, onChangeMotoristas, caminhoes, onChangeCaminhoes, empresasRetirada, onChangeEmpresasRetirada, requireAdmin }) {
+  return (
+    <div className="tl-fade-in">
+      <PageHeader eyebrow="Administração" title="Configurações" />
+
+      <DadosEmpresaSection prefs={prefs} onPrefsChanged={onPrefsChanged} />
+
+      <BackupSection />
+      <RestaurarBackupSection
+        onChangeClientes={onChangeClientes}
+        onChangeProducaoEsc={onChangeProducaoEsc}
+        onChangeProducaoPerf={onChangeProducaoPerf}
+        onChangeFinanceiro={onChangeFinanceiro}
+        onChangeManutencoes={onChangeManutencoes}
+        onChangeAgenda={onChangeAgenda}
+        onChangeMaquinas={onChangeMaquinas}
+        onChangeOperadores={onChangeOperadores}
+        onChangeVendedores={onChangeVendedores}
+        onChangeStatusClientes={onChangeStatusClientes}
+        onChangeFuncionarios={onChangeFuncionarios}
+        onChangeMotoristas={onChangeMotoristas}
+        onChangeCaminhoes={onChangeCaminhoes}
+        onChangeEmpresasRetirada={onChangeEmpresasRetirada}
+        requireAdmin={requireAdmin}
+      />
+
+      <div style={{ background: "var(--bg-panel)", border: "1px solid var(--border-soft)", borderRadius: "9px", padding: "20px", marginBottom: "18px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
+          <Users size={18} style={{ color: "var(--amber)" }} />
+          <h3 className="tl-display" style={{ fontSize: "18px", fontWeight: 700 }}>Usuários</h3>
+        </div>
+        <p style={{ fontSize: "12.5px", color: "var(--text-muted)", marginBottom: "16px" }}>
+          Cada pessoa entra com o próprio nome e senha. Só quem for marcado como <strong>administrador</strong> acessa Clientes, Produção, Configurações e pode excluir itens.
+        </p>
+        <UsuariosManager usuarios={usuarios} onChange={onChangeUsuarios} />
+      </div>
+
+      <div style={{ background: "var(--bg-panel)", border: "1px solid var(--border-soft)", borderRadius: "9px", padding: "20px", marginBottom: "18px" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px", flexWrap: "wrap", gap: "10px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <ClipboardCheck size={18} style={{ color: "var(--amber)" }} />
+            <h3 className="tl-display" style={{ fontSize: "18px", fontWeight: 700 }}>Histórico de acesso</h3>
+          </div>
+          {(logAcessos || []).length > 0 && (
+            <Button
+              size="sm"
+              variant="subtle"
+              icon={Trash2}
+              onClick={() => {
+                if (window.confirm(`Apagar todo o histórico de acesso (${logAcessos.length} registros)? Essa ação não pode ser desfeita.`)) {
+                  onChangeLogAcessos([]);
+                }
+              }}
+            >
+              Limpar histórico
+            </Button>
+          )}
+        </div>
+        <LogAcessoLista logAcessos={logAcessos} />
+      </div>
+
+      <div style={{ background: "var(--bg-panel)", border: "1px solid var(--border-soft)", borderRadius: "9px", padding: "20px", marginBottom: "18px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
+          <Wrench size={18} style={{ color: "var(--amber)" }} />
+          <h3 className="tl-display" style={{ fontSize: "18px", fontWeight: 700 }}>Cadastros</h3>
+        </div>
+        <p style={{ fontSize: "12.5px", color: "var(--text-muted)", marginBottom: "16px" }}>
+          Essas listas alimentam as opções em Produção, Manutenção e outras abas do sistema.
+        </p>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px" }}>
+          <CadastroSimples titulo="Betoneiras" itens={maquinas} onChange={onChangeMaquinas} comTipo placeholder="Ex: Betoneira 01" />
+          <CadastroSimples titulo="Vendedores" itens={vendedores} onChange={onChangeVendedores} placeholder="Ex: Eneas" />
+          <CadastroSimples titulo="Status de clientes" itens={statusClientes} onChange={onChangeStatusClientes} placeholder="Ex: Em negociação" />
+          <CadastroSimples titulo="Funcionários" itens={funcionarios} onChange={onChangeFuncionarios} placeholder="Ex: João da Silva" />
+          <CadastroSimples titulo="Motoristas" itens={motoristas} onChange={onChangeMotoristas} placeholder="Ex: Carlos" />
+          <CadastroSimples titulo="Caminhões" itens={caminhoes} onChange={onChangeCaminhoes} placeholder="Ex: ABC-1234" />
+        </div>
+      </div>
+
+      <div style={{ background: "var(--bg-panel)", border: "1px solid var(--border-soft)", borderRadius: "9px", padding: "20px", maxWidth: "420px", marginBottom: "18px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
+          <Settings size={18} style={{ color: "var(--amber)" }} />
+          <h3 className="tl-display" style={{ fontSize: "18px", fontWeight: 700 }}>Aparência</h3>
+        </div>
+
+        <Field label="Tema">
+          <div style={{ display: "flex", gap: "8px" }}>
+            <Button
+              variant={prefs.theme !== "light" ? "primary" : "subtle"}
+              onClick={() => onPrefsChanged({ ...prefs, theme: "dark" })}
+              type="button"
+            >
+              Escuro
+            </Button>
+            <Button
+              variant={prefs.theme === "light" ? "primary" : "subtle"}
+              onClick={() => onPrefsChanged({ ...prefs, theme: "light" })}
+              type="button"
+            >
+              Claro
+            </Button>
+          </div>
+        </Field>
+
+        <Field label="Tamanho da letra" hint={`${Math.round((prefs.fontScale || 1) * 100)}%`}>
+          <div style={{ display: "flex", gap: "8px" }}>
+            <Button
+              variant="subtle"
+              type="button"
+              disabled={(prefs.fontScale || 1) <= 0.85}
+              onClick={() => onPrefsChanged({ ...prefs, fontScale: Math.max(0.85, (prefs.fontScale || 1) - 0.1) })}
+            >
+              A-
+            </Button>
+            <Button
+              variant="subtle"
+              type="button"
+              onClick={() => onPrefsChanged({ ...prefs, fontScale: 1 })}
+            >
+              Padrão
+            </Button>
+            <Button
+              variant="subtle"
+              type="button"
+              disabled={(prefs.fontScale || 1) >= 1.3}
+              onClick={() => onPrefsChanged({ ...prefs, fontScale: Math.min(1.3, (prefs.fontScale || 1) + 0.1) })}
+            >
+              A+
+            </Button>
+          </div>
+        </Field>
+        <p style={{ fontSize: "11.5px", color: "var(--text-faint)", marginTop: "4px" }}>
+          Essas duas opções são seguras — só mudam a aparência, nunca os dados.
+        </p>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
+        <PasswordField
+          icon={Lock}
+          title="Senha de acesso ao sistema"
+          description="Pedida assim que o app é aberto, antes de qualquer tela. Sem ela, ninguém entra."
+          onSave={onAppPasswordChanged}
+        />
+        <PasswordField
+          icon={KeyRound}
+          title="Senha de administrador"
+          description="Protege as abas Clientes, Produção, Controle Diário e esta própria tela de Configurações."
+          onSave={onPasswordChanged}
+        />
+      </div>
+
+      <p style={{ fontSize: "11.5px", color: "var(--text-faint)", marginTop: "16px", maxWidth: "420px" }}>
+        Lembrete: se o app estiver hospedado em mais de um lugar (por exemplo, aqui no Claude e também no site publicado), cada um guarda as senhas separadamente — trocar aqui não muda a do outro.
+      </p>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Relatório Geral módulo                                              */
+/* ------------------------------------------------------------------ */
+function RelatoriosModule({ clientes, producaoEsc, producaoPerf, propostas, manutencoes, ticks, controleDiario, agenda, maquinas, financeiro, goTo }) {
+  const [subTab, setSubTab] = useState("resumo");
+  const totalFaturadoEsc = producaoEsc.reduce((s, r) => s + (Number(r.total) || 0), 0);
+  const totalFaturadoPerf = producaoPerf.reduce((s, r) => s + (Number(r.total) || 0), 0);
+  const abertosEsc = producaoEsc.filter((r) => r.status === "EM ABERTO").length;
+  const abertosPerf = producaoPerf.filter((r) => r.status === "EM ABERTO").length;
+  const totalMetragem = producaoPerf.reduce((s, r) => s + (Number(r.metragem) || 0), 0);
+  const totalPropostas = propostas.reduce(
+    (s, p) => s + calcularTotalProposta(p),
+    0
+  );
+  const gastoManutencao = manutencoes.filter((m) => m.tipo === "Manutenção").reduce((s, m) => s + (Number(m.valor) || 0), 0);
+  const gastoAbastecimento = manutencoes.filter((m) => m.tipo === "Abastecimento").reduce((s, m) => s + (Number(m.valor) || 0), 0);
+  const horasTotais = controleDiario.reduce((s, r) => {
+    const ini = Number(r.horimetroInicio), fim = Number(r.horimetroFim);
+    return s + (!isNaN(ini) && !isNaN(fim) && fim >= ini ? fim - ini : 0);
+  }, 0);
+  const litrosTotais = controleDiario.reduce((s, r) => s + (r.abastecida ? Number(r.litros) || 0 : 0), 0);
+  const hojeISO = new Date().toISOString().slice(0, 10);
+  const compromissosPendentes = agenda.filter((a) => a.status !== "Concluído").length;
+
+  // Lista todas as cargas que voltaram com sobra (qualquer pedido), mais
+  // nova primeiro — mostra de qual obra a sobra veio (o próprio pedido da
+  // carga) e, se foi preenchido na Central de Balança, pra qual obra ela
+  // foi usada depois.
+  const clienteDoPedidoRel = useMemo(() => {
+    const mapa = new Map();
+    clientes.forEach((c) => mapa.set(String(c.pedido).trim(), c));
+    return mapa;
+  }, [clientes]);
+  const listaSobras = useMemo(() => {
+    const linhas = [];
+    producaoEsc.forEach((r) => {
+      (r.viagens || []).forEach((v) => {
+        if (numeroSeguro(v.sobra) <= 0) return;
+        const clienteOrigem = clienteDoPedidoRel.get(String(r.pedido).trim());
+        const clienteDestino = v.sobraDestinoPedido ? clienteDoPedidoRel.get(String(v.sobraDestinoPedido).trim()) : null;
+        linhas.push({
+          id: v.id,
+          data: r.data,
+          pedidoOrigem: r.pedido,
+          clienteOrigem: clienteOrigem?.nome || r.cliente || "-",
+          volumeCarga: numeroSeguro(v.volume),
+          sobra: numeroSeguro(v.sobra),
+          pedidoDestino: v.sobraDestinoPedido || "",
+          clienteDestino: clienteDestino?.nome || "",
+        });
+      });
+    });
+    return linhas.sort((a, b) => dataOrdenavel(b.data).localeCompare(dataOrdenavel(a.data)));
+  }, [producaoEsc, clienteDoPedidoRel]);
+  const totalSobras = listaSobras.reduce((s, l) => s + l.sobra, 0);
+  const sobrasReaproveitadas = listaSobras.filter((l) => l.pedidoDestino).length;
+
+  const secoes = [
+    {
+      titulo: "Clientes",
+      icon: Users,
+      destino: "clientes",
+      itens: [
+        { label: "Total cadastrados", valor: clientes.length },
+      ],
+    },
+    {
+      titulo: "Produção-Concreto",
+      icon: Truck,
+      destino: "producaoEsc",
+      itens: [
+        { label: "Total de pedidos", valor: producaoEsc.length },
+        { label: "Em aberto", valor: abertosEsc },
+        { label: "Faturamento total", valor: money(totalFaturadoEsc) },
+      ],
+    },
+    {
+      titulo: "Propostas",
+      icon: FileText,
+      destino: "propostas",
+      itens: [
+        { label: "Total emitidas", valor: propostas.length },
+        { label: "Valor total em propostas", valor: money(totalPropostas) },
+      ],
+    },
+    {
+      titulo: "Manutenção & Abastecimento",
+      icon: Wrench,
+      destino: "manutencao",
+      itens: [
+        { label: "Máquinas cadastradas", valor: maquinas.length },
+        { label: "Gasto em manutenção", valor: money(gastoManutencao) },
+        { label: "Gasto em abastecimento", valor: money(gastoAbastecimento) },
+      ],
+    },
+    {
+      titulo: "Controle Diário",
+      icon: Gauge,
+      destino: "controleDiario",
+      itens: [
+        { label: "Apontamentos registrados", valor: controleDiario.length },
+        { label: "Horas trabalhadas (total)", valor: `${horasTotais}h` },
+        { label: "Litros abastecidos (total)", valor: `${litrosTotais} L` },
+      ],
+    },
+    {
+      titulo: "Agenda",
+      icon: Calendar,
+      destino: "agenda",
+      itens: [
+        { label: "Compromissos pendentes", valor: compromissosPendentes },
+      ],
+    },
+  ];
+
+  return (
+    <div className="tl-fade-in">
+      <PageHeader
+        eyebrow={`Atualizado em ${fmtDate(hojeISO)}`}
+        title="Relatório Geral"
+        action={<Button icon={Printer} onClick={() => window.print()}>Imprimir</Button>}
+      />
+
+      <div style={{ display: "flex", gap: "4px", marginBottom: "20px", background: "var(--bg-panel)", border: "1px solid var(--border-soft)", borderRadius: "8px", padding: "4px", flexWrap: "wrap" }}>
+        {[
+          { id: "resumo", label: "Resumo" },
+          { id: "inadimplencia", label: "Inadimplência" },
+          { id: "comparativo", label: "Comparativo mensal" },
+          { id: "operadores", label: "Produtividade" },
+          { id: "vendedores", label: "Vendedores" },
+          { id: "sobras", label: "Sobras" },
+        ].map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setSubTab(t.id)}
+            className="tl-focus"
+            style={{
+              flex: "1 1 auto",
+              minWidth: "120px",
+              padding: "8px 10px",
+              borderRadius: "6px",
+              border: "none",
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+              background: subTab === t.id ? "var(--bg-panel-raised)" : "transparent",
+              color: subTab === t.id ? "var(--text-primary)" : "var(--text-muted)",
+              fontSize: "12.5px",
+              fontWeight: subTab === t.id ? 600 : 500,
+            }}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {subTab === "inadimplencia" && <InadimplenciaSection clientes={clientes} financeiro={financeiro} producaoEsc={producaoEsc} producaoPerf={producaoPerf} propostas={propostas} />}
+      {subTab === "comparativo" && <ComparativoMensalSection producaoEsc={producaoEsc} producaoPerf={producaoPerf} />}
+      {subTab === "operadores" && <ProdutividadeOperadorSection producaoEsc={producaoEsc} producaoPerf={producaoPerf} />}
+      {subTab === "vendedores" && <VendedoresSection producaoEsc={producaoEsc} producaoPerf={producaoPerf} />}
+      {subTab === "sobras" && (
+        <div className="tl-fade-in">
+          <div style={{ display: "flex", gap: "10px", marginBottom: "16px", flexWrap: "wrap" }}>
+            <MiniStat label="Sobra total (m³)" valor={`${totalSobras.toFixed(1)} m³`} />
+            <MiniStat label="Sobras reaproveitadas em outra obra" valor={`${sobrasReaproveitadas} de ${listaSobras.length}`} />
+          </div>
+          {listaSobras.length === 0 ? (
+            <EmptyState icon={Truck} title="Nenhuma sobra registrada ainda" hint='Preenche "Sobra que voltou" numa carga, na Central de Balança, pra ela aparecer aqui.' />
+          ) : (
+            <Table
+              columns={["Data", "Veio da obra (pedido)", "Volume da carga", "Sobra", "Foi usada na obra (pedido)"]}
+              rows={listaSobras.map((l) => [
+                fmtDate(l.data),
+                `#${l.pedidoOrigem} — ${l.clienteOrigem}`,
+                `${l.volumeCarga} m³`,
+                <strong key="sobra">{l.sobra} m³</strong>,
+                l.pedidoDestino ? `#${l.pedidoDestino}${l.clienteDestino ? ` — ${l.clienteDestino}` : ""}` : <span style={{ color: "var(--text-faint)" }}>Não informado</span>,
+              ])}
+            />
+          )}
+        </div>
+      )}
+
+      {subTab === "resumo" && (
+      <div className="tl-print-area" style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+        <div className="tl-print-only-header" style={{ display: "none" }}>
+          <h2>Relatório Geral — {PREFS_ATUAL_REF?.nomeEmpresa || "RJL Mix Concreto"}</h2>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "14px" }}>
+          {secoes.map((sec) => (
+            <button
+              key={sec.titulo}
+              onClick={() => goTo && goTo(sec.destino)}
+              className="tl-focus"
+              style={{ textAlign: "left", cursor: "pointer", background: "var(--bg-panel)", border: "1px solid var(--border-soft)", borderRadius: "9px", padding: "16px" }}
+            >
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <sec.icon size={15} style={{ color: "var(--amber)" }} />
+                  <h4 className="tl-mono" style={{ fontSize: "11.5px", letterSpacing: "0.05em", color: "var(--text-muted)", textTransform: "uppercase" }}>
+                    {sec.titulo}
+                  </h4>
+                </div>
+                <ChevronRight size={14} style={{ color: "var(--text-faint)" }} />
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                {sec.itens.map((it) => (
+                  <div key={it.label} style={{ display: "flex", justifyContent: "space-between", fontSize: "13px" }}>
+                    <span style={{ color: "var(--text-faint)" }}>{it.label}</span>
+                    <span style={{ fontWeight: 600 }} className="tl-mono">{it.valor}</span>
+                  </div>
+                ))}
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Financeiro módulo                                                   */
+/* ------------------------------------------------------------------ */
+function InadimplenciaSection({ clientes, financeiro, producaoEsc, producaoPerf, propostas }) {
+  const hojeISO = new Date().toISOString().slice(0, 10);
+  const [verCliente, setVerCliente] = useState(null); // nome do cliente selecionado
+  const [filtro, setFiltro] = useState("todos"); // todos | atrasado | futuro
+  const [gerandoPdfCliente, setGerandoPdfCliente] = useState(false);
+  const [avisoPdfCliente, setAvisoPdfCliente] = useState("");
+
+  const porCliente = useMemo(() => {
+    const mapa = new Map();
+    const registrar = (nomeCliente, valor, dataRef, atrasado, item) => {
+      if (!nomeCliente) return;
+      // Agrupa por nome "normalizado" (sem espaços extras, sem diferença
+      // de maiúscula/minúscula) — assim, um lançamento de Escavadeira e um
+      // de Perfuratriz do mesmo cliente não viram dois clientes diferentes
+      // só porque o nome foi digitado com uma letra maiúscula a mais ou
+      // um espaço a mais numa das telas.
+      const chave = String(nomeCliente).trim().toLowerCase();
+      if (!mapa.has(chave)) mapa.set(chave, { nome: String(nomeCliente).trim(), totalAberto: 0, totalAtrasado: 0, totalFuturo: 0, qtd: 0, maisAntiga: null, atrasado: false, itens: [] });
+      const acc = mapa.get(chave);
+      acc.totalAberto += valor;
+      if (atrasado) {
+        acc.totalAtrasado += valor;
+        acc.atrasado = true;
+      } else {
+        acc.totalFuturo += valor;
+      }
+      acc.qtd += 1;
+      if (!acc.maisAntiga || dataOrdenavel(dataRef) < dataOrdenavel(acc.maisAntiga)) acc.maisAntiga = dataRef;
+      acc.itens.push(item);
+    };
+
+    (financeiro || [])
+      // Contas com producaoId vêm AUTOMATICAMENTE de um lançamento de
+      // Produção (é a mesma sincronização que já existe) — contar essas
+      // aqui E o lançamento de Produção lá embaixo duplicava tudo, quase
+      // dobrando a quantidade e o valor mostrados. Só entram aqui as
+      // contas manuais, que não têm essa origem.
+      .filter((c) => c.tipo === "Receber" && c.status !== "Pago" && c.status !== "Cancelado" && !c.producaoId)
+      .forEach((c) => {
+        const nome = clienteByPedidoNome(clientes, c.pedido) || c.fornecedor || c.descricao || "Cliente não identificado";
+        const atrasado = c.vencimento && dataOrdenavel(c.vencimento) < hojeISO;
+        registrar(nome, numeroSeguro(c.valor), c.vencimento, atrasado, {
+          origem: "Financeiro",
+          pedido: c.pedido || "-",
+          descricao: c.descricao || "-",
+          data: c.vencimento,
+          valor: numeroSeguro(c.valor),
+          atrasado,
+        });
+      });
+
+    [...(producaoEsc || []), ...(producaoPerf || [])]
+      // Só entra como pendência se a data do serviço já passou (ou é hoje)
+      // — um lançamento com data futura é uma obra ainda não realizada,
+      // não uma cobrança em aberto de verdade.
+      .filter((r) => String(r.status || "").toUpperCase() !== "PAGO" && r.data && dataOrdenavel(r.data) <= hojeISO)
+      .forEach((r) => {
+        // Usa a mesma regra do Financeiro pra saber se já está atrasado:
+        // prazo de pagamento = data do serviço + 30 dias. Sem isso, todo
+        // lançamento de Produção (Escavadeira OU Perfuratriz) caía sempre
+        // em "a vencer", mesmo quando já estava vencido há muito tempo.
+        const vencimentoImplicito = adicionarDias(r.data, 30) || r.data;
+        const atrasadoProducao = dataOrdenavel(vencimentoImplicito) < hojeISO;
+        registrar(r.cliente || "Cliente não identificado", numeroSeguro(r.total), vencimentoImplicito, atrasadoProducao, {
+          origem: "Produção",
+          pedido: r.pedido || "-",
+          descricao: `${r.equipamento || "-"} — ${r.status || "-"}`,
+          data: r.data,
+          valor: numeroSeguro(r.total),
+          atrasado: atrasadoProducao,
+        });
+      });
+
+    return [...mapa.values()].sort((a, b) => b.totalAtrasado - a.totalAtrasado || b.totalAberto - a.totalAberto);
+  }, [clientes, financeiro, producaoEsc, producaoPerf, hojeISO]);
+
+  const listaExibida =
+    filtro === "atrasado" ? porCliente.filter((c) => c.atrasado) :
+    filtro === "futuro" ? porCliente.filter((c) => c.totalFuturo > 0) :
+    porCliente;
+  const totalGeral = porCliente.reduce((s, c) => s + c.totalAberto, 0);
+  const totalAtrasadoGeral = porCliente.reduce((s, c) => s + c.totalAtrasado, 0);
+  const totalFuturoGeral = porCliente.reduce((s, c) => s + c.totalFuturo, 0);
+  const clienteSelecionado = porCliente.find((c) => c.nome === verCliente);
+  // Acha o cadastro de cliente de verdade (com telefone) a partir do nome
+  // — o "clienteSelecionado" acima é só o resumo agregado, sem telefone.
+  const cadastroClienteSelecionado = useMemo(() => {
+    if (!clienteSelecionado) return null;
+    const chave = clienteSelecionado.nome.trim().toLowerCase();
+    return (clientes || []).find((c) => String(c.nome || "").trim().toLowerCase() === chave) || null;
+  }, [clientes, clienteSelecionado]);
+
+  const enviarRelatorioCliente = async (modo) => {
+    if (!clienteSelecionado) return;
+    setGerandoPdfCliente(true);
+    setAvisoPdfCliente("");
+    const blob = await gerarPdfInadimplenciaCliente(cadastroClienteSelecionado || { nome: clienteSelecionado.nome }, clienteSelecionado.itens, clienteSelecionado.totalAberto);
+    setGerandoPdfCliente(false);
+
+    const fileName = `pendencias-${clienteSelecionado.nome.replace(/\s+/g, "-").toLowerCase()}.pdf`;
+
+    if (!blob) {
+      setAvisoPdfCliente("Ainda não gero PDF de verdade aqui — use "Imprimir" e escolha "Salvar como PDF" pra baixar o documento com a logo.");
+      return;
+    }
+
+    if (modo === "imprimir") {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      return;
+    }
+
+    // modo === "whatsapp"
+    const texto =
+      `*Relatório de pendências — ${clienteSelecionado.nome}*\n\n` +
+      `${clienteSelecionado.qtd} lançamento(s) em aberto\n` +
+      `Total: ${money(clienteSelecionado.totalAberto)}\n\n${PREFS_ATUAL_REF?.nomeEmpresa || "RJL Mix Concreto"}`;
+
+    const file = new File([blob], fileName, { type: "application/pdf" });
+    if (ehCelular && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: `Pendências - ${clienteSelecionado.nome}`, text: `Relatório de pendências - ${PREFS_ATUAL_REF?.nomeEmpresa || "RJL Mix Concreto"}` });
+        return;
+      } catch (e) {
+        /* segue pro download abaixo */
+      }
+    }
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    let telefone = (cadastroClienteSelecionado?.telefone || "").replace(/\D/g, "");
+    if (!telefone) {
+      const digitado = window.prompt("Cliente sem telefone cadastrado. Digite o número (com DDD):", "");
+      telefone = (digitado || "").replace(/\D/g, "");
+    }
+    if (telefone) {
+      const numeroFinal = telefone.startsWith("55") ? telefone : `55${telefone}`;
+      window.alert(`PDF baixado como "${fileName}" (confira a pasta Downloads).\n\nO WhatsApp vai abrir agora só com o texto — anexe esse arquivo baixado na conversa antes de enviar.`);
+      window.open(`https://wa.me/${numeroFinal}?text=${encodeURIComponent(texto)}`, "_blank");
+    }
+  };
+
+  return (
+    <div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "12px", marginBottom: "16px" }}>
+        <MiniStat
+          label="Clientes com pendência"
+          valor={porCliente.length}
+          ativo={filtro === "todos"}
+          onClick={() => setFiltro("todos")}
+        />
+        <MiniStat
+          label="Realmente atrasado"
+          valor={money(totalAtrasadoGeral)}
+          cor="var(--danger)"
+          ativo={filtro === "atrasado"}
+          onClick={() => setFiltro(filtro === "atrasado" ? "todos" : "atrasado")}
+        />
+        <MiniStat
+          label="A vencer (futuro, em dia)"
+          valor={money(totalFuturoGeral)}
+          cor="var(--amber)"
+          ativo={filtro === "futuro"}
+          onClick={() => setFiltro(filtro === "futuro" ? "todos" : "futuro")}
+        />
+        <MiniStat
+          label="Total em aberto (soma dos dois)"
+          valor={money(totalGeral)}
+          ativo={filtro === "todos"}
+          onClick={() => setFiltro("todos")}
+        />
+      </div>
+      <p style={{ fontSize: "12px", color: "var(--text-faint)", marginBottom: "16px" }}>
+        Clica em qualquer cartão acima pra filtrar a lista por ele — ter algo "a vencer" não significa que o cliente está devendo, só que ainda não chegou a data.
+      </p>
+      {listaExibida.length === 0 ? (
+        <EmptyState
+          icon={Users}
+          title={filtro === "atrasado" ? "Ninguém atrasado no momento" : filtro === "futuro" ? "Ninguém com pagamento a vencer" : "Nenhuma pendência"}
+          hint={filtro === "atrasado" ? "Todos os clientes com saldo em aberto estão em dia." : filtro === "futuro" ? "Nenhum cliente com valor a vencer no momento." : "Nenhum cliente com conta ou produção em aberto no momento."}
+        />
+      ) : (
+        <Table
+          columns={["Cliente", "Lançamentos em aberto", "Mais antigo", "Atrasado", "A vencer", ""]}
+          rows={listaExibida.map((c) => (
+            <tr key={c.nome} style={rowStyle}>
+              <td style={tdStyle}>
+                <button onClick={() => setVerCliente(c.nome)} className="tl-focus" style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: "var(--text-primary)", fontWeight: 500, textDecoration: "underline", textDecorationColor: "var(--border-soft)" }}>
+                  {c.nome}
+                </button>
+              </td>
+              <td style={{ ...tdStyle, color: "var(--text-muted)" }}>
+                <button onClick={() => setVerCliente(c.nome)} className="tl-focus" style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: "var(--accent)", fontWeight: 700 }}>
+                  {c.qtd}
+                </button>
+              </td>
+              <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{fmtDate(c.maisAntiga)}</td>
+              <td style={{ ...tdStyle, fontWeight: 600, color: c.totalAtrasado > 0 ? "var(--danger)" : "var(--text-faint)" }} className="tl-mono">
+                {c.totalAtrasado > 0 ? money(c.totalAtrasado) : "-"}
+              </td>
+              <td style={{ ...tdStyle, fontWeight: 600, color: c.totalFuturo > 0 ? "var(--amber)" : "var(--text-faint)" }} className="tl-mono">
+                {c.totalFuturo > 0 ? money(c.totalFuturo) : "-"}
+              </td>
+              <td style={tdStyle}>{c.atrasado ? <StatusBadge status="ATRASADO" /> : <span style={{ fontSize: "11.5px", color: "var(--success)" }}>Em dia</span>}</td>
+            </tr>
+          ))}
+        />
+      )}
+
+      {clienteSelecionado && (
+        <Modal title={`Relatório de pendências — ${clienteSelecionado.nome}`} onClose={() => setVerCliente(null)}>
+          <div style={{ background: "var(--bg-base)", border: "1px solid var(--border-soft)", borderRadius: "6px", padding: "10px 12px", marginBottom: "14px", display: "flex", justifyContent: "space-between", fontSize: "13px" }}>
+            <span>{clienteSelecionado.qtd} lançamento(s) em aberto</span>
+            <strong className="tl-mono" style={{ color: "var(--amber)" }}>{money(clienteSelecionado.totalAberto)}</strong>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "2px", marginBottom: "16px" }}>
+            {[...clienteSelecionado.itens]
+              .sort((a, b) => dataOrdenavel(a.data).localeCompare(dataOrdenavel(b.data)))
+              .map((it, i) => (
+                <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 0", borderBottom: "1px solid var(--border-soft)", fontSize: "13px" }}>
+                  <div>
+                    <strong>{i + 1}. Pedido #{it.pedido}</strong>
+                    {it.atrasado && <span style={{ marginLeft: "6px" }}><StatusBadge status="ATRASADO" /></span>}
+                    <div style={{ fontSize: "11.5px", color: "var(--text-muted)" }}>
+                      {fmtDate(it.data)} · {it.origem} · {it.descricao}
+                    </div>
+                  </div>
+                  <strong className="tl-mono">{money(it.valor)}</strong>
+                </div>
+              ))}
+          </div>
+
+          {avisoPdfCliente && (
+            <div style={{ background: "#3A2F13", border: "1px solid #5a4a20", color: "#E8A63D", borderRadius: "6px", padding: "10px 12px", fontSize: "12.5px", marginBottom: "14px" }}>
+              {avisoPdfCliente}
+            </div>
+          )}
+
+          <div style={{ display: "flex", gap: "8px" }}>
+            <Button variant="subtle" icon={Printer} disabled={gerandoPdfCliente} onClick={() => enviarRelatorioCliente("imprimir")} style={{ flex: 1, justifyContent: "center" }}>
+              {gerandoPdfCliente ? "Gerando..." : "Baixar / Imprimir"}
+            </Button>
+            <Button icon={MessageCircle} disabled={gerandoPdfCliente} onClick={() => enviarRelatorioCliente("whatsapp")} style={{ flex: 1, justifyContent: "center" }}>
+              {gerandoPdfCliente ? "Gerando..." : "Enviar via WhatsApp"}
+            </Button>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+// Acha o nome do cliente a partir de um pedido, buscando na lista de clientes.
+function clienteByPedidoNome(clientes, pedido) {
+  if (!pedido) return "";
+  const c = (clientes || []).find((cl) => String(cl.pedido).trim() === String(pedido).trim());
+  return c?.nome || "";
+}
+
+
+function ComparativoMensalSection({ producaoEsc, producaoPerf }) {
+  const meses = useMemo(() => {
+    const todaProducao = [...(producaoEsc || []), ...(producaoPerf || [])];
+    const mapa = new Map();
+    todaProducao.forEach((r) => {
+      const chave = dataOrdenavel(r.data).slice(0, 7); // AAAA-MM
+      if (!chave || chave.length !== 7) return;
+      mapa.set(chave, (mapa.get(chave) || 0) + numeroSeguro(r.total));
+    });
+    const ordenado = [...mapa.entries()].sort((a, b) => b[0].localeCompare(a[0])).slice(0, 12);
+    return ordenado.map(([chave, valor], i) => {
+      const anterior = ordenado[i + 1];
+      const variacao = anterior && anterior[1] > 0 ? ((valor - anterior[1]) / anterior[1]) * 100 : null;
+      const [ano, mes] = chave.split("-");
+      const nomeMes = new Date(`${chave}-01T00:00:00`).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+      return { chave, nomeMes, valor, variacao };
+    });
+  }, [producaoEsc, producaoPerf]);
+
+  const maiorValor = Math.max(...meses.map((m) => m.valor), 1);
+
+  return (
+    <div>
+      {meses.length === 0 ? (
+        <EmptyState icon={BarChart3} title="Sem dados suficientes" hint="Precisa ter lançamentos de Produção com data." />
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+          {meses.map((m) => (
+            <div key={m.chave}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", marginBottom: "5px" }}>
+                <span style={{ textTransform: "capitalize" }}>{m.nomeMes}</span>
+                <span className="tl-mono">
+                  {money(m.valor)}
+                  {m.variacao !== null && (
+                    <span style={{ color: m.variacao >= 0 ? "var(--success)" : "var(--danger)", marginLeft: "8px", fontSize: "11.5px" }}>
+                      {m.variacao >= 0 ? "+" : ""}{m.variacao.toFixed(1)}%
+                    </span>
+                  )}
+                </span>
+              </div>
+              <div style={{ height: "8px", background: "var(--bg-base)", borderRadius: "4px", overflow: "hidden" }}>
+                <div style={{ height: "100%", width: `${(m.valor / maiorValor) * 100}%`, background: "var(--amber)" }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ProdutividadeOperadorSection({ producaoEsc, producaoPerf }) {
+  const linhas = useMemo(() => {
+    const todaProducao = [...(producaoEsc || []), ...(producaoPerf || [])];
+    const mapa = new Map();
+    todaProducao.forEach((r) => {
+      const nome = String(r.operador || "").trim();
+      if (!nome) return;
+      if (!mapa.has(nome)) mapa.set(nome, { nome, qtd: 0, total: 0 });
+      const acc = mapa.get(nome);
+      acc.qtd += 1;
+      acc.total += numeroSeguro(r.total);
+    });
+    return [...mapa.values()].sort((a, b) => b.total - a.total);
+  }, [producaoEsc, producaoPerf]);
+
+  return (
+    <div>
+      {linhas.length === 0 ? (
+        <EmptyState icon={Users} title="Sem dados suficientes" hint="Precisa ter lançamentos de Produção com operador preenchido." />
+      ) : (
+        <Table
+          columns={["Operador", "Nº de pedidos", "Valor total gerado", ""]}
+          rows={linhas.map((l) => (
+            <tr key={l.nome} style={rowStyle}>
+              <td style={{ ...tdStyle, fontWeight: 500 }}>{l.nome}</td>
+              <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{l.qtd}</td>
+              <td style={{ ...tdStyle, fontWeight: 600 }} className="tl-mono">{money(l.total)}</td>
+              <td style={tdStyle} />
+            </tr>
+          ))}
+        />
+      )}
+    </div>
+  );
+}
+
+// Ranking de vendas por vendedor, com uma calculadora de comissão simples
+// — digita a porcentagem uma vez, e vê quanto cada vendedor recebe sobre o
+// que ele vendeu, sem precisar calcular na mão.
+function VendedoresSection({ producaoEsc, producaoPerf }) {
+  const [mesFiltro, setMesFiltro] = useState("todos");
+  const [percentual, setPercentual] = useState("");
+  const [verVendedor, setVerVendedor] = useState(null); // nome do vendedor selecionado
+
+  const mesesDisponiveis = useMemo(() => {
+    const todaProducao = [...(producaoEsc || []), ...(producaoPerf || [])];
+    const meses = new Set(todaProducao.map((r) => dataOrdenavel(r.data).slice(0, 7)).filter(Boolean));
+    return [...meses].sort().reverse();
+  }, [producaoEsc, producaoPerf]);
+
+  const producaoFiltrada = useMemo(() => {
+    return [...(producaoEsc || []), ...(producaoPerf || [])].filter((r) => {
+      if (mesFiltro === "todos") return true;
+      return dataOrdenavel(r.data).slice(0, 7) === mesFiltro;
+    });
+  }, [producaoEsc, producaoPerf, mesFiltro]);
+
+  const qtdSemVendedor = producaoFiltrada.filter((r) => !String(r.vendedor || "").trim()).length;
+
+  const linhas = useMemo(() => {
+    const mapa = new Map();
+    producaoFiltrada.forEach((r) => {
+      const nome = String(r.vendedor || "").trim();
+      if (!nome) return;
+      // Agrupa por nome "normalizado" (sem diferença de maiúscula/minúscula
+      // ou espaço extra) — assim "Carlos", "carlos " e "CARLOS" ficam
+      // juntos no mesmo vendedor, em vez de virarem 3 linhas separadas.
+      const chave = nome.toLowerCase();
+      if (!mapa.has(chave)) mapa.set(chave, { nome, qtd: 0, total: 0, obras: [] });
+      const acc = mapa.get(chave);
+      acc.qtd += 1;
+      acc.total += numeroSeguro(r.total);
+      acc.obras.push(r);
+    });
+    return [...mapa.values()].sort((a, b) => b.total - a.total);
+  }, [producaoFiltrada]);
+
+  const totalGeral = linhas.reduce((s, l) => s + l.total, 0);
+  const pct = numeroSeguro(percentual);
+  const vendedorSelecionado = linhas.find((l) => l.nome === verVendedor);
+
+  return (
+    <div>
+      {qtdSemVendedor > 0 && (
+        <div style={{ background: "var(--bg-base)", border: "1px solid var(--border-soft)", borderRadius: "6px", padding: "10px 12px", marginBottom: "16px", fontSize: "12.5px", color: "var(--text-muted)" }}>
+          {qtdSemVendedor} lançamento(s) de Produção no período não têm vendedor preenchido — eles não entram nesse ranking. Preencha o campo "Vendedor" ao editar o lançamento pra aparecer aqui.
+        </div>
+      )}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "16px", flexWrap: "wrap", gap: "12px" }}>
+        <div style={{ display: "flex", gap: "12px", alignItems: "flex-end", flexWrap: "wrap" }}>
+          <MiniStat label="Total vendido no período" valor={money(totalGeral)} />
+          <Field label="% de comissão" hint="Aplica sobre o valor vendido de cada um">
+            <Input
+              type="number"
+              value={percentual}
+              onChange={(e) => setPercentual(e.target.value)}
+              placeholder="Ex: 5"
+              style={{ width: "110px" }}
+            />
+          </Field>
+        </div>
+        <Select value={mesFiltro} onChange={(e) => setMesFiltro(e.target.value)} style={{ width: "180px" }}>
+          <option value="todos">Todo período</option>
+          {mesesDisponiveis.map((m) => (
+            <option key={m} value={m}>{new Date(`${m}-01T00:00:00`).toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}</option>
+          ))}
+        </Select>
+      </div>
+
+      {linhas.length === 0 ? (
+        <EmptyState icon={Users} title="Nenhum vendedor com obras vendidas nesse período" hint='Preencha o campo "Vendedor" nos lançamentos de Produção pra ele aparecer aqui.' />
+      ) : (
+        <Table
+          columns={["#", "Vendedor", "Nº de obras", "Valor vendido", pct > 0 ? `Comissão (${pct}%)` : "Comissão"]}
+          rows={linhas.map((l, i) => (
+            <tr key={l.nome} style={rowStyle}>
+              <td style={{ ...tdStyle, color: i === 0 ? "var(--amber)" : "var(--text-muted)", fontWeight: i === 0 ? 700 : 500 }}>
+                {i === 0 ? "🏆" : i + 1}
+              </td>
+              <td style={{ ...tdStyle, fontWeight: 500 }}>
+                <button onClick={() => setVerVendedor(l.nome)} className="tl-focus" style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: "var(--text-primary)", fontWeight: 500, textDecoration: "underline", textDecorationColor: "var(--border-soft)" }}>
+                  {l.nome}
+                </button>
+              </td>
+              <td style={{ ...tdStyle, color: "var(--text-muted)" }}>
+                <button onClick={() => setVerVendedor(l.nome)} className="tl-focus" style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: "var(--accent)", fontWeight: 700 }}>
+                  {l.qtd}
+                </button>
+              </td>
+              <td style={{ ...tdStyle, fontWeight: 600 }} className="tl-mono">{money(l.total)}</td>
+              <td style={{ ...tdStyle, fontWeight: 600, color: pct > 0 ? "var(--success)" : "var(--text-faint)" }} className="tl-mono">
+                {pct > 0 ? money(l.total * (pct / 100)) : "-"}
+              </td>
+            </tr>
+          ))}
+        />
+      )}
+
+      {vendedorSelecionado && (
+        <Modal title={`Obras vendidas — ${vendedorSelecionado.nome}`} onClose={() => setVerVendedor(null)}>
+          <div style={{ background: "var(--bg-base)", border: "1px solid var(--border-soft)", borderRadius: "6px", padding: "10px 12px", marginBottom: "14px", display: "flex", justifyContent: "space-between", fontSize: "13px" }}>
+            <span>{vendedorSelecionado.qtd} obra(s)</span>
+            <strong className="tl-mono">{money(vendedorSelecionado.total)}</strong>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+            {[...vendedorSelecionado.obras]
+              .sort((a, b) => dataOrdenavel(b.data).localeCompare(dataOrdenavel(a.data)))
+              .map((r) => (
+                <div key={r.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 0", borderBottom: "1px solid var(--border-soft)", fontSize: "13px" }}>
+                  <div>
+                    <strong>Pedido #{r.pedido || "-"}</strong>
+                    <div style={{ fontSize: "11.5px", color: "var(--text-muted)" }}>
+                      {fmtDate(r.data)} · {r.equipamento || "-"} · {r.cliente || "Cliente não identificado"}
+                    </div>
+                  </div>
+                  <strong className="tl-mono">{money(r.total)}</strong>
+                </div>
+              ))}
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+
+function FreteSection({ producaoEsc, producaoPerf }) {
+  const [verDetalhe, setVerDetalhe] = useState(null); // null | "todos" | nome do motorista
+
+  const todosFretes = useMemo(() => {
+    return [...(producaoEsc || []), ...(producaoPerf || [])]
+      .filter((r) => numeroSeguro(r.frete) > 0)
+      .map((r) => ({
+        id: r.id,
+        motorista: String(r.motoristaFrete || "Motorista não informado").trim(),
+        caminhao: r.caminhaoFrete || "-",
+        data: r.data,
+        valor: numeroSeguro(r.frete),
+        cliente: r.cliente || "-",
+        equipamento: r.equipamento || "-",
+        pedido: r.pedido || "-",
+        tipo: r.tipoFrete || "Leva",
+      }))
+      .sort((a, b) => dataOrdenavel(b.data).localeCompare(dataOrdenavel(a.data)));
+  }, [producaoEsc, producaoPerf]);
+
+  const linhas = useMemo(() => {
+    const mapa = new Map();
+    todosFretes.forEach((r) => {
+      if (!mapa.has(r.motorista)) mapa.set(r.motorista, { nome: r.motorista, viagens: 0, total: 0, caminhoes: new Set() });
+      const acc = mapa.get(r.motorista);
+      acc.viagens += 1;
+      acc.total += r.valor;
+      if (r.caminhao && r.caminhao !== "-") acc.caminhoes.add(r.caminhao);
+    });
+    return [...mapa.values()].sort((a, b) => b.viagens - a.viagens);
+  }, [todosFretes]);
+
+  const totalViagens = todosFretes.length;
+  const totalFrete = todosFretes.reduce((s, r) => s + r.valor, 0);
+  // Ordem cronológica crescente (1ª viagem, 2ª viagem...) — faz mais
+  // sentido numerar sequencialmente do mais antigo pro mais novo.
+  const fretesFiltrados = [...(verDetalhe && verDetalhe !== "todos" ? todosFretes.filter((r) => r.motorista === verDetalhe) : todosFretes)].sort(
+    (a, b) => dataOrdenavel(a.data).localeCompare(dataOrdenavel(b.data))
+  );
+
+  const abrirRelatorio = (nome) => setVerDetalhe(nome);
+
+  return (
+    <div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "12px", marginBottom: "20px" }}>
+        <button onClick={() => setVerDetalhe("todos")} style={{ background: "none", border: "none", padding: 0, cursor: totalViagens > 0 ? "pointer" : "default", textAlign: "left" }} className="tl-focus" disabled={totalViagens === 0}>
+          <MiniStat label="Fretes lançados" valor={totalViagens} />
+        </button>
+        <MiniStat label="Total pago em frete" valor={money(totalFrete)} />
+      </div>
+      {linhas.length === 0 ? (
+        <EmptyState icon={Truck} title="Sem fretes lançados ainda" hint="Preencha o valor de frete e o motorista nos lançamentos de Produção." />
+      ) : (
+        <Table
+          columns={["Motorista", "Nº de fretes", "Caminhão(ões)", "Valor total", ""]}
+          rows={linhas.map((l) => (
+            <tr key={l.nome} style={rowStyle}>
+              <td style={tdStyle}>
+                <button onClick={() => abrirRelatorio(l.nome)} className="tl-focus" style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: "var(--text-primary)", fontWeight: 500, textDecoration: "underline", textDecorationColor: "var(--border-soft)" }}>
+                  {l.nome}
+                </button>
+              </td>
+              <td style={{ ...tdStyle, fontWeight: 700 }} className="tl-mono">
+                <button onClick={() => abrirRelatorio(l.nome)} className="tl-focus" style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: "var(--accent)", fontWeight: 700 }}>
+                  {l.viagens}
+                </button>
+              </td>
+              <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{[...l.caminhoes].join(", ") || "-"}</td>
+              <td style={tdStyle} className="tl-mono">{money(l.total)}</td>
+              <td style={tdStyle} />
+            </tr>
+          ))}
+        />
+      )}
+
+      {verDetalhe && (
+        <Modal title={verDetalhe === "todos" ? "Todos os fretes lançados" : `Relatório de fretes — ${verDetalhe}`} onClose={() => setVerDetalhe(null)}>
+          {verDetalhe !== "todos" && (
+            <div style={{ background: "var(--bg-base)", border: "1px solid var(--border-soft)", borderRadius: "6px", padding: "10px 12px", marginBottom: "14px", display: "flex", justifyContent: "space-between", fontSize: "13px" }}>
+              <span>{fretesFiltrados.length} fretes</span>
+              <strong className="tl-mono">{money(fretesFiltrados.reduce((s, r) => s + r.valor, 0))}</strong>
+            </div>
+          )}
+          <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+            {fretesFiltrados.map((r, i) => (
+              <div key={r.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 0", borderBottom: "1px solid var(--border-soft)", fontSize: "13px" }}>
+                <div>
+                  <strong>{i + 1}. {r.motorista}</strong>
+                  {" "}
+                  <span
+                    className="tl-mono"
+                    style={{
+                      fontSize: "10px",
+                      padding: "2px 7px",
+                      borderRadius: "10px",
+                      background: r.tipo === "Traz" ? "#3D2B54" : "#2C3F55",
+                      color: r.tipo === "Traz" ? "#CBA6F2" : "#8CBCE8",
+                    }}
+                  >
+                    {r.tipo === "Traz" ? "TRAZ" : "LEVA"}
+                  </span>
+                  <div style={{ fontSize: "11.5px", color: "var(--text-muted)" }}>
+                    {fmtDate(r.data)} · Pedido #{r.pedido} · {r.equipamento} · {r.cliente}
+                    {r.caminhao !== "-" && ` · ${r.caminhao}`}
+                  </div>
+                </div>
+                <strong className="tl-mono">{money(r.valor)}</strong>
+              </div>
+            ))}
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+
+// ou da linha digitável (47 dígitos) de um boleto bancário padrão.
+function decodificarBoleto(raw) {
+  const digits = (raw || "").replace(/\D/g, "");
+  let fatorVenc, valorStr;
+  if (digits.length === 44) {
+    fatorVenc = digits.slice(5, 9);
+    valorStr = digits.slice(9, 19);
+  } else if (digits.length === 47) {
+    fatorVenc = digits.slice(33, 37);
+    valorStr = digits.slice(37, 47);
+  } else {
+    return null;
+  }
+  const valorNum = parseInt(valorStr, 10) / 100;
+  let vencimento = "";
+  const fator = parseInt(fatorVenc, 10);
+  if (fator > 0) {
+    const base = Date.UTC(1997, 9, 7); // 07/10/1997 — data-base oficial FEBRABAN
+    const dt = new Date(base + fator * 86400000);
+    vencimento = dt.toISOString().slice(0, 10);
+  }
+  return { valor: isNaN(valorNum) ? "" : valorNum.toFixed(2), vencimento };
+}
+
+const emptyConta = (tipo) => ({
+  id: uid(),
+  tipo, // "Receber" | "Pagar"
+  descricao: "",
+  pedido: "",
+  fornecedor: "",
+  valor: "",
+  vencimento: new Date().toISOString().slice(0, 10),
+  dataPagamento: "",
+  status: "Pendente", // Pendente | Pago | Boleto | Cancelado
+  formaPagamento: "",
+  valorPago: "", // quanto já foi pago de verdade — se for menor que "valor", é pagamento parcial
+  dataProximoPagamento: "", // quando o restante deve ser pago, se for parcial
+  observacao: "",
+});
+
+const FIN_STATUS_STYLES = {
+  Pendente: { bg: "#52431D", fg: "#F0B958" },
+  Pago: { bg: "#2B4F3A", fg: "#7BC492" },
+  Boleto: { bg: "#2C3F55", fg: "#8CBCE8" },
+  Pix: { bg: "#3D2B54", fg: "#CBA6F2" },
+  Cancelado: { bg: "#532B2B", fg: "#E88886" },
+  "Crédito": { bg: "#1F3A52", fg: "#7EC3E8" },
+};
+
+// Financeiro é a ÚNICA aba que decide o status de verdade (bate com o
+// que falta pagar de fato). As outras telas (Produção, Painel) não
+// guardam status próprio pra mostrar — pedem esse aqui, sempre, pra
+// nunca ficarem divergentes entre si.
+function statusFinanceiroEfetivo(r, financeiro) {
+  const conta = (financeiro || []).find((c) => c.producaoId === r.id);
+  if (!conta) return { status: "Pendente", atrasada: false };
+  if (conta.status === "Cancelado") return { status: "Cancelado", atrasada: false };
+  const pago = conta.valorPago !== "" && conta.valorPago !== undefined && conta.valorPago !== null ? numeroSeguro(conta.valorPago) : (conta.status === "Pago" ? numeroSeguro(conta.valor) : 0);
+  const saldo = numeroSeguro(conta.valor) - pago;
+  if (saldo < -0.005) return { status: "Crédito", atrasada: false };
+  if (saldo <= 0.005) return { status: "Pago", atrasada: false };
+  const hojeISO2 = new Date().toISOString().slice(0, 10);
+  const atrasada = !!conta.vencimento && dataOrdenavel(conta.vencimento) < hojeISO2;
+  return { status: conta.status === "Pago" ? "Pendente" : conta.status, atrasada };
+}
+
+function FinStatusBadge({ status, atrasada }) {
+  const s = FIN_STATUS_STYLES[status] || { bg: "#262b34", fg: "#9198A6" };
+  const label = atrasada && status === "Pendente" ? "ATRASADO" : status.toUpperCase();
+  const bg = atrasada && status === "Pendente" ? "#3A1E1E" : s.bg;
+  const fg = atrasada && status === "Pendente" ? "#D6706F" : s.fg;
+  return (
+    <span
+      className="tl-mono"
+      style={{ display: "inline-flex", alignItems: "center", gap: "5px", background: bg, color: fg, fontSize: "11px", fontWeight: 600, letterSpacing: "0.04em", padding: "3px 9px", borderRadius: "999px", whiteSpace: "nowrap" }}
+    >
+      <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: fg, flexShrink: 0 }} />
+      {label}
+    </span>
+  );
+}
+
+function FinanceiroProducaoSection({ producaoEsc, producaoPerf, onChangeProducaoEsc, onChangeProducaoPerf, tipoFixo, financeiro }) {
+  const [filtroStatus, setFiltroStatus] = useState("todos");
+  const [filtroPedido, setFiltroPedido] = useState("");
+  const [editando, setEditando] = useState(null);
+  const [verRelatorio, setVerRelatorio] = useState(false);
+
+  const todos = useMemo(() => {
+    const esc = producaoEsc.map((r) => ({ ...r, tipoEquip: "Escavadeira" }));
+    const perf = producaoPerf.map((r) => ({ ...r, tipoEquip: "Perfuratriz" }));
+    if (tipoFixo === "Escavadeira") return esc;
+    if (tipoFixo === "Perfuratriz") return perf;
+    return [...esc, ...perf];
+  }, [producaoEsc, producaoPerf, tipoFixo]);
+
+  const statusUsados = useMemo(() => {
+    const mapa = new Map();
+    todos.forEach((r) => {
+      if (!r.status) return;
+      const chave = r.status.trim().toUpperCase();
+      if (!mapa.has(chave)) mapa.set(chave, r.status.trim());
+    });
+    return [...mapa.values()].sort();
+  }, [todos]);
+
+  const filtrados = todos.filter((r) => {
+    if (filtroStatus !== "todos" && String(r.status || "").trim().toUpperCase() !== filtroStatus.toUpperCase()) return false;
+    if (filtroPedido.trim() && !String(r.pedido || "").trim().includes(filtroPedido.trim())) return false;
+    return true;
+  });
+
+  const totalPorStatus = (status) =>
+    todos.filter((r) => String(r.status || "").trim().toUpperCase() === status.toUpperCase()).reduce((s, r) => s + numeroSeguro(r.total), 0);
+
+  // Antes dava pra clicar aqui e ir avançando o status na mão — mas isso
+  // editava por baixo dos panos o status do lançamento de Produção, sem
+  // passar pelo Financeiro, e é exatamente esse tipo de atalho que fazia
+  // as duas telas divergirem. Agora esse status só é mostrado (o
+  // Financeiro que manda); pra mudar de verdade, edita a conta lá.
+
+  const salvarEdicao = (registro, dados) => {
+    if (registro.tipoEquip === "Escavadeira") {
+      onChangeProducaoEsc(producaoEsc.map((r) => (r.id === registro.id ? { ...r, ...dados } : r)));
+    } else {
+      onChangeProducaoPerf(producaoPerf.map((r) => (r.id === registro.id ? { ...r, ...dados } : r)));
+    }
+    setEditando(null);
+  };
+
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "10px", gap: "10px", flexWrap: "wrap" }}>
+        <Field label="Buscar por pedido" hint="Deixe em branco pra ver todos">
+          <Input value={filtroPedido} onChange={(e) => setFiltroPedido(e.target.value)} placeholder="Ex: 620" style={{ width: "160px" }} />
+        </Field>
+        <Button icon={FileText} variant="subtle" onClick={() => setVerRelatorio(true)}>Relatório</Button>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "12px", marginBottom: "20px" }}>
+        <MiniStat
+          label="Em aberto"
+          valor={money(totalPorStatus("EM ABERTO"))}
+          cor="var(--amber)"
+          ativo={filtroStatus === "EM ABERTO"}
+          onClick={() => setFiltroStatus(filtroStatus === "EM ABERTO" ? "todos" : "EM ABERTO")}
+        />
+        <MiniStat
+          label="Boleto"
+          valor={money(totalPorStatus("BOLETO"))}
+          cor="#6FA3D6"
+          ativo={filtroStatus === "BOLETO"}
+          onClick={() => setFiltroStatus(filtroStatus === "BOLETO" ? "todos" : "BOLETO")}
+        />
+        <MiniStat
+          label="Pix"
+          valor={money(totalPorStatus("PIX"))}
+          cor="#B98FE8"
+          ativo={filtroStatus === "PIX"}
+          onClick={() => setFiltroStatus(filtroStatus === "PIX" ? "todos" : "PIX")}
+        />
+        <MiniStat
+          label="Pago"
+          valor={money(totalPorStatus("PAGO"))}
+          cor="var(--success)"
+          ativo={filtroStatus === "PAGO"}
+          onClick={() => setFiltroStatus(filtroStatus === "PAGO" ? "todos" : "PAGO")}
+        />
+      </div>
+
+      <div style={{ display: "flex", gap: "8px", marginBottom: "16px", flexWrap: "wrap" }}>
+        <Select value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value)} style={{ width: "160px" }}>
+          <option value="todos">Todo status</option>
+          {statusUsados.map((s) => (
+            <option key={s} value={s}>{s}</option>
+          ))}
+        </Select>
+      </div>
+
+      {filtrados.length === 0 ? (
+        <EmptyState icon={Wallet} title="Nada por aqui" hint="Nenhum lançamento de produção com esse filtro." />
+      ) : (
+        <Table
+          columns={tipoFixo ? ["Pedido", "Cliente", "Equipamento", "Data", "Total", "Status", ""] : ["Pedido", "Cliente", "Tipo", "Equipamento", "Data", "Total", "Status", ""]}
+          rows={[...filtrados]
+            .sort((a, b) => dataOrdenavel(b.data).localeCompare(dataOrdenavel(a.data)))
+            .map((r) => (
+              <tr key={r.id} style={rowStyle}>
+                <td style={tdStyle}><PedidoStub n={r.pedido} /></td>
+                <td style={{ ...tdStyle, fontWeight: 500 }}>{r.cliente || "-"}</td>
+                {!tipoFixo && <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{r.tipoEquip}</td>}
+                <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{r.equipamento || "-"}</td>
+                <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{fmtDate(r.data)}</td>
+                <td style={{ ...tdStyle, fontWeight: 600 }} className="tl-mono">{money(r.total)}</td>
+                <td style={tdStyle}>
+                  {(() => { const st = statusFinanceiroEfetivo(r, financeiro); return <FinStatusBadge status={st.status} atrasada={st.atrasada} />; })()}
+                </td>
+                <td style={{ ...tdStyle, textAlign: "right" }}>
+                  <button onClick={() => setEditando(r)} className="tl-focus" style={iconBtnStyle} title="Editar valor/data">
+                    <Pencil size={14} />
+                  </button>
+                </td>
+              </tr>
+            ))}
+        />
+      )}
+
+      {editando && <EditarProducaoFinanceiroModal registro={editando} onSave={(dados) => salvarEdicao(editando, dados)} onClose={() => setEditando(null)} />}
+      {verRelatorio && <RelatorioProducaoFinanceiro itens={filtrados} tipoFixo={tipoFixo} onClose={() => setVerRelatorio(false)} />}
+    </div>
+  );
+}
+
+function RelatorioProducaoFinanceiro({ itens, tipoFixo, onClose }) {
+  const [gerandoPdf, setGerandoPdf] = useState(false);
+  const [aviso, setAviso] = useState("");
+
+  const titulo = tipoFixo ? `Produção ${tipoFixo}` : "Produção";
+  const totalGeral = itens.reduce((s, r) => s + numeroSeguro(r.total), 0);
+
+  const porStatus = useMemo(() => {
+    const ordem = ["EM ABERTO", "BOLETO", "PIX", "PAGO"];
+    return ordem
+      .map((status) => {
+        const doStatus = itens.filter((r) => String(r.status || "").trim().toUpperCase() === status);
+        const total = doStatus.reduce((s, r) => s + numeroSeguro(r.total), 0);
+        return { status, itens: doStatus, total };
+      })
+      .filter((g) => g.itens.length > 0);
+  }, [itens]);
+
+  const enviar = async () => {
+    setGerandoPdf(true);
+    setAviso("");
+    const blob = await gerarPdfRelatorioProducaoFinanceiro(titulo, porStatus, totalGeral);
+    setGerandoPdf(false);
+
+    const texto =
+      `*Relatório — ${titulo}*\n\n` +
+      porStatus.map((g) => `${g.status}: ${g.itens.length} (${money(g.total)})`).join("\n") +
+      `\n\nTotal geral: ${money(totalGeral)}\n\n${PREFS_ATUAL_REF?.nomeEmpresa || "RJL Mix Concreto"}`;
+
+    if (!blob) {
+      setAviso("Ainda não gero PDF de verdade — mandando como texto. Pra enviar com a logo, use "Imprimir" e escolha "Salvar como PDF".");
+      window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, "_blank");
+      return;
+    }
+
+    const fileName = `relatorio-${titulo.toLowerCase().replace(/\s+/g, "-")}.pdf`;
+    const file = new File([blob], fileName, { type: "application/pdf" });
+
+    if (ehCelular && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: titulo, text: PREFS_ATUAL_REF?.nomeEmpresa || "RJL Mix Concreto" });
+        return;
+      } catch (e) {
+        /* segue pro download abaixo */
+      }
+    }
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    window.alert(`PDF baixado como "${fileName}" (confira a pasta Downloads).\n\nO WhatsApp vai abrir agora só com o texto — anexe esse arquivo baixado na conversa antes de enviar.`);
+    window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, "_blank");
+    setAviso("PDF baixado e WhatsApp aberto — é só anexar o arquivo baixado na conversa.");
+  };
+
+  return (
+    <Modal title={`Relatório — ${titulo}`} onClose={onClose} wide>
+      <div className="tl-print-area" style={{ background: "#fff", color: "#1a1a1a", borderRadius: "6px", padding: "28px", fontFamily: "Inter, sans-serif" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", borderBottom: "2px solid #1a1a1a", paddingBottom: "14px", marginBottom: "20px" }}>
+          <img src={LOGO_DATA_URI()} onError={onLogoError} alt="" style={{ width: "44px", height: "44px", borderRadius: "6px" }} />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "19px" }}>{PREFS_ATUAL_REF?.nomeEmpresa || "RJL Mix Concreto"}</div>
+            <div style={{ fontSize: "11px", color: "#555" }}>{[PREFS_ATUAL_REF?.cnpjEmpresa ? `CNPJ: ${PREFS_ATUAL_REF.cnpjEmpresa}` : "", PREFS_ATUAL_REF?.enderecoEmpresa || ""].filter(Boolean).join(" — ") || "Dados da empresa em Configurações"}</div>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "17px" }}>RELATÓRIO</div>
+            <div style={{ fontSize: "11px", color: "#555" }}>{titulo}</div>
+          </div>
+        </div>
+
+        <div style={{ marginBottom: "18px", fontSize: "13px" }}>
+          <strong>Total geral: {money(totalGeral)}</strong>
+        </div>
+
+        {porStatus.length === 0 ? (
+          <p style={{ fontSize: "13px", color: "#777" }}>Nenhum lançamento ainda.</p>
+        ) : (
+          porStatus.map((g) => (
+            <div key={g.status} style={{ marginBottom: "18px" }}>
+              <strong style={{ fontSize: "13.5px" }}>{g.status} ({g.itens.length}) — {money(g.total)}</strong>
+              {g.itens.map((r) => (
+                <ReportRow
+                  key={r.id}
+                  label={`${r.cliente || "-"} — ${fmtDate(r.data)} (${r.equipamento || "-"}${!tipoFixo ? `, ${r.tipoEquip}` : ""})`}
+                  value={money(r.total)}
+                />
+              ))}
+            </div>
+          ))
+        )}
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "16px", flexWrap: "wrap" }}>
+        <Button variant="ghost" onClick={onClose}>Fechar</Button>
+        <Button
+          variant="subtle"
+          icon={MessageCircle}
+          disabled={gerandoPdf}
+          style={{ background: "#25D366", color: "#fff", borderColor: "#25D366", fontWeight: 700 }}
+          onClick={enviar}
+        >
+          {gerandoPdf ? "Gerando PDF..." : "WhatsApp"}
+        </Button>
+        <Button icon={Printer} onClick={() => window.print()}>Imprimir</Button>
+      </div>
+      {aviso && <p style={{ fontSize: "12.5px", color: "var(--amber)", marginTop: "10px", textAlign: "right" }}>{aviso}</p>}
+    </Modal>
+  );
+}
+function EditarProducaoFinanceiroModal({ registro, onSave, onClose }) {
+  const [total, setTotal] = useState(registro.total ?? "");
+  const [data, setData] = useState(registro.data || "");
+  const [status, setStatus] = useState(registro.status || "EM ABERTO");
+
+  return (
+    <Modal title={`Editar — Pedido nº ${registro.pedido || "avulso"}`} onClose={onClose}>
+      <p style={{ fontSize: "12.5px", color: "var(--text-muted)", marginBottom: "14px" }}>
+        {registro.tipoEquip} · {registro.cliente || "-"} · {registro.equipamento || "-"}
+      </p>
+      <Field label="Total (R$)">
+        <Input type="number" step="0.01" value={total} onChange={(e) => setTotal(e.target.value)} />
+      </Field>
+      <Field label="Data">
+        <Input type="date" value={data} onChange={(e) => setData(e.target.value)} />
+      </Field>
+      <Field label="Status">
+        <Select value={status} onChange={(e) => setStatus(e.target.value)}>
+          {["EM ABERTO", "BOLETO", "PIX", "PAGO"].map((s) => (
+            <option key={s} value={s}>{s}</option>
+          ))}
+        </Select>
+      </Field>
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "6px" }}>
+        <Button variant="ghost" onClick={onClose}>Cancelar</Button>
+        <Button onClick={() => onSave({ total: numeroSeguro(total), data, status })}>Salvar</Button>
+      </div>
+    </Modal>
+  );
+}
+
+
+function FinanceiroModule({ contas, clientes, clienteByPedido, producaoEsc, producaoPerf, onChangeProducaoEsc, onChangeProducaoPerf, despesas, onChangeDespesas, onChange, propostas }) {
+  const [verRelatorioGeral, setVerRelatorioGeral] = useState(null); // pedido selecionado
+  const qtdReceber = contas.filter((c) => c.tipo === "Receber").length;
+  const qtdPagar = contas.filter((c) => c.tipo === "Pagar").length;
+  const [subTab, setSubTab] = useState(() => (qtdReceber === 0 && qtdPagar > 0 ? "pagar" : "receber"));
+  const [editing, setEditing] = useState(null);
+  const [deleting, setDeleting] = useState(null);
+  const [recibo, setRecibo] = useState(null);
+  const [emitindoRecibo, setEmitindoRecibo] = useState(false);
+  const [filtroStatus, setFiltroStatus] = useState("todos"); // todos | Pendente | Boleto | Pago | Cancelado | em-aberto | atrasado
+  const [somenteZerados, setSomenteZerados] = useState(false);
+  const [buscaPedido, setBuscaPedido] = useState("");
+
+  const hojeISO = new Date().toISOString().slice(0, 10);
+  const tipoAtual = subTab === "pagar" ? "Pagar" : "Receber";
+
+  // Quando a conta editada está amarrada a uma Despesa Fixa (despesaId),
+  // espelha a mudança pra lá também — assim marcar como pago em qualquer
+  // um dos dois lugares atualiza o outro sozinho.
+  const sincronizarDespesa = (conta) => {
+    if (!conta.despesaId || !despesas || !onChangeDespesas) return;
+    const existeDespesa = despesas.some((d) => d.id === conta.despesaId);
+    if (!existeDespesa) return;
+    onChangeDespesas(
+      despesas.map((d) =>
+        d.id === conta.despesaId
+          ? { ...d, status: conta.status === "Pago" ? "Pago" : "Pendente", dataPagamento: conta.dataPagamento || d.dataPagamento, valor: conta.valor, vencimento: conta.vencimento || d.vencimento }
+          : d
+      )
+    );
+  };
+
+  // Mesma ideia, mas pra contas amarradas a um lançamento de Produção
+  // (producaoId) — mudar o status aqui também muda lá.
+  const sincronizarProducao = (conta) => {
+    if (!conta.producaoId) return;
+    const mapaVolta = { Pendente: "EM ABERTO", Boleto: "BOLETO", Pix: "PIX", Pago: "PAGO" };
+    const novoStatusProducao = mapaVolta[conta.status] || "EM ABERTO";
+    if (producaoEsc.some((r) => r.id === conta.producaoId)) {
+      onChangeProducaoEsc(producaoEsc.map((r) => (r.id === conta.producaoId ? { ...r, status: novoStatusProducao } : r)));
+    } else if (producaoPerf.some((r) => r.id === conta.producaoId)) {
+      onChangeProducaoPerf(producaoPerf.map((r) => (r.id === conta.producaoId ? { ...r, status: novoStatusProducao } : r)));
+    }
+  };
+
+  // Antes, isso fechava a tela de "editar conta" na hora, sem esperar o
+  // salvamento terminar. Se o salvamento fosse recusado (por exemplo,
+  // porque essa mesma conta tinha sido alterada em outra aba/aparelho
+  // enquanto você editava — muito comum quando o sistema fica aberto em
+  // mais de uma aba do navegador), a tela fechava do mesmo jeito, dando a
+  // falsa impressão de que salvou — e ao reabrir aparecia o valor antigo
+  // de novo. Agora espera a confirmação de que salvou de verdade antes de
+  // fechar; se não salvar, a tela continua aberta com o que você digitou,
+  // pra você tentar de novo (o aviso vermelho no topo explica o motivo).
+  const save = async (conta) => {
+    const exists = contas.some((c) => c.id === conta.id);
+    const salvou = await onChange(exists ? contas.map((c) => (c.id === conta.id ? conta : c)) : [...contas, conta]);
+    if (salvou === false) return;
+    sincronizarDespesa(conta);
+    sincronizarProducao(conta);
+    setEditing(null);
+  };
+  const remove = (id) => {
+    const alvo = contas.find((c) => c.id === id);
+    onChange(contas.filter((c) => c.id !== id));
+    // Apagar a conta amarrada a uma despesa apaga a despesa também — os
+    // dois lados representam a mesma coisa, então ficam sincronizados.
+    if (alvo?.despesaId && despesas && onChangeDespesas) {
+      onChangeDespesas(despesas.filter((d) => d.id !== alvo.despesaId));
+    }
+    setDeleting(null);
+  };
+  const marcarPago = (conta) => {
+    const atualizada = { ...conta, status: "Pago", dataPagamento: conta.dataPagamento || hojeISO };
+    onChange(contas.map((c) => (c.id === conta.id ? atualizada : c)));
+    sincronizarDespesa(atualizada);
+    sincronizarProducao(atualizada);
+  };
+
+  // Abre o recibo já com o detalhamento completo da Produção (máquina,
+  // diária, frete, retirada de material, viagens) daquele pedido — mesma
+  // busca que o "Emitir recibo" avulso já faz.
+  const abrirRecibo = (conta) => {
+    const pedido = String(conta.pedido || "").trim();
+    if (!pedido) {
+      setRecibo(conta);
+      return;
+    }
+    const esc = producaoEsc.filter((r) => String(r.pedido).trim() === pedido).map((r) => ({ ...r, tipoEquip: "Escavadeira" }));
+    const perf = producaoPerf.filter((r) => String(r.pedido).trim() === pedido).map((r) => ({ ...r, tipoEquip: "Perfuratriz" }));
+    const producaoDetalhe = [...esc, ...perf].sort((a, b) => dataOrdenavel(a.data).localeCompare(dataOrdenavel(b.data)));
+    setRecibo({ ...conta, producaoDetalhe });
+  };
+
+  const listaBase = contas.filter((c) => c.tipo === tipoAtual);
+  // Falta pagar de verdade — desconta o que já foi recebido/pago em
+  // partes (valorPago), mesmo pra contas que ainda estão "Pendente". Sem
+  // isso, uma conta com pagamento parcial aparecia com o valor cheio nos
+  // cartões de resumo e na lista, como se nada tivesse sido pago ainda.
+  const valorPagoConta = (c) => (c.valorPago !== "" && c.valorPago !== undefined && c.valorPago !== null ? numeroSeguro(c.valorPago) : (c.status === "Pago" ? numeroSeguro(c.valor) : 0));
+  const saldoConta = (c) => numeroSeguro(c.valor) - valorPagoConta(c);
+  const faltaPagarConta = (c) => Math.max(0, saldoConta(c));
+  const creditoConta = (c) => Math.max(0, -saldoConta(c));
+  const quitada = (c) => c.status !== "Cancelado" && faltaPagarConta(c) <= 0.005;
+  const statusEfetivo = (c) => {
+    if (c.status === "Cancelado") return "Cancelado";
+    if (creditoConta(c) > 0.005) return "Crédito";
+    if (quitada(c)) return "Pago";
+    return c.status === "Pago" ? "Pendente" : c.status;
+  };
+  const estaAtrasada = (c) => !quitada(c) && c.status !== "Cancelado" && dataOrdenavel(c.vencimento) && dataOrdenavel(c.vencimento) < hojeISO;
+
+  const lista = listaBase.filter((c) => {
+    if (somenteZerados && numeroSeguro(c.valor) !== 0) return false;
+    if (buscaPedido.trim() && !String(c.pedido || "").toLowerCase().includes(buscaPedido.trim().toLowerCase())) return false;
+    if (filtroStatus === "todos") return true;
+    if (filtroStatus === "em-aberto") return !quitada(c) && c.status !== "Cancelado";
+    if (filtroStatus === "atrasado") return estaAtrasada(c);
+    return statusEfetivo(c) === filtroStatus;
+  });
+
+  const qtdZerados = listaBase.filter((c) => numeroSeguro(c.valor) === 0).length;
+
+  const totalPendente = listaBase.filter((c) => !quitada(c) && c.status !== "Cancelado").reduce((s, c) => s + faltaPagarConta(c), 0);
+  const totalPago = listaBase.filter((c) => quitada(c)).reduce((s, c) => s + numeroSeguro(c.valor), 0);
+  const totalAtrasado = listaBase.filter((c) => estaAtrasada(c)).reduce((s, c) => s + faltaPagarConta(c), 0);
+
+  // Resumo do pedido digitado na busca — soma tudo daquele pedido e quebra
+  // por status (Pendente, Boleto, Pago, Cancelado, Atrasado), pra saber de
+  // cara quanto esse pedido específico já pagou e quanto ainda falta.
+  const resumoPedidoBuscado = useMemo(() => {
+    const alvo = buscaPedido.trim();
+    if (!alvo) return null;
+    const doPedido = listaBase.filter((c) => String(c.pedido || "").trim() === alvo);
+    if (doPedido.length === 0) return null;
+    const porStatus = {};
+    doPedido.forEach((c) => {
+      const st = c.status || "Sem status";
+      porStatus[st] = (porStatus[st] || 0) + numeroSeguro(c.valor);
+    });
+    const totalAtrasadoPedido = doPedido
+      .filter((c) => c.status === "Pendente" && dataOrdenavel(c.vencimento) < hojeISO)
+      .reduce((s, c) => s + numeroSeguro(c.valor), 0);
+    const totalPedido = doPedido.reduce((s, c) => s + numeroSeguro(c.valor), 0);
+    return { pedido: alvo, totalPedido, porStatus, totalAtrasadoPedido, qtd: doPedido.length };
+  }, [buscaPedido, listaBase, hojeISO]);
+
+  return (
+    <div className="tl-fade-in">
+      <PageHeader eyebrow="Financeiro" title="Contas a Pagar & Receber" />
+
+      <div style={{ display: "flex", gap: "4px", marginBottom: "20px", background: "var(--bg-panel)", border: "1px solid var(--border-soft)", borderRadius: "8px", padding: "4px", flexWrap: "wrap" }}>
+        {[
+          { id: "receber", label: "A Receber", icon: TrendingUp, qtd: qtdReceber },
+          { id: "pagar", label: "A Pagar", icon: TrendingDown, qtd: qtdPagar },
+          { id: "producaoEsc", label: "Produção-Concreto", icon: Truck, qtd: producaoEsc.length },
+          { id: "relatorio", label: "Relatório", icon: BarChart2 },
+        ].map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setSubTab(t.id)}
+            className="tl-focus"
+            style={{
+              flex: "1 1 auto",
+              minWidth: "110px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "6px",
+              padding: "8px 10px",
+              borderRadius: "6px",
+              border: "none",
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+              background: subTab === t.id ? "var(--bg-panel-raised)" : "transparent",
+              color: subTab === t.id ? "var(--text-primary)" : "var(--text-muted)",
+              fontSize: "12.5px",
+              fontWeight: subTab === t.id ? 600 : 500,
+            }}
+          >
+            <t.icon size={14} />
+            {t.label}
+            {typeof t.qtd === "number" && (
+              <span className="tl-mono" style={{ fontSize: "10.5px", color: "var(--text-faint)" }}>({t.qtd})</span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {subTab === "relatorio" ? (
+        <FinanceiroRelatorio contas={contas} producaoEsc={producaoEsc} producaoPerf={producaoPerf} onVerPedido={setVerRelatorioGeral} />
+      ) : subTab === "producaoEsc" ? (
+        <FinanceiroProducaoSection
+          producaoEsc={producaoEsc}
+          producaoPerf={producaoPerf}
+          onChangeProducaoEsc={onChangeProducaoEsc}
+          onChangeProducaoPerf={onChangeProducaoPerf}
+          tipoFixo="Escavadeira"
+          financeiro={contas}
+        />
+      ) : (
+        <>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "12px", marginBottom: "20px" }}>
+            <MiniStat
+              label={subTab === "pagar" ? "Em aberto (a pagar)" : "Em aberto (a receber)"}
+              valor={money(totalPendente)}
+              cor="var(--amber)"
+              ativo={filtroStatus === "em-aberto"}
+              onClick={() => setFiltroStatus(filtroStatus === "em-aberto" ? "todos" : "em-aberto")}
+            />
+            <MiniStat
+              label="Atrasado"
+              valor={money(totalAtrasado)}
+              cor="var(--danger)"
+              ativo={filtroStatus === "atrasado"}
+              onClick={() => setFiltroStatus(filtroStatus === "atrasado" ? "todos" : "atrasado")}
+            />
+            <MiniStat
+              label={subTab === "pagar" ? "Pago no período" : "Recebido no período"}
+              valor={money(totalPago)}
+              cor="var(--success)"
+              ativo={filtroStatus === "Pago"}
+              onClick={() => setFiltroStatus(filtroStatus === "Pago" ? "todos" : "Pago")}
+            />
+          </div>
+
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px", flexWrap: "wrap", gap: "10px" }}>
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              <Input
+                placeholder="Buscar por nº do pedido"
+                value={buscaPedido}
+                onChange={(e) => setBuscaPedido(e.target.value)}
+                style={{ width: "180px" }}
+              />
+              <Select value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value)} style={{ width: "200px" }}>
+                <option value="todos">Todos os status</option>
+                <option value="em-aberto">Em aberto (pendente + boleto)</option>
+                <option value="atrasado">Atrasado</option>
+                <option value="Pendente">Pendente</option>
+                <option value="Boleto">Boleto</option>
+                <option value="Pago">Pago</option>
+                <option value="Cancelado">Cancelado</option>
+              </Select>
+              <Button size="sm" variant={somenteZerados ? "primary" : "subtle"} onClick={() => setSomenteZerados(!somenteZerados)} type="button">
+                {somenteZerados ? "✓ " : ""}Só valor zerado ({qtdZerados})
+              </Button>
+            </div>
+            <div style={{ display: "flex", gap: "8px" }}>
+              <Button icon={Receipt} variant="subtle" onClick={() => setEmitindoRecibo(true)}>
+                Emitir recibo
+              </Button>
+              <Button icon={Plus} onClick={() => setEditing(abrirNovoRegistro("conta", () => emptyConta(tipoAtual)))}>
+                Nova conta {subTab === "pagar" ? "a pagar" : "a receber"}
+              </Button>
+            </div>
+          </div>
+
+          {resumoPedidoBuscado && (
+            <div style={{ background: "var(--bg-panel)", border: "1px solid var(--accent)", borderRadius: "8px", padding: "14px 16px", marginBottom: "16px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+                <span style={{ fontSize: "12.5px", color: "var(--text-muted)" }}>
+                  Pedido #{resumoPedidoBuscado.pedido} — {resumoPedidoBuscado.qtd} lançamento{resumoPedidoBuscado.qtd === 1 ? "" : "s"}
+                </span>
+                <strong className="tl-mono" style={{ fontSize: "16px" }}>{money(resumoPedidoBuscado.totalPedido)}</strong>
+              </div>
+              <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", fontSize: "12.5px" }}>
+                {Object.entries(resumoPedidoBuscado.porStatus).map(([status, valor]) => (
+                  <div key={status} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    <StatusBadge status={status} />
+                    <strong className="tl-mono">{money(valor)}</strong>
+                  </div>
+                ))}
+                {resumoPedidoBuscado.totalAtrasadoPedido > 0 && (
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    <StatusBadge status="ATRASADO" />
+                    <strong className="tl-mono" style={{ color: "var(--danger)" }}>{money(resumoPedidoBuscado.totalAtrasadoPedido)}</strong>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {somenteZerados && lista.length > 0 && (
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: "10px",
+                background: "#3A2F13",
+                border: "1px solid #5A4A1F",
+                borderRadius: "7px",
+                padding: "10px 14px",
+                marginBottom: "16px",
+                fontSize: "13px",
+              }}
+            >
+              <span style={{ color: "#E8A63D" }}>
+                {lista.length} conta(s) com valor zerado nessa lista.
+              </span>
+              <Button
+                size="sm"
+                variant="subtle"
+                icon={Trash2}
+                onClick={() => {
+                  if (window.confirm(`Excluir as ${lista.length} contas zeradas listadas agora? Depois é só reimportar a planilha que elas voltam com o valor certo.`)) {
+                    const idsExcluir = new Set(lista.map((c) => c.id));
+                    onChange(contas.filter((c) => !idsExcluir.has(c.id)));
+                  }
+                }}
+              >
+                Excluir estas {lista.length}
+              </Button>
+            </div>
+          )}
+
+          {lista.length === 0 ? (
+            <EmptyState icon={Wallet} title="Nenhuma conta ainda" hint={`Cadastre contas ${subTab === "pagar" ? "a pagar" : "a receber"} pra acompanhar o caixa.`} />
+          ) : (
+            <Table
+              columns={
+                subTab === "pagar"
+                  ? ["Pedido", "Fornecedor", "Descrição", "Vencimento", "Valor", "Falta pagar", "Status", ""]
+                  : ["Pedido", "Cliente", "Descrição", "Data de compra", "Vencimento", "Valor", "Falta pagar", "Status", ""]
+              }
+              rows={[...lista].sort((a, b) => dataOrdenavel(b.vencimento).localeCompare(dataOrdenavel(a.vencimento))).map((c) => {
+                const atrasada = estaAtrasada(c);
+                const cliente = c.pedido ? clienteByPedido.get(String(c.pedido).trim()) : null;
+                const falta = faltaPagarConta(c);
+                return (
+                  <tr key={c.id} style={rowStyle}>
+                    <td style={tdStyle}>
+                      {c.pedido ? (
+                        <button onClick={() => setVerRelatorioGeral(String(c.pedido).trim())} className="tl-focus" style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }} title="Ver relatório geral desse pedido">
+                          <PedidoStub n={c.pedido} />
+                        </button>
+                      ) : (
+                        <span style={{ color: "var(--text-faint)" }}>-</span>
+                      )}
+                    </td>
+                    <td style={{ ...tdStyle, fontWeight: 500 }}>
+                      {subTab === "pagar" ? c.fornecedor || "-" : cliente ? cliente.nome : c.pedido ? "-" : "-"}
+                    </td>
+                    <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{c.descricao || "-"}</td>
+                    {subTab === "receber" && (
+                      <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{c.dataServico ? fmtDate(c.dataServico) : "-"}</td>
+                    )}
+                    <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{fmtDate(c.vencimento)}</td>
+                    <td style={tdStyle} className="tl-mono">{money(c.valor)}</td>
+                    <td style={{ ...tdStyle, fontWeight: falta > 0.005 ? 700 : 400 }} className="tl-mono">
+                      {falta > 0.005 ? (
+                        <span style={{ color: "var(--danger)" }}>{money(falta)}</span>
+                      ) : creditoConta(c) > 0.005 ? (
+                        <span style={{ color: "#7EC3E8" }}>+{money(creditoConta(c))} (crédito)</span>
+                      ) : (
+                        <span style={{ color: "var(--success)" }}>Quitado</span>
+                      )}
+                    </td>
+                    <td style={tdStyle}><FinStatusBadge status={statusEfetivo(c)} atrasada={atrasada} /></td>
+                    <td style={{ ...tdStyle, textAlign: "right" }}>
+                      <div style={{ display: "inline-flex", gap: "4px" }}>
+                        {c.status !== "Pago" && (
+                          <button onClick={() => marcarPago(c)} className="tl-focus" style={iconBtnStyle} title="Marcar como pago">
+                            <CheckIcon />
+                          </button>
+                        )}
+                        {subTab === "receber" && c.status === "Pago" && (
+                          <button onClick={() => abrirRecibo(c)} className="tl-focus" style={iconBtnStyle} title="Emitir recibo">
+                            <FileText size={14} />
+                          </button>
+                        )}
+                        <RowActions onEdit={() => setEditing(c)} onDelete={() => setDeleting(c)} />
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            />
+          )}
+        </>
+      )}
+
+      {editing && (
+        <ContaForm initial={editing} clienteByPedido={clienteByPedido} contas={contas} onSave={save} onClose={() => setEditing(null)} />
+      )}
+      {deleting && (
+        <ConfirmDelete label={`a conta "${deleting.descricao || deleting.id}"`} dados={deleting} onConfirm={() => remove(deleting.id)} onCancel={() => setDeleting(null)} />
+      )}
+      {recibo && (
+        <ReciboView conta={recibo} cliente={recibo.pedido ? clienteByPedido.get(String(recibo.pedido).trim()) : null} onClose={() => setRecibo(null)} />
+      )}
+      {emitindoRecibo && (
+        <EmitirReciboModal
+          clienteByPedido={clienteByPedido}
+          producaoEsc={producaoEsc}
+          producaoPerf={producaoPerf}
+          onEmitir={(conta) => { setRecibo(conta); setEmitindoRecibo(false); }}
+          onClose={() => setEmitindoRecibo(false)}
+        />
+      )}
+      {verRelatorioGeral && (
+        <RelatorioGeralPedido
+          pedido={verRelatorioGeral}
+          cliente={clienteByPedido.get(verRelatorioGeral)}
+          producaoEsc={producaoEsc}
+          producaoPerf={producaoPerf}
+          propostas={propostas}
+          financeiro={contas}
+          onClose={() => setVerRelatorioGeral(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+function EmitirReciboModal({ clienteByPedido, producaoEsc, producaoPerf, onEmitir, onClose }) {
+  const [pedido, setPedido] = useState("");
+  const [valor, setValor] = useState("");
+  const [valorEditadoManualmente, setValorEditadoManualmente] = useState(false);
+  const [descricao, setDescricao] = useState("");
+  const [dataPagamento, setDataPagamento] = useState(new Date().toISOString().slice(0, 10));
+  const [formaPagamento, setFormaPagamento] = useState("");
+
+  const cliente = pedido ? clienteByPedido.get(pedido.trim()) : null;
+
+  // Puxa tudo que já foi lançado em Produção (Escavadeira + Perfuratriz)
+  // pra esse pedido — máquina, dias, frete, retirada de material, viagens.
+  const lancamentos = useMemo(() => {
+    if (!pedido.trim()) return [];
+    const esc = (producaoEsc || []).filter((r) => String(r.pedido).trim() === pedido.trim()).map((r) => ({ ...r, tipoEquip: "Escavadeira" }));
+    const perf = (producaoPerf || []).filter((r) => String(r.pedido).trim() === pedido.trim()).map((r) => ({ ...r, tipoEquip: "Perfuratriz" }));
+    return [...esc, ...perf].sort((a, b) => dataOrdenavel(a.data).localeCompare(dataOrdenavel(b.data)));
+  }, [pedido, producaoEsc, producaoPerf]);
+
+  const maquinasUsadas = [...new Set(lancamentos.map((r) => r.equipamento).filter(Boolean))];
+  const dias = lancamentos.length;
+  const totalFrete = lancamentos.reduce((s, r) => s + numeroSeguro(r.frete), 0);
+  const totalDiarias = lancamentos.reduce((s, r) => s + numeroSeguro(r.valorDiaria), 0);
+  const comRetirada = lancamentos.filter((r) => r.retiradaMaterial).length;
+  const totalViagens = lancamentos.reduce((s, r) => s + (r.viagens || []).length, 0);
+  const valorViagens = lancamentos.reduce((s, r) => s + (r.viagens || []).reduce((s2, v) => s2 + subtotalCarga(v) + (Number(v.valorBomba) || 0), 0), 0);
+  const totalGeralLancamentos = lancamentos.reduce((s, r) => s + numeroSeguro(r.total), 0);
+
+  // Preenche valor e descrição sozinho a partir do que foi encontrado —
+  // mas só enquanto o usuário não tiver digitado algo diferente na mão.
+  useEffect(() => {
+    if (lancamentos.length === 0) return;
+    if (!valorEditadoManualmente) setValor(String(totalGeralLancamentos.toFixed(2)));
+    if (!descricao) {
+      const partes = [`Produção de concreto — ${maquinasUsadas.join(", ") || "veículo"}`, `${dias} dia(s)`];
+      setDescricao(partes.join(" — "));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lancamentos.length]);
+
+  const submit = (e) => {
+    e.preventDefault();
+    if (!valor) return;
+    onEmitir({
+      id: uid(),
+      pedido: pedido.trim(),
+      tipo: "Receber",
+      descricao: descricao.trim(),
+      valor: numeroSeguro(valor),
+      dataPagamento,
+      vencimento: dataPagamento,
+      status: "Pago",
+      formaPagamento,
+      producaoDetalhe: lancamentos,
+    });
+  };
+
+  return (
+    <Modal title="Emitir recibo de pagamento" onClose={onClose}>
+      <form onSubmit={submit}>
+        <Field label="Nº do pedido" hint="Puxa cliente e produção lançada automaticamente">
+          <Input value={pedido} onChange={(e) => setPedido(e.target.value)} placeholder="Ex: 620" autoFocus />
+        </Field>
+
+        {pedido.trim() && (
+          <div style={{ marginBottom: "16px", fontSize: "12.5px" }}>
+            {cliente ? (
+              <div style={{ background: "var(--bg-base)", border: "1px solid var(--border-soft)", borderRadius: "6px", padding: "10px 12px", color: "var(--success)", marginBottom: "8px" }}>
+                ✓ <strong>{cliente.nome}</strong>
+                {cliente.telefone && <> · {cliente.telefone}</>}
+                {cliente.endereco && <><br />{cliente.endereco}</>}
+                {cliente.cpf && <><br />CPF/CNPJ: {cliente.cpf}</>}
+              </div>
+            ) : (
+              <div style={{ color: "var(--text-faint)", marginBottom: "8px" }}>Pedido não encontrado em Clientes — o recibo sai sem nome do cliente.</div>
+            )}
+
+            {lancamentos.length > 0 ? (
+              <div style={{ background: "var(--bg-base)", border: "1px solid var(--border-soft)", borderRadius: "6px", padding: "10px 12px" }}>
+                <strong>{lancamentos.length} lançamento(s) de produção encontrados:</strong>
+                <div style={{ marginTop: "6px", color: "var(--text-muted)", lineHeight: 1.7 }}>
+                  Máquina(s): {maquinasUsadas.join(", ") || "-"}<br />
+                  Dias trabalhados: {dias}<br />
+                  Total diárias: {money(totalDiarias)}<br />
+                  Total frete: {money(totalFrete)}<br />
+                  Retirada de material: {comRetirada > 0 ? `Sim, em ${comRetirada} lançamento(s)` : "Não"}<br />
+                  Viagens: {totalViagens} ({money(valorViagens)})<br />
+                  <strong style={{ color: "var(--text-primary)" }}>Total lançado: {money(totalGeralLancamentos)}</strong>
+                </div>
+              </div>
+            ) : (
+              <div style={{ color: "var(--text-faint)" }}>Nenhum lançamento de Produção encontrado pra esse pedido — preencha o valor manualmente.</div>
+            )}
+          </div>
+        )}
+
+        <Field label="Descrição do serviço">
+          <Input value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Ex: Produção de concreto" />
+        </Field>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+          <Field label="Valor pago (R$)" required hint={lancamentos.length > 0 ? "Preenchido a partir da produção — pode ajustar" : undefined}>
+            <Input type="number" step="0.01" value={valor} onChange={(e) => { setValor(e.target.value); setValorEditadoManualmente(true); }} required />
+          </Field>
+          <Field label="Data do pagamento">
+            <Input type="date" value={dataPagamento} onChange={(e) => setDataPagamento(e.target.value)} />
+          </Field>
+        </div>
+
+        <Field label="Forma de pagamento (opcional)">
+          <Input value={formaPagamento} onChange={(e) => setFormaPagamento(e.target.value)} placeholder="Ex: Pix, dinheiro, boleto" />
+        </Field>
+
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "6px" }}>
+          <Button type="button" variant="ghost" onClick={onClose}>Cancelar</Button>
+          <Button type="submit" icon={Receipt}>Gerar recibo</Button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function ReciboView({ conta, cliente, onClose }) {
+  const [gerandoPdf, setGerandoPdf] = useState(false);
+  const [aviso, setAviso] = useState("");
+  const nomeCliente = cliente?.nome || "-";
+  const dataPagamento = conta.dataPagamento || conta.vencimento;
+  const numeroRecibo = String(conta.id).slice(-6).toUpperCase();
+
+  // O valor do pedido/serviço é sempre o que está gravado na própria conta
+  // (o que foi editado em Financeiro) — nunca recalculado somando outros
+  // lançamentos de Produção com o mesmo número de pedido, porque isso podia
+  // trazer um total diferente do que a conta realmente tem (o bug do
+  // recibo "não bater o valor real"). O "producaoDetalhe" só serve pra
+  // montar a lista de itens do detalhamento abaixo, não pra recalcular o
+  // valor do pedido.
+  const producaoDetalhe = conta.producaoDetalhe || [];
+  const valorTotal = numeroSeguro(conta.valor);
+  // Quanto foi de fato recebido nesse recibo: usa "valor pago" da conta se
+  // tiver sido preenchido; senão assume o status — Pago quer dizer tudo
+  // recebido, senão não presume nada recebido ainda.
+  const valorRecebido = conta.valorPago !== "" && conta.valorPago !== undefined && conta.valorPago !== null
+    ? numeroSeguro(conta.valorPago)
+    : (conta.status === "Pago" ? valorTotal : 0);
+  const saldoEmAberto = Math.max(0, valorTotal - valorRecebido);
+  const datasOrdenadas = [...new Set(producaoDetalhe.map((r) => r.data).filter(Boolean))].sort((a, b) => dataOrdenavel(a).localeCompare(dataOrdenavel(b)));
+  const periodoTexto =
+    datasOrdenadas.length === 0
+      ? ""
+      : datasOrdenadas.length === 1
+      ? `, do dia ${fmtDate(datasOrdenadas[0])}`
+      : `, do dia ${fmtDate(datasOrdenadas[0])} ao dia ${fmtDate(datasOrdenadas[datasOrdenadas.length - 1])}`;
+  const equipamentosTexto = [...new Set(producaoDetalhe.map((r) => r.equipamento).filter(Boolean))].join(", ");
+
+  const enviar = async () => {
+    setGerandoPdf(true);
+    setAviso("");
+    const blob = await gerarPdfRecibo(conta, cliente, numeroRecibo);
+    setGerandoPdf(false);
+
+    const texto =
+      `*Recibo de Pagamento — ${PREFS_ATUAL_REF?.nomeEmpresa || "RJL Mix Concreto"}*\n\n` +
+      `Recibo nº ${numeroRecibo}\n` +
+      `Recebemos de: ${nomeCliente}\n` +
+      `Referente a: ${conta.descricao || "-"}\n` +
+      `Valor: ${money(valorRecebido)}\n` +
+      `Data do pagamento: ${fmtDate(dataPagamento)}\n\n${PREFS_ATUAL_REF?.nomeEmpresa || "RJL Mix Concreto"}`;
+
+    let telefone = (cliente?.telefone || "").replace(/\D/g, "");
+    const abrirTextoSimples = () => {
+      if (!telefone) {
+        const digitado = window.prompt("Cliente sem telefone cadastrado. Digite o número (com DDD):", "");
+        telefone = (digitado || "").replace(/\D/g, "");
+        if (!telefone) return;
+      }
+      const numeroFinal = telefone.startsWith("55") ? telefone : `55${telefone}`;
+      window.open(`https://wa.me/${numeroFinal}?text=${encodeURIComponent(texto)}`, "_blank");
+    };
+
+    if (!blob) {
+      setAviso("Ainda não gero PDF de verdade — mandando como texto. Pra enviar com a logo, use "Imprimir" e escolha "Salvar como PDF".");
+      abrirTextoSimples();
+      return;
+    }
+
+    const fileName = `recibo-${numeroRecibo}.pdf`;
+    const file = new File([blob], fileName, { type: "application/pdf" });
+
+    if (ehCelular && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: `Recibo nº ${numeroRecibo}`, text: `Recibo de pagamento - ${PREFS_ATUAL_REF?.nomeEmpresa || "RJL Mix Concreto"}` });
+        return;
+      } catch (e) {
+        /* segue para o download abaixo */
+      }
+    }
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    window.alert(`PDF baixado como "${fileName}" (confira a pasta Downloads).\n\nO WhatsApp vai abrir agora só com o texto — anexe esse arquivo baixado na conversa antes de enviar.`);
+    abrirTextoSimples();
+    setAviso("PDF baixado e WhatsApp aberto — é só anexar o arquivo baixado na conversa.");
+  };
+
+  return (
+    <Modal title="Recibo de pagamento" onClose={onClose} wide>
+      <div className="tl-print-area" style={{ background: "#fff", color: "#1a1a1a", borderRadius: "6px", padding: "28px", fontFamily: "Inter, sans-serif" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", borderBottom: "2px solid #1a1a1a", paddingBottom: "14px", marginBottom: "20px" }}>
+          <img src={LOGO_DATA_URI()} onError={onLogoError} alt="" style={{ width: "44px", height: "44px", borderRadius: "6px" }} />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "19px" }}>{PREFS_ATUAL_REF?.nomeEmpresa || "RJL Mix Concreto"}</div>
+            <div style={{ fontSize: "11px", color: "#555" }}>{[PREFS_ATUAL_REF?.cnpjEmpresa ? `CNPJ: ${PREFS_ATUAL_REF.cnpjEmpresa}` : "", PREFS_ATUAL_REF?.enderecoEmpresa || ""].filter(Boolean).join(" — ") || "Dados da empresa em Configurações"}</div>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "17px" }}>RECIBO Nº {numeroRecibo}</div>
+            {conta.pedido && <div style={{ fontSize: "11px", color: "#555" }}>Pedido nº {conta.pedido}</div>}
+          </div>
+        </div>
+
+        <p style={{ fontSize: "14px", lineHeight: 1.8, marginBottom: "24px" }}>
+          Recebemos de <strong>{nomeCliente}</strong>{cliente?.cpf ? ` (CPF/CNPJ ${cliente.cpf})` : ""}, a quantia de{" "}
+          <strong>{money(valorRecebido)}</strong>, referente a <strong>{conta.descricao || "serviço prestado"}</strong>
+          {equipamentosTexto && ` (${equipamentosTexto})`}
+          {conta.pedido ? `, pedido nº ${conta.pedido}` : ""}
+          {periodoTexto}, pago em {fmtDate(dataPagamento)}
+          {conta.formaPagamento ? ` via ${conta.formaPagamento}` : ""}.
+          {saldoEmAberto > 0.005 && (
+            <><br /><span style={{ color: "#a15c00" }}>Valor total do pedido: {money(valorTotal)} — saldo em aberto: {money(saldoEmAberto)}.</span></>
+          )}
+        </p>
+
+        {(conta.producaoDetalhe || []).length > 0 && (() => {
+          // Detalhamento do serviço — separado em Concreto e Bomba (nunca
+          // "Escavadeira"/"Frete"/"Viagens", que eram nomes de campos
+          // antigos e não diziam nada sobre o que foi entregue). O valor do
+          // concreto usa as cargas reais lançadas na Central de Balança
+          // quando existem; sem cargas, cai pro valor por m³ do lançamento.
+          const itensRecibo = [];
+          conta.producaoDetalhe.forEach((r) => {
+            const especConcreto = [r.fck, r.brita, r.slump ? `SLUMP ${r.slump}` : ""].filter(Boolean).join(" - ");
+            const viagensConcreto = (r.viagens || []).reduce((s, v) => s + subtotalCarga(v), 0);
+            const valorConcreto = viagensConcreto > 0 ? viagensConcreto : numeroSeguro(r.valorDiaria);
+            if (valorConcreto > 0) itensRecibo.push({ label: `Concreto${especConcreto ? ` — ${especConcreto}` : ""} — ${fmtDate(r.data)}`, valor: valorConcreto });
+            const valorBomba = numeroSeguro(r.frete) + (r.viagens || []).reduce((s, v) => s + numeroSeguro(v.valorBomba), 0);
+            if (valorBomba > 0) itensRecibo.push({ label: `Bomba — ${fmtDate(r.data)}`, valor: valorBomba });
+          });
+          const totalItens = itensRecibo.reduce((s, it) => s + it.valor, 0);
+          if (itensRecibo.length === 0) return null;
+          return (
+            <div style={{ marginBottom: "24px", border: "1px solid #ddd", borderRadius: "6px", padding: "14px 16px" }}>
+              <strong style={{ fontSize: "13px" }}>Detalhamento do serviço</strong>
+              <div style={{ marginTop: "8px" }}>
+                {itensRecibo.map((item, i) => (
+                  <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: "1px solid #eee", fontSize: "13px" }}>
+                    <span>{i + 1}. {item.label}</span>
+                    <span className="tl-mono">{money(item.valor)}</span>
+                  </div>
+                ))}
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "9px 0 0", fontWeight: 700, fontSize: "14px" }}>
+                  <span>Total do pedido</span>
+                  <span className="tl-mono">{money(totalItens)}</span>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
+        <p style={{ fontSize: "13px", color: "#555" }}>Para maior clareza e por ser verdade, firmamos o presente recibo.</p>
+
+        <div style={{ marginTop: "50px", textAlign: "center" }}>
+          <div style={{ borderTop: "1px solid #999", width: "260px", margin: "0 auto", paddingTop: "6px", fontSize: "12px" }}>
+            {PREFS_ATUAL_REF?.nomeEmpresa || "RJL Mix Concreto"}
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "16px", flexWrap: "wrap" }}>
+        <Button variant="ghost" onClick={onClose}>Fechar</Button>
+        <Button variant="subtle" icon={MessageCircle} disabled={gerandoPdf} onClick={enviar}>
+          {gerandoPdf ? "Gerando PDF..." : "WhatsApp"}
+        </Button>
+        <Button icon={Printer} onClick={() => window.print()}>Imprimir</Button>
+      </div>
+      {aviso && <p style={{ fontSize: "12.5px", color: "var(--amber)", marginTop: "10px", textAlign: "right" }}>{aviso}</p>}
+    </Modal>
+  );
+}
+function CheckIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  );
+}
+
+// Gráfico de barras simples, feito em SVG puro — sem depender de nenhuma
+// biblioteca externa, então funciona igual aqui no Claude e no site
+// publicado, sem risco de quebrar a instalação.
+function GraficoBarras({ series, altura = 180, formatarValor = money, onBarClick }) {
+  const labels = series[0]?.dados.map((d) => d.label) || [];
+  const max = Math.max(1, ...series.flatMap((s) => s.dados.map((d) => d.valor)));
+
+  return (
+    <div>
+      {series.length > 1 && (
+        <div style={{ display: "flex", gap: "16px", marginBottom: "10px", fontSize: "11.5px" }}>
+          {series.map((s) => (
+            <div key={s.nome} style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+              <span style={{ width: "9px", height: "9px", borderRadius: "2px", background: s.cor, display: "inline-block" }} />
+              <span style={{ color: "var(--text-muted)" }}>{s.nome}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      <div style={{ display: "flex", alignItems: "flex-end", gap: "10px", height: `${altura}px`, borderBottom: "1px solid var(--border-soft)", paddingBottom: "2px" }}>
+        {labels.map((label, i) => {
+          const Wrapper = onBarClick ? "button" : "div";
+          return (
+            <Wrapper
+              key={label}
+              type={onBarClick ? "button" : undefined}
+              onClick={onBarClick ? () => onBarClick(label) : undefined}
+              className={onBarClick ? "tl-focus" : undefined}
+              style={{
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                height: "100%",
+                justifyContent: "flex-end",
+                minWidth: 0,
+                background: "none",
+                border: "none",
+                padding: 0,
+                cursor: onBarClick ? "pointer" : "default",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "flex-end", gap: "3px", width: "100%", justifyContent: "center", height: "100%" }}>
+                {series.map((s) => {
+                  const valor = s.dados[i]?.valor || 0;
+                  const alturaBarra = max > 0 ? Math.max(valor > 0 ? 3 : 0, (valor / max) * (altura - 22)) : 0;
+                  return (
+                    <div key={s.nome} style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", height: "100%", flex: 1, maxWidth: "26px" }} title={`${s.nome}: ${formatarValor(valor)}${onBarClick ? " — clique pra ver o fechamento" : ""}`}>
+                      <div style={{ fontSize: "9px", color: "var(--text-faint)", marginBottom: "3px", whiteSpace: "nowrap" }}>
+                        {valor > 0 ? formatarValor(valor) : ""}
+                      </div>
+                      <div style={{ width: "100%", height: `${alturaBarra}px`, background: s.cor, borderRadius: "3px 3px 0 0", transition: "height 0.3s" }} />
+                    </div>
+                  );
+                })}
+              </div>
+            </Wrapper>
+          );
+        })}
+      </div>
+      <div style={{ display: "flex", gap: "10px", marginTop: "6px" }}>
+        {labels.map((label) => (
+          <div key={label} style={{ flex: 1, textAlign: "center", fontSize: "10.5px", color: "var(--text-muted)" }}>{label}</div>
+        ))}
+      </div>
+      {labels.length === 0 && (
+        <p style={{ fontSize: "12.5px", color: "var(--text-faint)", textAlign: "center", padding: "30px 0" }}>Ainda não há dados suficientes pra montar o gráfico.</p>
+      )}
+    </div>
+  );
+}
+
+function MiniStat({ label, valor, cor, onClick, ativo }) {
+  const Tag = onClick ? "button" : "div";
+  return (
+    <Tag
+      onClick={onClick}
+      type={onClick ? "button" : undefined}
+      className={onClick ? "tl-focus" : undefined}
+      style={{
+        background: ativo ? "var(--bg-panel-raised)" : "var(--bg-panel)",
+        border: ativo ? "1px solid var(--amber)" : "1px solid var(--border-soft)",
+        borderRadius: "9px",
+        padding: "14px 16px",
+        textAlign: "left",
+        cursor: onClick ? "pointer" : "default",
+        width: "100%",
+      }}
+    >
+      <div className="tl-display" style={{ fontSize: "22px", fontWeight: 700, color: cor }}>{valor}</div>
+      <div style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "2px" }}>{label}</div>
+    </Tag>
+  );
+}
+
+function BoletoReader({ onDecoded }) {
+  const [codigo, setCodigo] = useState("");
+  const [erro, setErro] = useState("");
+  const [ok, setOk] = useState(false);
+  const [scanning, setScanning] = useState(false);
+  const videoRef = React.useRef(null);
+  const streamRef = React.useRef(null);
+  const cameraSuportada = typeof window !== "undefined" && "BarcodeDetector" in window;
+
+  const aplicar = (raw) => {
+    const resultado = decodificarBoleto(raw);
+    if (!resultado) {
+      setErro("Não reconheci esse número — confira se copiou os 44 ou 47 dígitos certinho.");
+      setOk(false);
+      return;
+    }
+    setErro("");
+    setOk(true);
+    onDecoded(resultado);
+  };
+
+  const pararCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }
+    setScanning(false);
+  };
+
+  const iniciarCamera = async () => {
+    setErro("");
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+      streamRef.current = stream;
+      setScanning(true);
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+      }
+      const detector = new window.BarcodeDetector({ formats: ["itf", "code_128", "code_39"] });
+      const loop = async () => {
+        if (!streamRef.current || !videoRef.current) return;
+        try {
+          const codes = await detector.detect(videoRef.current);
+          if (codes.length > 0) {
+            const valor = codes[0].rawValue.replace(/\D/g, "");
+            setCodigo(valor);
+            aplicar(valor);
+            pararCamera();
+            return;
+          }
+        } catch (e) {
+          /* frame sem leitura, tenta de novo */
+        }
+        if (streamRef.current) requestAnimationFrame(loop);
+      };
+      requestAnimationFrame(loop);
+    } catch (e) {
+      setErro("Não consegui acessar a câmera — verifique a permissão do navegador, ou digite o código manualmente.");
+      pararCamera();
+    }
+  };
+
+  useEffect(() => () => pararCamera(), []);
+
+  return (
+    <div style={{ background: "var(--bg-base)", border: "1px solid var(--border-soft)", borderRadius: "7px", padding: "12px 14px", marginBottom: "18px" }}>
+      <div className="tl-mono" style={{ fontSize: "10.5px", color: "var(--text-faint)", textTransform: "uppercase", marginBottom: "8px" }}>
+        Ler boleto (opcional)
+      </div>
+
+      {scanning && (
+        <div style={{ marginBottom: "10px" }}>
+          <video ref={videoRef} muted playsInline style={{ width: "100%", borderRadius: "6px", background: "#000" }} />
+          <Button type="button" size="sm" variant="ghost" onClick={pararCamera} style={{ marginTop: "6px" }}>Cancelar câmera</Button>
+        </div>
+      )}
+
+      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+        <Input
+          placeholder="Cole aqui a linha digitável ou código de barras"
+          value={codigo}
+          onChange={(e) => setCodigo(e.target.value)}
+          style={{ flex: 1, minWidth: "220px" }}
+        />
+        <Button type="button" variant="subtle" onClick={() => aplicar(codigo)}>Preencher valor e vencimento</Button>
+        {cameraSuportada && !scanning && (
+          <Button type="button" variant="subtle" icon={Camera} onClick={iniciarCamera}>Usar câmera</Button>
+        )}
+      </div>
+
+      {erro && <p style={{ fontSize: "12px", color: "var(--danger)", marginTop: "8px" }}>{erro}</p>}
+      {ok && !erro && <p style={{ fontSize: "12px", color: "var(--success)", marginTop: "8px" }}>Valor e vencimento preenchidos abaixo — confira antes de salvar.</p>}
+      {!cameraSuportada && (
+        <p style={{ fontSize: "11px", color: "var(--text-faint)", marginTop: "6px" }}>
+          Esse navegador não suporta leitura por câmera — cole o número do boleto no campo acima.
+        </p>
+      )}
+    </div>
+  );
+}
+
+function ContaForm({ initial, clienteByPedido, contas, onSave, onClose }) {
+  const [form, setForm] = useState(initial);
+  const [rascunhoRecuperado] = useState(() => !!initial.__rascunho);
+  const [erroValidacao, setErroValidacao] = useState("");
+  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+  const isReceber = form.tipo === "Receber";
+  const matched = isReceber && form.pedido ? clienteByPedido.get(String(form.pedido).trim()) : null;
+  const ehPago = form.status === "Pago";
+  const valorTotal = numeroSeguro(form.valor);
+  const valorPago = form.valorPago !== "" ? numeroSeguro(form.valorPago) : (ehPago ? valorTotal : 0);
+  const restante = Math.max(0, valorTotal - valorPago);
+  const pagamentoParcial = (ehPago || form.status === "Pendente") && restante > 0.005 && valorPago > 0.005;
+
+  // Soma de TODOS os lançamentos desse mesmo pedido (não só o que está sendo
+  // editado agora) — pra ver de cara o total do pedido inteiro sem precisar
+  // fechar o formulário e ir procurar na tela de busca.
+  const resumoDoPedido = useMemo(() => {
+    if (!isReceber || !form.pedido || !form.pedido.trim()) return null;
+    const alvo = form.pedido.trim();
+    const doPedido = (contas || []).filter((c) => c.tipo === "Receber" && String(c.pedido || "").trim() === alvo);
+    if (doPedido.length === 0) return null;
+    const totalPedido = doPedido.reduce((s, c) => s + numeroSeguro(c.valor), 0);
+    return { qtd: doPedido.length, totalPedido };
+  }, [contas, isReceber, form.pedido]);
+
+  useEffect(() => {
+    salvarRascunho("conta", form);
+  }, [form]);
+
+  // Preenche a data de pagamento automaticamente quando marca como Pago —
+  // isso é seguro (não depende de outro campo mudar depois). O "valor
+  // pago" NÃO é travado aqui: o cálculo abaixo já usa o valor total atual
+  // sempre que o campo estiver vazio, então nunca fica desatualizado.
+  useEffect(() => {
+    if (ehPago && !form.dataPagamento) {
+      setForm((f) => ({ ...f, dataPagamento: new Date().toISOString().slice(0, 10) }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ehPago]);
+
+  const validarEEnviar = (e) => {
+    e.preventDefault();
+    if (ehPago && !form.formaPagamento.trim()) {
+      setErroValidacao("Pra marcar como Pago, é obrigatório preencher a forma de pagamento (PIX, boleto, dinheiro, etc).");
+      return;
+    }
+    if (pagamentoParcial && !form.dataProximoPagamento) {
+      setErroValidacao("Como o pagamento foi parcial, preencha a data prevista pro próximo pagamento do restante.");
+      return;
+    }
+    setErroValidacao("");
+    limparRascunho("conta");
+    // Se "valor pago" ficou em branco, salva com o valor total atual
+    // (pagamento integral) — nunca grava vazio.
+    onSave(ehPago && form.valorPago === "" ? { ...form, valorPago: valorTotal } : form);
+  };
+
+  return (
+    <Modal title={initial.descricao ? "Editar conta" : `Nova conta ${isReceber ? "a receber" : "a pagar"}`} onClose={() => { limparRascunho("conta"); onClose(); }} wide>
+      {rascunhoRecuperado && <RascunhoBanner />}
+      <form onSubmit={validarEEnviar}>
+        {!isReceber && (
+          <BoletoReader
+            onDecoded={({ valor, vencimento }) => {
+              setForm((f) => ({ ...f, valor: valor || f.valor, vencimento: vencimento || f.vencimento }));
+            }}
+          />
+        )}
+
+        <Field label="Descrição" required>
+          <Input value={form.descricao} onChange={set("descricao")} required placeholder={isReceber ? "Ex: Produção de concreto - pedido 620" : "Ex: Diesel posto Ipiranga"} />
+        </Field>
+
+        {isReceber ? (
+          <Field label="Nº do pedido" hint="Opcional — puxa o cliente automaticamente">
+            <Input value={form.pedido} onChange={set("pedido")} />
+          </Field>
+        ) : (
+          <Field label="Fornecedor">
+            <Input value={form.fornecedor} onChange={set("fornecedor")} />
+          </Field>
+        )}
+
+        {isReceber && form.pedido && (
+          <div style={{ background: "var(--bg-base)", border: "1px solid var(--border-soft)", borderRadius: "6px", padding: "9px 12px", marginBottom: "16px", fontSize: "13px" }}>
+            {matched ? (
+              <>
+                <span style={{ fontWeight: 600 }}>{matched.nome}</span>
+                <div style={{ color: "var(--text-muted)", fontSize: "12px", marginTop: "2px" }}>{enderecoCompleto(matched) || "Endereço não cadastrado"}</div>
+              </>
+            ) : (
+              <span style={{ color: "var(--text-faint)" }}>Nenhum cliente cadastrado com esse pedido</span>
+            )}
+          </div>
+        )}
+
+        {resumoDoPedido && (
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--bg-panel)", border: "1px solid var(--accent)", borderRadius: "6px", padding: "9px 12px", marginBottom: "16px", fontSize: "12.5px" }}>
+            <span style={{ color: "var(--text-muted)" }}>
+              Soma de todo o pedido #{form.pedido.trim()} ({resumoDoPedido.qtd} lançamento{resumoDoPedido.qtd === 1 ? "" : "s"})
+            </span>
+            <strong className="tl-mono" style={{ fontSize: "14px" }}>{money(resumoDoPedido.totalPedido)}</strong>
+          </div>
+        )}
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+          <Field label="Valor (R$)" required>
+            <Input type="number" min="0" step="0.01" value={form.valor} onChange={set("valor")} required />
+          </Field>
+          <Field label="Vencimento">
+            <Input type="date" value={form.vencimento} onChange={set("vencimento")} />
+          </Field>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+          <Field label="Status">
+            <Select value={form.status} onChange={set("status")}>
+              <option>Pendente</option>
+              <option>Boleto</option>
+              <option>Pago</option>
+              <option>Cancelado</option>
+            </Select>
+          </Field>
+          <Field label="Data de pagamento" hint="Se já foi pago">
+            <Input type="date" value={form.dataPagamento} onChange={set("dataPagamento")} />
+          </Field>
+        </div>
+
+        <Field label={`Forma de pagamento${ehPago ? " *" : ""}`} hint={ehPago ? "Obrigatório quando o status é Pago" : undefined}>
+          <Input value={form.formaPagamento} onChange={set("formaPagamento")} placeholder="Ex: PIX, boleto, dinheiro" required={ehPago} />
+        </Field>
+
+        {(ehPago || form.status === "Pendente") && (
+          <div style={{ background: "var(--bg-base)", border: "1px solid var(--border-soft)", borderRadius: "8px", padding: "14px 16px", marginBottom: "16px" }}>
+            {form.status === "Pendente" && (
+              <p style={{ fontSize: "11.5px", color: "var(--text-faint)", marginTop: 0, marginBottom: "10px" }}>
+                Já recebeu uma parte mas ainda não fechou o pedido? Preenche "Valor pago" abaixo sem mudar o status pra Pago.
+              </p>
+            )}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+              <Field label="Valor pago (R$)" hint="Deixa em branco se pagou o valor total inteiro">
+                <Input type="number" min="0" step="0.01" value={form.valorPago} onChange={set("valorPago")} placeholder={money(valorTotal)} />
+              </Field>
+              <Field label="Falta pagar (calculado sozinho)">
+                <div style={{ padding: "9px 12px", background: "var(--bg-panel-raised)", borderRadius: "6px", fontSize: "14px", fontWeight: 700, color: restante > 0.005 ? "var(--danger)" : "var(--success)" }} className="tl-mono">
+                  {money(restante)}
+                </div>
+              </Field>
+            </div>
+            {pagamentoParcial && (
+              <Field label="Data prevista pro próximo pagamento *" hint="Obrigatório porque ficou faltando pagar uma parte">
+                <Input type="date" value={form.dataProximoPagamento} onChange={set("dataProximoPagamento")} required />
+              </Field>
+            )}
+          </div>
+        )}
+
+        {erroValidacao && (
+          <div style={{ background: "#3A1E1E", border: "1px solid #5a3030", color: "#D6706F", borderRadius: "6px", padding: "10px 12px", fontSize: "12.5px", marginBottom: "14px" }}>
+            {erroValidacao}
+          </div>
+        )}
+
+        <Field label="Observação">
+          <TextArea value={form.observacao} onChange={set("observacao")} />
+        </Field>
+
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "6px" }}>
+          <Button type="button" variant="ghost" onClick={() => { limparRascunho("conta"); onClose(); }}>Cancelar</Button>
+          <Button type="submit">Salvar conta</Button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Financeiro — Relatório diário/semanal/mensal                        */
+/* ------------------------------------------------------------------ */
+function isoWeekKey(dateStr) {
+  const d = new Date(dateStr + "T00:00:00");
+  const target = new Date(d.valueOf());
+  const dayNr = (d.getDay() + 6) % 7;
+  target.setDate(target.getDate() - dayNr + 3);
+  const firstThursday = new Date(target.getFullYear(), 0, 4);
+  const weekNr = 1 + Math.round(((target - firstThursday) / 86400000 - 3 + ((firstThursday.getDay() + 6) % 7)) / 7);
+  return `${target.getFullYear()}-S${String(weekNr).padStart(2, "0")}`;
+}
+
+function FinanceiroRelatorio({ contas, producaoEsc, producaoPerf, onVerPedido }) {
+  const [periodo, setPeriodo] = useState("diario"); // diario | semanal | mensal
+  const [verPeriodo, setVerPeriodo] = useState(null); // { chave, contas }
+
+  const chaveDe = (dataStr) => {
+    const normalizada = dataOrdenavel(dataStr);
+    if (!normalizada) return null;
+    if (periodo === "diario") return normalizada;
+    if (periodo === "semanal") return isoWeekKey(normalizada);
+    return normalizada.slice(0, 7); // AAAA-MM
+  };
+
+  const buckets = useMemo(() => {
+    const map = new Map();
+    contas.forEach((c) => {
+      if (c.status !== "Pago" || !c.dataPagamento) return;
+      const chave = chaveDe(c.dataPagamento);
+      if (!chave) return;
+      if (!map.has(chave)) map.set(chave, { recebido: 0, pago: 0, contas: [] });
+      const acc = map.get(chave);
+      if (c.tipo === "Receber") acc.recebido += numeroSeguro(c.valor);
+      else acc.pago += numeroSeguro(c.valor);
+      acc.contas.push(c);
+    });
+    return [...map.entries()].sort((a, b) => b[0].localeCompare(a[0])).slice(0, 20);
+  }, [contas, periodo]);
+
+  const totalRecebido = contas.filter((c) => c.tipo === "Receber" && c.status === "Pago").reduce((s, c) => s + numeroSeguro(c.valor), 0);
+  const totalPago = contas.filter((c) => c.tipo === "Pagar" && c.status === "Pago").reduce((s, c) => s + numeroSeguro(c.valor), 0);
+  const totalAReceber = contas.filter((c) => c.tipo === "Receber" && c.status !== "Pago" && c.status !== "Cancelado").reduce((s, c) => s + numeroSeguro(c.valor), 0);
+  const totalAPagar = contas.filter((c) => c.tipo === "Pagar" && c.status !== "Pago" && c.status !== "Cancelado").reduce((s, c) => s + numeroSeguro(c.valor), 0);
+
+  const abertosReceber = useMemo(
+    () =>
+      contas
+        .filter((c) => c.tipo === "Receber" && c.status !== "Pago" && c.status !== "Cancelado")
+        .sort((a, b) => dataOrdenavel(a.vencimento).localeCompare(dataOrdenavel(b.vencimento))),
+    [contas]
+  );
+  // Pedidos ÚNICOS em aberto — um mesmo pedido pode ter várias contas (uma
+  // por lançamento de produção), e isso não deve contar como vários pedidos.
+  const pedidosUnicosAbertos = new Set(abertosReceber.filter((c) => c.pedido).map((c) => String(c.pedido).trim())).size;
+
+  return (
+    <div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "12px", marginBottom: "22px" }}>
+        <MiniStat label="Recebido (contas)" valor={money(totalRecebido)} cor="var(--success)" />
+        <MiniStat label="Pago" valor={money(totalPago)} cor="var(--danger)" />
+        <MiniStat label="Saldo" valor={money(totalRecebido - totalPago)} cor="var(--amber)" />
+        <MiniStat label="A receber (contas)" valor={money(totalAReceber)} cor="var(--text-primary)" />
+        <MiniStat label="A pagar" valor={money(totalAPagar)} cor="var(--text-primary)" />
+      </div>
+
+      <div style={{ marginBottom: "26px" }}>
+        <h4 className="tl-mono" style={{ fontSize: "11.5px", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: "10px" }}>
+          Pedidos ainda em aberto pra receber ({pedidosUnicosAbertos})
+        </h4>
+        {abertosReceber.length === 0 ? (
+          <p style={{ fontSize: "12.5px", color: "var(--text-faint)" }}>Nenhuma conta a receber em aberto — tudo recebido!</p>
+        ) : (
+          <Table
+            columns={["Pedido", "Descrição / Cliente", "Vencimento", "Status", "Valor pago", "Falta", "Valor"]}
+            rows={abertosReceber.map((c) => {
+              const valorPagoConta = c.valorPago !== "" && c.valorPago !== undefined ? numeroSeguro(c.valorPago) : 0;
+              const faltaConta = Math.max(0, numeroSeguro(c.valor) - valorPagoConta);
+              return (
+              <tr key={c.id} style={rowStyle}>
+                <td style={tdStyle}>
+                  {c.pedido ? (
+                    <button onClick={() => onVerPedido(String(c.pedido).trim())} className="tl-focus" style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }} title="Ver relatório geral desse pedido">
+                      <PedidoStub n={c.pedido} />
+                    </button>
+                  ) : (
+                    <span style={{ color: "var(--text-faint)" }}>-</span>
+                  )}
+                </td>
+                <td style={{ ...tdStyle, fontWeight: 500 }}>{c.descricao || c.fornecedor || "-"}</td>
+                <td style={{ ...tdStyle, color: dataOrdenavel(c.vencimento) < dataOrdenavel(new Date().toISOString().slice(0, 10)) ? "var(--danger)" : "var(--text-muted)" }}>
+                  {fmtDate(c.vencimento)}
+                </td>
+                <td style={tdStyle}><StatusBadge status={c.status} /></td>
+                <td style={{ ...tdStyle, color: valorPagoConta > 0 ? "var(--success)" : "var(--text-faint)" }} className="tl-mono">{valorPagoConta > 0 ? money(valorPagoConta) : "-"}</td>
+                <td style={{ ...tdStyle, color: "var(--danger)", fontWeight: 600 }} className="tl-mono">{money(faltaConta)}</td>
+                <td style={{ ...tdStyle, fontWeight: 600 }} className="tl-mono">{money(numeroSeguro(c.valor))}</td>
+              </tr>
+              );
+            })}
+          />
+        )}
+      </div>
+
+      <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
+        {[
+          { id: "diario", label: "Diário" },
+          { id: "semanal", label: "Semanal" },
+          { id: "mensal", label: "Mensal" },
+        ].map((p) => (
+          <Button key={p.id} size="sm" variant={periodo === p.id ? "primary" : "subtle"} onClick={() => setPeriodo(p.id)} type="button">
+            {p.label}
+          </Button>
+        ))}
+      </div>
+
+      {buckets.length === 0 ? (
+        <EmptyState icon={BarChart2} title="Sem contas pagas/recebidas ainda" hint="O relatório aparece assim que houver contas marcadas como pagas, com data de pagamento." />
+      ) : (
+        <>
+          <div style={{ background: "var(--bg-panel)", border: "1px solid var(--border-soft)", borderRadius: "9px", padding: "18px", marginBottom: "20px" }}>
+            <GraficoBarras
+              series={[
+                { nome: "Recebido", cor: "var(--success)", dados: [...buckets].reverse().map(([chave, acc]) => ({ label: chave, valor: acc.recebido })) },
+                { nome: "Pago", cor: "var(--danger)", dados: [...buckets].reverse().map(([chave, acc]) => ({ label: chave, valor: acc.pago })) },
+              ]}
+              onBarClick={(chave) => {
+                const bucket = buckets.find(([c]) => c === chave);
+                if (bucket) setVerPeriodo({ chave, ...bucket[1] });
+              }}
+            />
+          </div>
+          <Table
+          columns={["Período", "Recebido", "Pago", "Saldo"]}
+          rows={buckets.map(([chave, acc]) => (
+            <tr key={chave} style={rowStyle}>
+              <td style={{ ...tdStyle, fontWeight: 600 }} className="tl-mono">{chave}</td>
+              <td style={tdStyle} className="tl-mono">{money(acc.recebido)}</td>
+              <td style={tdStyle} className="tl-mono">{money(acc.pago)}</td>
+              <td style={{ ...tdStyle, color: acc.recebido - acc.pago >= 0 ? "var(--success)" : "var(--danger)" }} className="tl-mono">
+                {money(acc.recebido - acc.pago)}
+              </td>
+            </tr>
+          ))}
+          />
+        </>
+      )}
+      {verPeriodo && <DetalhePeriodoFinanceiro periodo={verPeriodo} onClose={() => setVerPeriodo(null)} />}
+    </div>
+  );
+}
+
+function DetalhePeriodoFinanceiro({ periodo, onClose }) {
+  const recebidas = periodo.contas.filter((c) => c.tipo === "Receber");
+  const pagas = periodo.contas.filter((c) => c.tipo === "Pagar");
+
+  return (
+    <Modal title={`Movimentação — ${periodo.chave}`} onClose={onClose}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "18px" }}>
+        <MiniStat label="Recebido" valor={money(periodo.recebido)} cor="var(--success)" />
+        <MiniStat label="Pago" valor={money(periodo.pago)} cor="var(--danger)" />
+      </div>
+
+      {recebidas.length > 0 && (
+        <div style={{ marginBottom: "18px" }}>
+          <h4 className="tl-mono" style={{ fontSize: "11.5px", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: "8px" }}>
+            Recebido ({recebidas.length})
+          </h4>
+          {recebidas.map((c) => (
+            <div key={c.id} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid var(--border-soft)", fontSize: "13px" }}>
+              <span>{c.fornecedor || c.descricao || "-"}{c.pedido && <span style={{ color: "var(--text-faint)" }}> · #{c.pedido}</span>}</span>
+              <strong className="tl-mono" style={{ color: "var(--success)" }}>{money(c.valor)}</strong>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {pagas.length > 0 && (
+        <div>
+          <h4 className="tl-mono" style={{ fontSize: "11.5px", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: "8px" }}>
+            Pago ({pagas.length})
+          </h4>
+          {pagas.map((c) => (
+            <div key={c.id} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid var(--border-soft)", fontSize: "13px" }}>
+              <span>{c.fornecedor || c.descricao || "-"}{c.pedido && <span style={{ color: "var(--text-faint)" }}> · #{c.pedido}</span>}</span>
+              <strong className="tl-mono" style={{ color: "var(--danger)" }}>{money(c.valor)}</strong>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "16px" }}>
+        <Button variant="ghost" onClick={onClose}>Fechar</Button>
+      </div>
+    </Modal>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Calculadora de Caminhões (empolamento)                              */
+/* ------------------------------------------------------------------ */
+// Cada elemento estrutural (laje, viga, pilar, sapata, etc) com sua fórmula
+// de volume — a maioria é só comprimento × largura × altura, mas fica
+// separado por nome pra facilitar quem está montando a lista de uma obra.
+const TIPOS_ELEMENTO_CONCRETO = ["Laje", "Viga", "Pilar", "Sapata", "Fundação/Radier", "Contrapiso", "Outro"];
+
+const emptyElementoConcreto = () => ({ id: uid(), tipo: "Laje", descricao: "", comprimento: "", largura: "", altura: "", quantidade: 1 });
+
+// Materiais agregados usados na usina — compartilhado entre Compra e Estoque.
+const MATERIAIS_AGREGADOS = ["Cimento", "Areia", "Pedra 1", "Pedrisco", "Areia Fina", "Aditivo", "Diesel"];
+const UNIDADE_POR_MATERIAL = { Cimento: "t", Areia: "t", "Pedra 1": "t", Pedrisco: "t", "Areia Fina": "t", Aditivo: "L", Diesel: "L" };
+// Diesel não entra no controle de estoque (é abastecimento de veículo, não
+// insumo de concreto) — os outros 6 aparecem na tela de Estoque.
+const MATERIAIS_ESTOCADOS = MATERIAIS_AGREGADOS.filter((m) => m !== "Diesel");
+
+// Carta traço — a "receita" de quanto de cada material entra em 1m³ de
+// concreto, por FCK. Cimento/areia/pedra/pedrisco/areia fina em kg por m³
+// (convertidos pra tonelada na hora de abater do estoque); aditivo em
+// litros por m³ (já a unidade usada no estoque).
+const emptyCartaTraco = () => ({
+  id: uid(),
+  fck: "",
+  cimento: "", // kg/m³
+  areia: "", // kg/m³
+  pedra1: "", // kg/m³
+  pedrisco: "", // kg/m³
+  areiaFina: "", // kg/m³
+  aditivo: "", // L/m³
+});
+
+// Calcula quanto de cada material um volume (m³) consome, segundo a carta
+// traço daquele FCK. Retorna null se não existir traço cadastrado pra esse
+// FCK (nesse caso, não há como abater o estoque automaticamente).
+function calcularConsumoMateriais(cartaTraco, fck, volumeM3) {
+  const traco = (cartaTraco || []).find((t) => (t.fck || "").trim().toLowerCase() === (fck || "").trim().toLowerCase());
+  if (!traco || !volumeM3) return null;
+  const kgParaTon = (kgPorM3) => ((Number(kgPorM3) || 0) * volumeM3) / 1000;
+  return {
+    Cimento: kgParaTon(traco.cimento),
+    Areia: kgParaTon(traco.areia),
+    "Pedra 1": kgParaTon(traco.pedra1),
+    Pedrisco: kgParaTon(traco.pedrisco),
+    "Areia Fina": kgParaTon(traco.areiaFina),
+    Aditivo: ((Number(traco.aditivo) || 0) * volumeM3), // já em litros
+  };
+}
+
+function CartaTracoModule({ cartaTraco, onChange }) {
+  const [editing, setEditing] = useState(null);
+  const [deleting, setDeleting] = useState(null);
+
+  const salvar = (item) => {
+    const existe = cartaTraco.some((t) => t.id === item.id);
+    onChange(existe ? cartaTraco.map((t) => (t.id === item.id ? item : t)) : [...cartaTraco, item]);
+    setEditing(null);
+  };
+  const remove = (id) => {
+    onChange(cartaTraco.filter((t) => t.id !== id));
+    setDeleting(null);
+  };
+
+  return (
+    <div className="tl-fade-in">
+      <PageHeader
+        eyebrow="Insumos"
+        title="Carta Traço"
+        action={<Button icon={Plus} onClick={() => setEditing(emptyCartaTraco())}>Novo traço</Button>}
+      />
+      <p style={{ fontSize: "12.5px", color: "var(--text-faint)", marginBottom: "18px", maxWidth: "620px" }}>
+        Cadastra aqui quanto de cada material entra em 1m³ de concreto, por FCK. Assim que uma carga com esse FCK for lançada na Central de Balança com o volume preenchido, o sistema já abate sozinho a quantidade correspondente do Estoque de Materiais.
+      </p>
+      {cartaTraco.length === 0 ? (
+        <EmptyState icon={Beaker} title="Nenhuma carta traço cadastrada ainda" hint="Sem isso, o sistema não consegue abater o estoque sozinho quando uma carga sai." />
+      ) : (
+        <Table
+          columns={["FCK", "Cimento (kg/m³)", "Areia (kg/m³)", "Pedra 1 (kg/m³)", "Pedrisco (kg/m³)", "Areia Fina (kg/m³)", "Aditivo (L/m³)", ""]}
+          rows={cartaTraco.map((t) => (
+            <tr key={t.id} style={rowStyle}>
+              <td style={{ ...tdStyle, fontWeight: 600 }}>{t.fck}</td>
+              <td style={tdStyle} className="tl-mono">{t.cimento || "-"}</td>
+              <td style={tdStyle} className="tl-mono">{t.areia || "-"}</td>
+              <td style={tdStyle} className="tl-mono">{t.pedra1 || "-"}</td>
+              <td style={tdStyle} className="tl-mono">{t.pedrisco || "-"}</td>
+              <td style={tdStyle} className="tl-mono">{t.areiaFina || "-"}</td>
+              <td style={tdStyle} className="tl-mono">{t.aditivo || "-"}</td>
+              <td style={{ ...tdStyle, textAlign: "right" }}>
+                <RowActions onEdit={() => setEditing(t)} onDelete={() => setDeleting(t)} />
+              </td>
+            </tr>
+          ))}
+        />
+      )}
+      {editing && (
+        <Modal title={editing.fck ? "Editar traço" : "Novo traço"} onClose={() => setEditing(null)}>
+          <form onSubmit={(e) => { e.preventDefault(); salvar(editing); }}>
+            <Field label="FCK" hint='Precisa ser igual ao texto usado em Produção (ex: "FCK 25")'>
+              <Input value={editing.fck} onChange={(e) => setEditing({ ...editing, fck: e.target.value })} required />
+            </Field>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+              <Field label="Cimento (kg/m³)">
+                <Input type="number" min="0" step="0.1" value={editing.cimento} onChange={(e) => setEditing({ ...editing, cimento: e.target.value })} />
+              </Field>
+              <Field label="Areia (kg/m³)">
+                <Input type="number" min="0" step="0.1" value={editing.areia} onChange={(e) => setEditing({ ...editing, areia: e.target.value })} />
+              </Field>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+              <Field label="Pedra 1 (kg/m³)">
+                <Input type="number" min="0" step="0.1" value={editing.pedra1} onChange={(e) => setEditing({ ...editing, pedra1: e.target.value })} />
+              </Field>
+              <Field label="Pedrisco (kg/m³)">
+                <Input type="number" min="0" step="0.1" value={editing.pedrisco} onChange={(e) => setEditing({ ...editing, pedrisco: e.target.value })} />
+              </Field>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+              <Field label="Areia Fina (kg/m³)">
+                <Input type="number" min="0" step="0.1" value={editing.areiaFina} onChange={(e) => setEditing({ ...editing, areiaFina: e.target.value })} />
+              </Field>
+              <Field label="Aditivo (L/m³)">
+                <Input type="number" min="0" step="0.01" value={editing.aditivo} onChange={(e) => setEditing({ ...editing, aditivo: e.target.value })} />
+              </Field>
+            </div>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
+              <Button type="button" variant="ghost" onClick={() => setEditing(null)}>Cancelar</Button>
+              <Button type="submit">Salvar</Button>
+            </div>
+          </form>
+        </Modal>
+      )}
+      {deleting && (
+        <ConfirmDelete label={`o traço do "${deleting.fck}"`} dados={deleting} onConfirm={() => remove(deleting.id)} onCancel={() => setDeleting(null)} />
+      )}
+    </div>
+  );
+}
+
+const emptyRegistroDiesel = () => ({
+  id: uid(),
+  data: new Date().toISOString().slice(0, 10),
+  placa: "",
+  motorista: "",
+  kmAtual: "",
+  litros: "",
+  valorLitro: "",
+});
+
+// Calcula o consumo (km/L) de cada abastecimento comparando com o anterior
+// da MESMA placa — precisa da lista já ordenada por data crescente.
+function calcularConsumoDiesel(registros) {
+  const porPlaca = {};
+  const ordenados = [...registros].sort((a, b) => dataOrdenavel(a.data).localeCompare(dataOrdenavel(b.data)));
+  return ordenados.map((r) => {
+    const anterior = porPlaca[r.placa];
+    let consumo = null;
+    if (anterior && numeroSeguro(r.kmAtual) > numeroSeguro(anterior.kmAtual) && numeroSeguro(r.litros) > 0) {
+      consumo = (numeroSeguro(r.kmAtual) - numeroSeguro(anterior.kmAtual)) / numeroSeguro(r.litros);
+    }
+    porPlaca[r.placa] = r;
+    return { ...r, consumoKmL: consumo };
+  });
+}
+
+function DieselModule({ registros, onChange }) {
+  const [editing, setEditing] = useState(null);
+  const [deleting, setDeleting] = useState(null);
+
+  const salvar = (item) => {
+    const existe = registros.some((r) => r.id === item.id);
+    onChange(existe ? registros.map((r) => (r.id === item.id ? item : r)) : [...registros, item]);
+    setEditing(null);
+  };
+  const remove = (id) => {
+    onChange(registros.filter((r) => r.id !== id));
+    setDeleting(null);
+  };
+
+  const comConsumo = useMemo(() => calcularConsumoDiesel(registros), [registros]);
+  const porData = [...comConsumo].sort((a, b) => dataOrdenavel(b.data).localeCompare(dataOrdenavel(a.data)));
+  const totalLitros = registros.reduce((s, r) => s + numeroSeguro(r.litros), 0);
+  const totalValor = registros.reduce((s, r) => s + numeroSeguro(r.litros) * numeroSeguro(r.valorLitro), 0);
+
+  return (
+    <div className="tl-fade-in">
+      <PageHeader
+        eyebrow="Frota"
+        title="Diesel"
+        action={<Button icon={Plus} onClick={() => setEditing(emptyRegistroDiesel())}>Novo abastecimento</Button>}
+      />
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px", marginBottom: "20px", maxWidth: "460px" }}>
+        <MiniStat label="Total abastecido" valor={`${totalLitros.toFixed(1)} L`} />
+        <MiniStat label="Total gasto" valor={money(totalValor)} />
+      </div>
+      {porData.length === 0 ? (
+        <EmptyState icon={Fuel} title="Nenhum abastecimento registrado ainda" />
+      ) : (
+        <Table
+          columns={["Data", "Placa", "Motorista", "Km atual", "Litros", "Valor/L", "Consumo (km/L)", ""]}
+          rows={porData.map((r) => (
+            <tr key={r.id} style={rowStyle}>
+              <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{fmtDate(r.data)}</td>
+              <td style={{ ...tdStyle, fontWeight: 600 }}>{r.placa}</td>
+              <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{r.motorista || "-"}</td>
+              <td style={tdStyle} className="tl-mono">{r.kmAtual || "-"}</td>
+              <td style={tdStyle} className="tl-mono">{r.litros || "-"} L</td>
+              <td style={tdStyle} className="tl-mono">{money(r.valorLitro)}</td>
+              <td style={tdStyle} className="tl-mono">{r.consumoKmL != null ? `${r.consumoKmL.toFixed(2)} km/L` : "-"}</td>
+              <td style={{ ...tdStyle, textAlign: "right" }}>
+                <RowActions onEdit={() => setEditing(r)} onDelete={() => setDeleting(r)} />
+              </td>
+            </tr>
+          ))}
+        />
+      )}
+      {editing && (
+        <Modal title={editing.placa ? "Editar abastecimento" : "Novo abastecimento"} onClose={() => setEditing(null)}>
+          <form onSubmit={(e) => { e.preventDefault(); salvar(editing); }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+              <Field label="Data">
+                <Input type="date" value={editing.data} onChange={(e) => setEditing({ ...editing, data: e.target.value })} />
+              </Field>
+              <Field label="Placa">
+                <Input value={editing.placa} onChange={(e) => setEditing({ ...editing, placa: e.target.value })} required />
+              </Field>
+            </div>
+            <Field label="Motorista">
+              <Input value={editing.motorista} onChange={(e) => setEditing({ ...editing, motorista: e.target.value })} />
+            </Field>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+              <Field label="Km atual (odômetro)">
+                <Input type="number" min="0" step="1" value={editing.kmAtual} onChange={(e) => setEditing({ ...editing, kmAtual: e.target.value })} />
+              </Field>
+              <Field label="Litros abastecidos">
+                <Input type="number" min="0" step="0.1" value={editing.litros} onChange={(e) => setEditing({ ...editing, litros: e.target.value })} />
+              </Field>
+            </div>
+            <Field label="Valor por litro (R$)">
+              <Input type="number" min="0" step="0.01" value={editing.valorLitro} onChange={(e) => setEditing({ ...editing, valorLitro: e.target.value })} />
+            </Field>
+            <p style={{ fontSize: "11px", color: "var(--text-faint)", marginBottom: "16px" }}>
+              O consumo (km/L) é calculado sozinho, comparando com o km do abastecimento anterior dessa mesma placa.
+            </p>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
+              <Button type="button" variant="ghost" onClick={() => setEditing(null)}>Cancelar</Button>
+              <Button type="submit">Salvar</Button>
+            </div>
+          </form>
+        </Modal>
+      )}
+      {deleting && (
+        <ConfirmDelete label={`o abastecimento de "${deleting.placa}"`} dados={deleting} onConfirm={() => remove(deleting.id)} onCancel={() => setDeleting(null)} />
+      )}
+    </div>
+  );
+}
+
+const emptyCompraMaterial = () => ({
+  id: uid(),
+  data: new Date().toISOString().slice(0, 10),
+  material: "Cimento",
+  quantidade: "",
+  valorUnitario: "",
+  fornecedor: "",
+  vencimento: "",
+  status: "Pendente", // Pendente | Pago
+  despesaId: "",
+});
+
+function CompraMaterialModule({ compras, onChangeCompras, onChangeDespesas, despesas, onChangeMovimentos, movimentos }) {
+  const [editing, setEditing] = useState(null);
+  const [deleting, setDeleting] = useState(null);
+
+  const salvar = (compra) => {
+    const quantidade = Number(compra.quantidade) || 0;
+    const valorUnitario = Number(compra.valorUnitario) || 0;
+    const valorTotal = quantidade * valorUnitario;
+    const jaExiste = compras.some((c) => c.id === compra.id);
+
+    // Cria (ou atualiza) a despesa correspondente em Despesas Fixas —
+    // assim toda compra de material já entra no financeiro sozinha.
+    let despesaId = compra.despesaId;
+    const dadosDespesa = {
+      categoria: "Material/Insumos",
+      descricao: `Compra de ${compra.material}${compra.fornecedor ? ` — ${compra.fornecedor}` : ""}`,
+      valor: valorTotal,
+      vencimento: compra.vencimento || compra.data,
+      status: compra.status === "Pago" ? "Pago" : "Pendente",
+      dataPagamento: compra.status === "Pago" ? compra.data : "",
+      recorrente: false,
+      observacao: `${quantidade} ${UNIDADE_POR_MATERIAL[compra.material] || ""} × ${money(valorUnitario)}`,
+    };
+    if (despesaId && despesas.some((d) => d.id === despesaId)) {
+      onChangeDespesas(despesas.map((d) => (d.id === despesaId ? { ...d, ...dadosDespesa } : d)));
+    } else {
+      despesaId = uid();
+      onChangeDespesas([...despesas, { id: despesaId, ...dadosDespesa }]);
+    }
+
+    // Cria (ou atualiza) o movimento de entrada no estoque, se o material
+    // for controlado em estoque (Diesel fica de fora).
+    if (MATERIAIS_ESTOCADOS.includes(compra.material)) {
+      const movimentoExistente = movimentos.find((m) => m.compraId === compra.id);
+      const dadosMovimento = {
+        compraId: compra.id,
+        data: compra.data,
+        material: compra.material,
+        tipo: "Entrada",
+        quantidade,
+        motivo: `Compra${compra.fornecedor ? ` — ${compra.fornecedor}` : ""}`,
+      };
+      if (movimentoExistente) {
+        onChangeMovimentos(movimentos.map((m) => (m.id === movimentoExistente.id ? { ...m, ...dadosMovimento } : m)));
+      } else {
+        onChangeMovimentos([...movimentos, { id: uid(), ...dadosMovimento }]);
+      }
+    }
+
+    const compraFinal = { ...compra, despesaId, valorTotal };
+    onChangeCompras(jaExiste ? compras.map((c) => (c.id === compra.id ? compraFinal : c)) : [...compras, compraFinal]);
+    setEditing(null);
+  };
+
+  const remove = (compra) => {
+    onChangeCompras(compras.filter((c) => c.id !== compra.id));
+    if (compra.despesaId) onChangeDespesas(despesas.filter((d) => d.id !== compra.despesaId));
+    onChangeMovimentos(movimentos.filter((m) => m.compraId !== compra.id));
+    setDeleting(null);
+  };
+
+  const totalGeral = compras.reduce((s, c) => s + (Number(c.valorTotal) || Number(c.quantidade) * Number(c.valorUnitario) || 0), 0);
+
+  return (
+    <div className="tl-fade-in">
+      <PageHeader
+        eyebrow="Insumos"
+        title="Compra de Material"
+        action={<Button icon={Plus} onClick={() => setEditing(emptyCompraMaterial())}>Nova compra</Button>}
+      />
+      <div style={{ marginBottom: "18px" }}>
+        <MiniStat label="Total comprado" valor={money(totalGeral)} />
+      </div>
+      {compras.length === 0 ? (
+        <EmptyState icon={ShoppingCart} title="Nenhuma compra registrada ainda" hint="Cada compra já cria a despesa no Financeiro e a entrada no Estoque sozinha." />
+      ) : (
+        <Table
+          columns={["Data", "Material", "Quantidade", "Valor unit.", "Total", "Fornecedor", "Status", ""]}
+          rows={[...compras].sort((a, b) => dataOrdenavel(b.data).localeCompare(dataOrdenavel(a.data))).map((c) => (
+            <tr key={c.id} style={rowStyle}>
+              <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{fmtDate(c.data)}</td>
+              <td style={{ ...tdStyle, fontWeight: 500 }}>{c.material}</td>
+              <td style={tdStyle} className="tl-mono">{c.quantidade} {UNIDADE_POR_MATERIAL[c.material]}</td>
+              <td style={tdStyle} className="tl-mono">{money(c.valorUnitario)}</td>
+              <td style={{ ...tdStyle, fontWeight: 600 }} className="tl-mono">{money(c.valorTotal || Number(c.quantidade) * Number(c.valorUnitario))}</td>
+              <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{c.fornecedor || "-"}</td>
+              <td style={tdStyle}><FinStatusBadge status={c.status} /></td>
+              <td style={{ ...tdStyle, textAlign: "right" }}>
+                <RowActions onEdit={() => setEditing(c)} onDelete={() => setDeleting(c)} />
+              </td>
+            </tr>
+          ))}
+        />
+      )}
+      {editing && (
+        <CompraMaterialForm initial={editing} onSave={salvar} onClose={() => setEditing(null)} />
+      )}
+      {deleting && (
+        <ConfirmDelete label={`a compra de "${deleting.material}"`} dados={deleting} onConfirm={() => remove(deleting)} onCancel={() => setDeleting(null)} />
+      )}
+    </div>
+  );
+}
+
+function CompraMaterialForm({ initial, onSave, onClose }) {
+  const [form, setForm] = useState(initial);
+  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+  const valorTotal = (Number(form.quantidade) || 0) * (Number(form.valorUnitario) || 0);
+
+  return (
+    <Modal title={initial.material && initial.fornecedor ? "Editar compra" : "Nova compra de material"} onClose={onClose}>
+      <form onSubmit={(e) => { e.preventDefault(); onSave(form); }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+          <Field label="Material">
+            <Select value={form.material} onChange={set("material")}>
+              {MATERIAIS_AGREGADOS.map((m) => <option key={m}>{m}</option>)}
+            </Select>
+          </Field>
+          <Field label="Data">
+            <Input type="date" value={form.data} onChange={set("data")} />
+          </Field>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+          <Field label={`Quantidade (${UNIDADE_POR_MATERIAL[form.material] || "un."})`}>
+            <Input type="number" min="0" step="0.01" value={form.quantidade} onChange={set("quantidade")} required />
+          </Field>
+          <Field label="Valor por tonelada (R$)">
+            <Input type="number" min="0" step="0.01" value={form.valorUnitario} onChange={set("valorUnitario")} required />
+          </Field>
+        </div>
+        <div style={{ background: "var(--bg-base)", border: "1px solid var(--border-soft)", borderRadius: "6px", padding: "9px 12px", marginBottom: "16px", display: "flex", justifyContent: "space-between", fontSize: "13px" }}>
+          <span style={{ color: "var(--text-muted)" }}>Valor total</span>
+          <strong className="tl-mono">{money(valorTotal)}</strong>
+        </div>
+        <Field label="Fornecedor">
+          <Input value={form.fornecedor} onChange={set("fornecedor")} />
+        </Field>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+          <Field label="Vencimento" hint="Se vazio, usa a data da compra">
+            <Input type="date" value={form.vencimento} onChange={set("vencimento")} />
+          </Field>
+          <Field label="Status">
+            <Select value={form.status} onChange={set("status")}>
+              <option>Pendente</option>
+              <option>Pago</option>
+            </Select>
+          </Field>
+        </div>
+        <p style={{ fontSize: "11.5px", color: "var(--text-faint)", marginBottom: "16px" }}>
+          Ao salvar, essa compra já cria (ou atualiza) automaticamente uma despesa em "Despesas Fixas" e uma entrada no "Estoque de Materiais".
+        </p>
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
+          <Button type="button" variant="ghost" onClick={onClose}>Cancelar</Button>
+          <Button type="submit">Salvar compra</Button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function EstoqueModule({ movimentos, onChange, prefs, onPrefsChanged }) {
+  const [registrandoSaida, setRegistrandoSaida] = useState(null); // material selecionado
+  const [excluindo, setExcluindo] = useState(null); // movimento selecionado pra excluir
+  const minimos = prefs?.estoqueMinimo || {};
+  const setMinimo = (material, valor) => {
+    onPrefsChanged({ ...prefs, estoqueMinimo: { ...minimos, [material]: valor } });
+  };
+
+  const saldoPorMaterial = useMemo(() => {
+    const mapa = {};
+    MATERIAIS_ESTOCADOS.forEach((m) => (mapa[m] = 0));
+    (movimentos || []).forEach((mv) => {
+      if (!(mv.material in mapa)) return;
+      mapa[mv.material] += mv.tipo === "Entrada" ? Number(mv.quantidade) || 0 : -(Number(mv.quantidade) || 0);
+    });
+    return mapa;
+  }, [movimentos]);
+
+  const registrarSaida = (material, quantidade, motivo) => {
+    if (!quantidade || Number(quantidade) <= 0) return;
+    onChange([...(movimentos || []), { id: uid(), data: new Date().toISOString().slice(0, 10), material, tipo: "Saída", quantidade: Number(quantidade), motivo: motivo || "Uso na produção" }]);
+    setRegistrandoSaida(null);
+  };
+
+  // Excluir um movimento já "devolve" o valor sozinho — o saldo é sempre
+  // recalculado a partir da lista de movimentos, então tirar uma Saída daqui
+  // aumenta o saldo de volta, e tirar uma Entrada reduz, sem precisar de
+  // nenhum ajuste manual extra.
+  const excluirMovimento = (id) => {
+    onChange((movimentos || []).filter((mv) => mv.id !== id));
+    setExcluindo(null);
+  };
+
+  return (
+    <div className="tl-fade-in">
+      <PageHeader eyebrow="Insumos" title="Estoque de Materiais" />
+      <div className="tl-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "12px", marginBottom: "26px" }}>
+        {MATERIAIS_ESTOCADOS.map((m) => {
+          const saldo = saldoPorMaterial[m] || 0;
+          const minimo = numeroSeguro(minimos[m]);
+          const abaixoDoMinimo = minimo > 0 && saldo <= minimo;
+          return (
+            <div key={m} style={{ background: "var(--bg-panel)", border: abaixoDoMinimo ? "1px solid var(--danger)" : "1px solid var(--border-soft)", borderRadius: "9px", padding: "16px" }}>
+              <div style={{ fontSize: "12.5px", color: "var(--text-muted)", marginBottom: "6px" }}>{m}</div>
+              <div className="tl-display" style={{ fontSize: "26px", fontWeight: 800, color: saldo <= 0 ? "var(--danger)" : "var(--text-primary)" }}>
+                {saldo.toFixed(2)} <span style={{ fontSize: "13px", fontWeight: 500, color: "var(--text-faint)" }}>{UNIDADE_POR_MATERIAL[m]}</span>
+              </div>
+              {abaixoDoMinimo && (
+                <div style={{ fontSize: "11px", color: "var(--danger)", fontWeight: 600, marginTop: "4px" }}>⚠ Abaixo do mínimo ({minimo} {UNIDADE_POR_MATERIAL[m]})</div>
+              )}
+              <button
+                onClick={() => setRegistrandoSaida(m)}
+                className="tl-focus"
+                style={{ marginTop: "10px", background: "none", border: "1px solid var(--border-soft)", borderRadius: "6px", padding: "5px 10px", fontSize: "11.5px", color: "var(--text-muted)", cursor: "pointer" }}
+              >
+                Registrar saída/uso
+              </button>
+              <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "6px" }}>
+                <label style={{ fontSize: "10.5px", color: "var(--text-faint)", whiteSpace: "nowrap" }}>Avisar abaixo de</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  value={minimos[m] ?? ""}
+                  onChange={(e) => setMinimo(m, e.target.value)}
+                  placeholder="0"
+                  style={{ width: "60px", background: "var(--bg-base)", border: "1px solid var(--border-soft)", borderRadius: "5px", padding: "4px 6px", fontSize: "11.5px", color: "var(--text-primary)" }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <h4 className="tl-mono" style={{ fontSize: "11.5px", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: "10px" }}>Histórico de movimentos</h4>
+      {(!movimentos || movimentos.length === 0) ? (
+        <EmptyState icon={Boxes} title="Nenhum movimento de estoque ainda" hint="Toda compra de material já lança entrada aqui sozinha." />
+      ) : (
+        <Table
+          columns={["Data", "Material", "Tipo", "Quantidade", "Motivo", ""]}
+          rows={[...movimentos].sort((a, b) => dataOrdenavel(b.data).localeCompare(dataOrdenavel(a.data))).slice(0, 100).map((mv) => (
+            <tr key={mv.id} style={rowStyle}>
+              <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{fmtDate(mv.data)}</td>
+              <td style={{ ...tdStyle, fontWeight: 500 }}>{mv.material}</td>
+              <td style={tdStyle}>
+                <span className="tl-mono" style={{ fontSize: "11px", fontWeight: 700, color: mv.tipo === "Entrada" ? "var(--success)" : "var(--danger)" }}>{mv.tipo === "Entrada" ? "▲ ENTRADA" : "▼ SAÍDA"}</span>
+              </td>
+              <td style={tdStyle} className="tl-mono">{mv.quantidade} {UNIDADE_POR_MATERIAL[mv.material]}</td>
+              <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{mv.motivo || "-"}</td>
+              <td style={{ ...tdStyle, textAlign: "right" }}>
+                <button type="button" onClick={() => setExcluindo(mv)} className="tl-focus" style={{ ...iconBtnStyle, color: "var(--danger)" }} title="Excluir movimento (devolve o valor pro estoque)">
+                  <X size={13} />
+                </button>
+              </td>
+            </tr>
+          ))}
+        />
+      )}
+
+      {registrandoSaida && (
+        <RegistrarSaidaModal material={registrandoSaida} onConfirm={registrarSaida} onCancel={() => setRegistrandoSaida(null)} />
+      )}
+      {excluindo && (
+        <ConfirmDelete
+          label={`o movimento de ${excluindo.tipo.toLowerCase()} de ${excluindo.material} (${excluindo.quantidade} ${UNIDADE_POR_MATERIAL[excluindo.material]})`}
+          dados={excluindo}
+          onConfirm={() => excluirMovimento(excluindo.id)}
+          onCancel={() => setExcluindo(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+function RegistrarSaidaModal({ material, onConfirm, onCancel }) {
+  const [quantidade, setQuantidade] = useState("");
+  const [motivo, setMotivo] = useState("");
+  return (
+    <Modal title={`Registrar saída — ${material}`} onClose={onCancel}>
+      <Field label={`Quantidade (${UNIDADE_POR_MATERIAL[material]})`}>
+        <Input type="number" min="0" step="0.01" value={quantidade} onChange={(e) => setQuantidade(e.target.value)} />
+      </Field>
+      <Field label="Motivo (opcional)">
+        <Input value={motivo} onChange={(e) => setMotivo(e.target.value)} placeholder="Ex: uso na produção do dia" />
+      </Field>
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "10px" }}>
+        <Button variant="ghost" onClick={onCancel}>Cancelar</Button>
+        <Button onClick={() => onConfirm(material, quantidade, motivo)}>Confirmar saída</Button>
+      </div>
+    </Modal>
+  );
+}
+
+const emptyBombaConcreto = () => ({
+  id: uid(),
+  pedido: "",
+  data: new Date().toISOString().slice(0, 10),
+  empresa: "", // empresa terceirizada da bomba, ou "Própria"
+  motorista: "",
+  placa: "",
+  valorCobrado: "", // o que se cobra do cliente
+  valorPago: "", // o que se paga pra empresa terceirizada (se houver)
+  status: "EM ABERTO",
+  formaPagamento: "",
+});
+
+function BombaConcretoModule({ registros, clienteByPedido, onChange }) {
+  const [editing, setEditing] = useState(null);
+  const [deleting, setDeleting] = useState(null);
+
+  const salvar = (registro) => {
+    const jaExiste = registros.some((r) => r.id === registro.id);
+    onChange(jaExiste ? registros.map((r) => (r.id === registro.id ? registro : r)) : [...registros, registro]);
+    setEditing(null);
+  };
+  const remove = (id) => {
+    onChange(registros.filter((r) => r.id !== id));
+    setDeleting(null);
+  };
+
+  const totalCobrado = registros.reduce((s, r) => s + numeroSeguro(r.valorCobrado), 0);
+  const totalPago = registros.reduce((s, r) => s + numeroSeguro(r.valorPago), 0);
+
+  return (
+    <div className="tl-fade-in">
+      <PageHeader
+        eyebrow="Serviço"
+        title="Bomba de Concreto"
+        action={<Button icon={Plus} onClick={() => setEditing(emptyBombaConcreto())}>Novo lançamento</Button>}
+      />
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", marginBottom: "20px", maxWidth: "700px" }}>
+        <MiniStat label="Cobrado do cliente" valor={money(totalCobrado)} cor="var(--success)" />
+        <MiniStat label="Pago à empresa da bomba" valor={money(totalPago)} cor="var(--danger)" />
+        <MiniStat label="Margem" valor={money(totalCobrado - totalPago)} />
+      </div>
+      {registros.length === 0 ? (
+        <EmptyState icon={Droplet} title="Nenhum lançamento de bomba ainda" />
+      ) : (
+        <Table
+          columns={["Pedido", "Data", "Cliente", "Empresa/Bomba", "Motorista", "Placa", "Cobrado", "Pago", "Status", ""]}
+          rows={[...registros].sort((a, b) => dataOrdenavel(b.data).localeCompare(dataOrdenavel(a.data))).map((r) => {
+            const cliente = clienteByPedido.get(String(r.pedido).trim());
+            return (
+              <tr key={r.id} style={rowStyle}>
+                <td style={tdStyle}><PedidoStub n={r.pedido} /></td>
+                <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{fmtDate(r.data)}</td>
+                <td style={{ ...tdStyle, fontWeight: 500 }}>{cliente ? cliente.nome : r.cliente || "-"}</td>
+                <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{r.empresa || "-"}</td>
+                <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{r.motorista || "-"}</td>
+                <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{r.placa || "-"}</td>
+                <td style={tdStyle} className="tl-mono">{money(r.valorCobrado)}</td>
+                <td style={tdStyle} className="tl-mono">{money(r.valorPago)}</td>
+                <td style={tdStyle}><StatusBadge status={r.status} /></td>
+                <td style={{ ...tdStyle, textAlign: "right" }}>
+                  <RowActions onEdit={() => setEditing(r)} onDelete={() => setDeleting(r)} />
+                </td>
+              </tr>
+            );
+          })}
+        />
+      )}
+      {editing && (
+        <BombaConcretoForm initial={editing} clienteByPedido={clienteByPedido} onSave={salvar} onClose={() => setEditing(null)} />
+      )}
+      {deleting && (
+        <ConfirmDelete label={`o lançamento de bomba do pedido nº ${deleting.pedido}`} dados={deleting} onConfirm={() => remove(deleting.id)} onCancel={() => setDeleting(null)} />
+      )}
+    </div>
+  );
+}
+
+function BombaConcretoForm({ initial, clienteByPedido, onSave, onClose }) {
+  const [form, setForm] = useState(initial);
+  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+  const matched = form.pedido ? clienteByPedido.get(String(form.pedido).trim()) : null;
+
+  return (
+    <Modal title={initial.pedido ? "Editar bomba de concreto" : "Novo lançamento de bomba"} onClose={onClose} wide>
+      <form onSubmit={(e) => { e.preventDefault(); onSave(form); }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+          <Field label="Nº do pedido" required>
+            <Input value={form.pedido} onChange={set("pedido")} required />
+          </Field>
+          <Field label="Data">
+            <Input type="date" value={form.data} onChange={set("data")} />
+          </Field>
+        </div>
+        {form.pedido && (
+          <div style={{ background: "var(--bg-base)", border: "1px solid var(--border-soft)", borderRadius: "6px", padding: "9px 12px", marginBottom: "16px", fontSize: "13px" }}>
+            {matched ? (
+              <>
+                <span style={{ fontWeight: 600 }}>{matched.nome}</span>
+                <div style={{ color: "var(--text-muted)", fontSize: "12px", marginTop: "2px" }}>{enderecoCompleto(matched) || "Endereço não cadastrado"}</div>
+              </>
+            ) : (
+              <span style={{ color: "var(--text-faint)" }}>Nenhum cliente cadastrado com esse pedido</span>
+            )}
+          </div>
+        )}
+        <Field label="Empresa da bomba" hint='Coloca "Própria" se for equipamento da sua empresa'>
+          <Input value={form.empresa} onChange={set("empresa")} />
+        </Field>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+          <Field label="Motorista">
+            <Input value={form.motorista} onChange={set("motorista")} />
+          </Field>
+          <Field label="Placa">
+            <Input value={form.placa} onChange={set("placa")} />
+          </Field>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+          <Field label="Valor cobrado do cliente (R$)">
+            <Input type="number" min="0" step="0.01" value={form.valorCobrado} onChange={set("valorCobrado")} />
+          </Field>
+          <Field label="Valor pago à empresa da bomba (R$)" hint="Deixa em branco se for bomba própria">
+            <Input type="number" min="0" step="0.01" value={form.valorPago} onChange={set("valorPago")} />
+          </Field>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+          <Field label="Status">
+            <Select value={form.status} onChange={set("status")}>
+              {STATUS_PRODUCAO.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="Forma de pagamento">
+            <Input value={form.formaPagamento} onChange={set("formaPagamento")} placeholder="Ex: PIX, boleto" />
+          </Field>
+        </div>
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
+          <Button type="button" variant="ghost" onClick={onClose}>Cancelar</Button>
+          <Button type="submit">Salvar</Button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function CalculadoraModule({ cubicagens, clienteByPedido, onChange }) {
+  const [pedido, setPedido] = useState("");
+  const [elementos, setElementos] = useState([emptyElementoConcreto()]);
+  const [percentualPerda, setPercentualPerda] = useState("5");
+  const [capacidadeCaminhao, setCapacidadeCaminhao] = useState("8");
+  const [salvo, setSalvo] = useState(false);
+
+  // Se o pedido digitado já tiver uma cubicagem salva, carrega ela sozinho
+  // — assim reabrir o mesmo pedido depois traz o cálculo de volta.
+  useEffect(() => {
+    if (!pedido.trim()) return;
+    const existente = (cubicagens || []).find((c) => String(c.pedido).trim() === pedido.trim());
+    if (existente) {
+      setElementos(existente.elementos.length > 0 ? existente.elementos : [emptyElementoConcreto()]);
+      setPercentualPerda(existente.percentualPerda);
+      setCapacidadeCaminhao(existente.capacidadeCaminhao);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pedido]);
+
+  const clienteDoPedido = pedido.trim() ? clienteByPedido.get(pedido.trim()) : null;
+
+  const setElemento = (id, k, v) => setElementos(elementos.map((el) => (el.id === id ? { ...el, [k]: v } : el)));
+  const addElemento = () => setElementos([...elementos, emptyElementoConcreto()]);
+  const removeElemento = (id) => setElementos(elementos.length > 1 ? elementos.filter((el) => el.id !== id) : elementos);
+
+  const volumePorElemento = (el) => (Number(el.comprimento) || 0) * (Number(el.largura) || 0) * (Number(el.altura) || 0) * (Number(el.quantidade) || 1);
+  const volumeBruto = elementos.reduce((s, el) => s + volumePorElemento(el), 0);
+  const perda = Number(percentualPerda) || 0;
+  const volumeComPerda = volumeBruto * (1 + perda / 100);
+  const capacidade = Number(capacidadeCaminhao) || 0;
+  const viagens = capacidade > 0 ? Math.ceil(volumeComPerda / capacidade) : 0;
+
+  const salvarNoPedido = () => {
+    if (!pedido.trim()) return;
+    const alvo = pedido.trim();
+    const registro = { id: uid(), pedido: alvo, elementos, percentualPerda, capacidadeCaminhao, volumeComPerda, atualizadoEm: new Date().toISOString() };
+    const existente = (cubicagens || []).find((c) => String(c.pedido).trim() === alvo);
+    const novaLista = existente
+      ? (cubicagens || []).map((c) => (c.pedido === existente.pedido ? { ...registro, id: existente.id } : c))
+      : [...(cubicagens || []), registro];
+    onChange(novaLista);
+    setSalvo(true);
+    setTimeout(() => setSalvo(false), 2000);
+  };
+
+  return (
+    <div className="tl-fade-in">
+      <PageHeader eyebrow="Planejamento de obra" title="Cubicagem de Concretagem" action={<Button icon={Plus} onClick={addElemento}>Adicionar elemento</Button>} />
+      <p style={{ fontSize: "12.5px", color: "var(--text-faint)", marginBottom: "16px", maxWidth: "620px" }}>
+        Some o volume de concreto de cada elemento da obra (laje, viga, pilar, sapata...) e veja o total necessário, já considerando uma margem de perda e quantas viagens de caminhão-betoneira isso representa.
+      </p>
+
+      <div style={{ background: "var(--bg-panel)", border: "1px solid var(--border-soft)", borderRadius: "9px", padding: "16px 18px", marginBottom: "20px", maxWidth: "620px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "0 16px", alignItems: "flex-end" }}>
+          <Field label="Nº do pedido" hint="Vincula esse cálculo ao pedido — digite um já existente pra recarregar o cálculo salvo">
+            <Input value={pedido} onChange={(e) => setPedido(e.target.value)} placeholder="Ex: 620" />
+          </Field>
+          <Button type="button" icon={Save} disabled={!pedido.trim()} onClick={salvarNoPedido} style={{ marginBottom: "16px" }}>
+            {salvo ? "Salvo!" : "Salvar no pedido"}
+          </Button>
+        </div>
+        {clienteDoPedido && (
+          <div style={{ fontSize: "12.5px", color: "var(--text-muted)" }}>
+            Cliente: <strong style={{ color: "var(--text-primary)" }}>{clienteDoPedido.nome}</strong>
+          </div>
+        )}
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: "20px", maxWidth: "920px" }}>
+        <div style={{ background: "var(--bg-panel)", border: "1px solid var(--border-soft)", borderRadius: "9px", padding: "18px" }}>
+          <h4 className="tl-mono" style={{ fontSize: "11.5px", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: "14px" }}>Elementos da obra (dimensões em metros)</h4>
+          <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+            {elementos.map((el, i) => (
+              <div key={el.id} style={{ background: "var(--bg-base)", border: "1px solid var(--border-soft)", borderRadius: "7px", padding: "12px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                  <span style={{ fontSize: "12px", fontWeight: 700, color: "var(--text-muted)" }}>Elemento {i + 1}</span>
+                  {elementos.length > 1 && (
+                    <button type="button" onClick={() => removeElemento(el.id)} className="tl-focus" style={{ background: "none", border: "none", color: "var(--danger)", cursor: "pointer", padding: "2px" }}>
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: "0 10px" }}>
+                  <Field label="Tipo">
+                    <Select value={el.tipo} onChange={(e) => setElemento(el.id, "tipo", e.target.value)}>
+                      {TIPOS_ELEMENTO_CONCRETO.map((t) => <option key={t}>{t}</option>)}
+                    </Select>
+                  </Field>
+                  <Field label="Descrição (opcional)" hint="Ex: Laje do 2º pavimento">
+                    <Input value={el.descricao} onChange={(e) => setElemento(el.id, "descricao", e.target.value)} />
+                  </Field>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 0.8fr", gap: "0 10px" }}>
+                  <Field label="Comprimento">
+                    <Input type="number" min="0" step="0.01" value={el.comprimento} onChange={(e) => setElemento(el.id, "comprimento", e.target.value)} />
+                  </Field>
+                  <Field label="Largura">
+                    <Input type="number" min="0" step="0.01" value={el.largura} onChange={(e) => setElemento(el.id, "largura", e.target.value)} />
+                  </Field>
+                  <Field label="Altura/Espessura">
+                    <Input type="number" min="0" step="0.01" value={el.altura} onChange={(e) => setElemento(el.id, "altura", e.target.value)} />
+                  </Field>
+                  <Field label="Qtd. iguais">
+                    <Input type="number" min="1" value={el.quantidade} onChange={(e) => setElemento(el.id, "quantidade", e.target.value)} />
+                  </Field>
+                </div>
+                <div style={{ fontSize: "11.5px", color: "var(--text-faint)", textAlign: "right" }}>
+                  Volume desse elemento: <strong style={{ color: "var(--text-muted)" }}>{volumePorElemento(el).toFixed(3)} m³</strong>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px", marginTop: "16px" }}>
+            <Field label="Margem de perda (%)" hint="Sobra técnica comum de concretagem">
+              <Input type="number" min="0" value={percentualPerda} onChange={(e) => setPercentualPerda(e.target.value)} />
+            </Field>
+            <Field label="Capacidade do caminhão-betoneira (m³)">
+              <Input type="number" min="0" step="0.5" value={capacidadeCaminhao} onChange={(e) => setCapacidadeCaminhao(e.target.value)} />
+            </Field>
+          </div>
+        </div>
+
+        <div style={{ background: "var(--bg-panel)", border: "1px solid var(--border-soft)", borderRadius: "9px", padding: "18px", alignSelf: "flex-start" }}>
+          <h4 className="tl-mono" style={{ fontSize: "11.5px", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: "14px" }}>Resultado</h4>
+          <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+            <div>
+              <div style={{ fontSize: "12px", color: "var(--text-faint)" }}>Volume total (sem perda)</div>
+              <div className="tl-display" style={{ fontSize: "24px", fontWeight: 700 }}>{volumeBruto.toFixed(3)} m³</div>
+            </div>
+            <div>
+              <div style={{ fontSize: "12px", color: "var(--text-faint)" }}>Volume com margem de perda ({perda}%)</div>
+              <div className="tl-display" style={{ fontSize: "24px", fontWeight: 700, color: "var(--amber)" }}>{volumeComPerda.toFixed(3)} m³</div>
+            </div>
+            <div style={{ borderTop: "1px solid var(--border-soft)", paddingTop: "14px" }}>
+              <div style={{ fontSize: "12px", color: "var(--text-faint)" }}>Viagens de caminhão-betoneira necessárias</div>
+              <div className="tl-display" style={{ fontSize: "36px", fontWeight: 800, color: "var(--success)" }}>{viagens}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Checklist de vistoria de máquina                                    */
+/* ------------------------------------------------------------------ */
+const CHECKLIST_SECOES = [
+  {
+    titulo: "Condições do operador",
+    itens: [
+      "O operador é qualificado?",
+      "Possui carteira de habilitação C, D ou E?",
+      "Há comprovação de que fez treinamento?",
+      "Utiliza os equipamentos de EPI necessários?",
+      "O assento do operador está em boas condições?",
+      "Está usando alguma medicação que impeça operar máquinas pesadas?",
+    ],
+  },
+  {
+    titulo: "Sistema elétrico",
+    itens: [
+      "Os faróis dianteiro e traseiro funcionam?",
+      "A luz de freio funciona?",
+      "O sistema de partida opera com facilidade?",
+      "Os instrumentos do painel funcionam?",
+      "A bateria se encontra em boas condições?",
+      "Existe alarme de ré e funciona?",
+      "A buzina também funciona?",
+    ],
+  },
+  {
+    titulo: "Sistema hidráulico",
+    itens: [
+      "Existe fixação e boas condições de mangueiras?",
+      "Ocorre vazamento de óleo hidráulico?",
+      "O nível do óleo hidráulico está dentro do ideal?",
+      "Há vazamento de óleo de motor?",
+      "Existe vazamento de óleo diesel?",
+      "A fixação dos cilindros hidráulicos está ok?",
+      "Pinos e contrapinos dos cilindros hidráulicos estão seguros?",
+    ],
+  },
+  {
+    titulo: "Vistoria geral",
+    itens: [
+      "Existem trincas na estrutura?",
+      "Há fixação do suporte do escarificador?",
+      "Pinos e contrapinos de lança estão presentes e seguros?",
+      "Pinos e contrapinos de concha também estão?",
+      "O freio de giro operante funciona?",
+      "Tem presença de extintor de incêndio?",
+      "Está dentro da validade?",
+      "Foi verificada a condição dos roletes?",
+      "Existe algum tipo de vazamento?",
+      "Há danos na pintura ou na lataria?",
+      "Os retrovisores laterais estão em bom estado?",
+    ],
+  },
+];
+
+const emptyChecklist = () => ({
+  id: uid(),
+  equipamento: "",
+  descricaoItem: "",
+  dataEntrada: new Date().toISOString().slice(0, 10),
+  dataSaida: "",
+  nomeEmpresa: "",
+  nomeMotorista: "",
+  modelo: "",
+  anoFabricacao: "",
+  numeroSerie: "",
+  respostas: {},
+  observacoes: {},
+});
+
+const emptyOrdemServico = () => ({
+  id: uid(),
+  pedido: "",
+  cliente: "",
+  operadorId: "",
+  maquinaId: "",
+  endereco: "",
+  data: new Date().toISOString().slice(0, 10),
+  horario: "",
+  descricao: "",
+  observacao: "",
+  status: "Enviada",
+  criadaEm: new Date().toISOString(),
+});
+
+
+
+// Cubicagem de uma estaca: volume do cilindro (π × raio² × profundidade).
+// Diâmetro vem em cm, profundidade em metros — o resultado sai em m³.
+const cubicagemEstaca = (diametroCm, profundidadeM) => {
+  const d = numeroSeguro(diametroCm);
+  const p = numeroSeguro(profundidadeM);
+  if (!d || !p) return 0;
+  const raioM = d / 100 / 2;
+  return Math.PI * raioM * raioM * p;
+};
+
+const emptyEstaca = () => ({
+  id: uid(),
+  pedido: "",
+  numero: "",
+  profundidade: "",
+  diametro: "",
+  status: "Pendente",
+  operador: "",
+  maquinaId: "",
+  dataExecucao: "",
+  observacao: "",
+});
+
+const CATEGORIAS_DESPESA = ["Funcionários", "Aluguel", "Água", "Luz", "Internet/Telefone", "Combustível", "Material/Insumos", "Outras"];
+
+const emptyDespesa = () => ({
+  id: uid(),
+  categoria: "Outras",
+  descricao: "",
+  valor: "",
+  vencimento: "",
+  dataPagamento: "",
+  status: "Pendente",
+  recorrente: false,
+  observacao: "",
+});
+
+// 5º dia útil do mês (pula sábado e domingo) — usado como vencimento
+// sugerido pro pagamento do Salário. Não desconta feriados.
+const quintoDiaUtil = (ano, mesIndex) => {
+  let data = new Date(ano, mesIndex, 1);
+  let uteis = 0;
+  while (uteis < 5) {
+    const diaSemana = data.getDay();
+    if (diaSemana !== 0 && diaSemana !== 6) uteis++;
+    if (uteis < 5) data.setDate(data.getDate() + 1);
+  }
+  return data.toISOString().slice(0, 10);
+};
+
+// Sugere a data de vencimento certa pra cada tipo — Vale sempre no dia 20
+// do mês de referência, Salário no 5º dia útil do mês SEGUINTE (já que o
+// salário fecha depois que o mês termina).
+const vencimentoSugerido = (mesReferencia, tipoPagamento) => {
+  const [ano, mes] = mesReferencia.split("-").map(Number);
+  if (tipoPagamento === "Vale") {
+    return `${mesReferencia}-20`;
+  }
+  const proximoMes = new Date(ano, mes, 1); // mes já é 1-indexado, então "mes" aqui = mês seguinte (0-indexado)
+  return quintoDiaUtil(proximoMes.getFullYear(), proximoMes.getMonth());
+};
+
+const emptyFolhaItem = (mesReferencia, nome = "", tipoPagamento = "Salário") => ({
+  id: uid(),
+  funcionario: nome,
+  mesReferencia,
+  tipoPagamento,
+  vencimento: vencimentoSugerido(mesReferencia, tipoPagamento),
+  salarioBase: "",
+  valeTransporte: "",
+  valeAlimentacao: "",
+  ajudaCusto: "",
+  premiacao: "",
+  desconto: "",
+  observacao: "",
+  status: "Pendente",
+  dataPagamento: "",
+});
+
+const valorLiquidoFolha = (item) =>
+  numeroSeguro(item.salarioBase) +
+  numeroSeguro(item.valeTransporte) +
+  numeroSeguro(item.valeAlimentacao) +
+  numeroSeguro(item.ajudaCusto) +
+  numeroSeguro(item.premiacao) -
+  numeroSeguro(item.desconto);
+
+function FolhaPagamentoModule({ folha, onChange, financeiro, onChangeFinanceiro, funcionarios }) {
+  const hojeISO = new Date().toISOString().slice(0, 10);
+  const mesAtual = hojeISO.slice(0, 7);
+  const [mesSelecionado, setMesSelecionado] = useState(mesAtual);
+  const [editing, setEditing] = useState(null);
+  const [deleting, setDeleting] = useState(null);
+  const [gerando, setGerando] = useState(false);
+  const [verRelatorio, setVerRelatorio] = useState(false);
+
+  const mesesExistentes = useMemo(() => [...new Set(folha.map((f) => f.mesReferencia))].sort().reverse(), [folha]);
+  const itensDoMes = folha
+    .filter((f) => f.mesReferencia === mesSelecionado)
+    .sort((a, b) => a.funcionario.localeCompare(b.funcionario) || a.tipoPagamento.localeCompare(b.tipoPagamento));
+
+  const totalMes = itensDoMes.reduce((s, f) => s + valorLiquidoFolha(f), 0);
+  const totalPago = itensDoMes.filter((f) => f.status === "Pago").reduce((s, f) => s + valorLiquidoFolha(f), 0);
+  const totalPendente = totalMes - totalPago;
+  const totalVale = itensDoMes.filter((f) => f.tipoPagamento === "Vale").reduce((s, f) => s + valorLiquidoFolha(f), 0);
+  const totalSalario = itensDoMes.filter((f) => f.tipoPagamento === "Salário").reduce((s, f) => s + valorLiquidoFolha(f), 0);
+
+  // Cada item da folha, quando pago, gera/atualiza uma despesa (categoria
+  // Funcionários) — que por sua vez já aparece em Contas a Pagar, do
+  // mesmo jeito que já fizemos com as Despesas Fixas.
+  const sincronizarDespesa = (item, financeiroBase) => {
+    if (!financeiro || !onChangeFinanceiro) return;
+    const existente = financeiroBase.find((c) => c.folhaId === item.id);
+    const nomeMes = new Date(`${item.mesReferencia}-01T00:00:00`).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+    const contaAtualizada = {
+      id: existente?.id || uid(),
+      folhaId: item.id,
+      tipo: "Pagar",
+      descricao: `Funcionários — ${item.funcionario} — ${item.tipoPagamento} (${nomeMes})`,
+      fornecedor: "Funcionários",
+      pedido: "",
+      valor: valorLiquidoFolha(item),
+      vencimento: item.vencimento || vencimentoSugerido(item.mesReferencia, item.tipoPagamento),
+      dataPagamento: item.status === "Pago" ? item.dataPagamento || hojeISO : "",
+      status: item.status === "Pago" ? "Pago" : "Pendente",
+      formaPagamento: existente?.formaPagamento || "",
+    };
+    onChangeFinanceiro(existente ? financeiroBase.map((c) => (c.id === existente.id ? contaAtualizada : c)) : [...financeiroBase, contaAtualizada]);
+  };
+
+  const save = (item) => {
+    const exists = folha.some((f) => f.id === item.id);
+    const novaLista = exists ? folha.map((f) => (f.id === item.id ? item : f)) : [...folha, item];
+    onChange(novaLista);
+    sincronizarDespesa(item, financeiro || []);
+    setEditing(null);
+  };
+  const remove = (id) => {
+    onChange(folha.filter((f) => f.id !== id));
+    if (financeiro && onChangeFinanceiro) {
+      onChangeFinanceiro(financeiro.filter((c) => c.folhaId !== id));
+    }
+    setDeleting(null);
+  };
+  const marcarPago = (item) => {
+    const atualizado = { ...item, status: "Pago", dataPagamento: item.dataPagamento || hojeISO };
+    onChange(folha.map((f) => (f.id === item.id ? atualizado : f)));
+    sincronizarDespesa(atualizado, financeiro || []);
+  };
+
+  // "Gerar novo mês": pra cada funcionário cadastrado (ou já usado antes,
+  // se ainda não tiver cadastro), cria os dois lançamentos do mês — Vale
+  // (dia 20) e Salário (5º dia útil do mês seguinte) — copiando os valores
+  // fixos do lançamento anterior do mesmo tipo, zerando desconto/premiação.
+  const gerarNovoMes = () => {
+    const proximoMes = new Date();
+    proximoMes.setDate(1);
+    const mesReferencia = proximoMes.toISOString().slice(0, 7);
+    if (folha.some((f) => f.mesReferencia === mesReferencia)) {
+      setMesSelecionado(mesReferencia);
+      setGerando(false);
+      return;
+    }
+
+    const nomesFuncionarios =
+      funcionarios && funcionarios.length > 0
+        ? funcionarios.map((f) => f.nome)
+        : [...new Set(folha.map((f) => f.funcionario))];
+
+    const novosItens = [];
+    nomesFuncionarios.forEach((nome) => {
+      ["Vale", "Salário"].forEach((tipo) => {
+        const anterior = [...folha]
+          .filter((f) => f.funcionario === nome && f.tipoPagamento === tipo)
+          .sort((a, b) => b.mesReferencia.localeCompare(a.mesReferencia))[0];
+        novosItens.push({
+          ...emptyFolhaItem(mesReferencia, nome, tipo),
+          salarioBase: anterior?.salarioBase || "",
+          valeTransporte: anterior?.valeTransporte || "",
+          valeAlimentacao: anterior?.valeAlimentacao || "",
+          ajudaCusto: anterior?.ajudaCusto || "",
+        });
+      });
+    });
+
+    onChange([...folha, ...novosItens]);
+    setMesSelecionado(mesReferencia);
+    setGerando(false);
+  };
+
+  const nomeMesSelecionado = new Date(`${mesSelecionado}-01T00:00:00`).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+
+  return (
+    <div className="tl-fade-in">
+      <PageHeader
+        eyebrow="Operação"
+        title="Folha de Pagamento"
+        action={
+          <div style={{ display: "flex", gap: "8px" }}>
+            <Button icon={FileText} variant="subtle" onClick={() => setVerRelatorio(true)}>Relatório mensal</Button>
+            <Button icon={Copy} variant="subtle" onClick={gerarNovoMes}>Gerar mês atual</Button>
+            <Button icon={Plus} onClick={() => setEditing(abrirNovoRegistro("folha", () => emptyFolhaItem(mesSelecionado)))}>Novo funcionário</Button>
+          </div>
+        }
+      />
+
+      <div style={{ display: "flex", gap: "10px", alignItems: "flex-end", marginBottom: "18px", flexWrap: "wrap" }}>
+        <Field label="Mês de referência">
+          <Select value={mesSelecionado} onChange={(e) => setMesSelecionado(e.target.value)} style={{ width: "200px" }}>
+            {!mesesExistentes.includes(mesSelecionado) && <option value={mesSelecionado}>{nomeMesSelecionado}</option>}
+            {mesesExistentes.map((m) => (
+              <option key={m} value={m}>{new Date(`${m}-01T00:00:00`).toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}</option>
+            ))}
+          </Select>
+        </Field>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "12px", marginBottom: "20px" }}>
+        <MiniStat label="Total da folha" valor={money(totalMes)} />
+        <MiniStat label="Já pago" valor={money(totalPago)} cor="var(--success)" />
+        <MiniStat label="Pendente" valor={money(totalPendente)} cor="var(--amber)" />
+        <MiniStat label="Vale (dia 20)" valor={money(totalVale)} cor="#B98FE8" />
+        <MiniStat label="Salário (5º dia útil)" valor={money(totalSalario)} cor="#6FA3D6" />
+      </div>
+
+      {itensDoMes.length === 0 ? (
+        <EmptyState
+          icon={UserCheck}
+          title="Nenhum funcionário nesse mês ainda"
+          hint={mesesExistentes.length > 0 ? "Clique em \"Gerar mês atual\" pra copiar do mês anterior, ou adicione um funcionário novo." : "Comece adicionando o primeiro funcionário."}
+        />
+      ) : (
+        <Table
+          columns={["Funcionário", "Tipo", "Vencimento", "Líquido", "Status", ""]}
+          rows={itensDoMes.map((f) => {
+            const atrasado = f.status !== "Pago" && f.vencimento && dataOrdenavel(f.vencimento) < hojeISO;
+            return (
+              <tr key={f.id} style={rowStyle}>
+                <td style={{ ...tdStyle, fontWeight: 500 }}>{f.funcionario}</td>
+                <td style={tdStyle}>
+                  <span style={{ fontSize: "11px", padding: "2px 8px", borderRadius: "10px", background: f.tipoPagamento === "Vale" ? "#3D2B54" : "#2C3F55", color: f.tipoPagamento === "Vale" ? "#CBA6F2" : "#8CBCE8" }}>
+                    {f.tipoPagamento}
+                  </span>
+                </td>
+                <td style={{ ...tdStyle, color: atrasado ? "var(--danger)" : "var(--text-muted)" }}>{fmtDate(f.vencimento)}</td>
+                <td style={{ ...tdStyle, fontWeight: 700 }} className="tl-mono">{money(valorLiquidoFolha(f))}</td>
+                <td style={tdStyle}>
+                  {f.status === "Pago" ? (
+                    <StatusBadge status="PAGO" />
+                  ) : (
+                    <button onClick={() => marcarPago(f)} className="tl-focus" style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }} title="Clique pra marcar como pago">
+                      <StatusBadge status={atrasado ? "CANCELADO" : "EM ABERTO"} />
+                    </button>
+                  )}
+                </td>
+                <td style={{ ...tdStyle, textAlign: "right" }}>
+                  <RowActions onEdit={() => setEditing(f)} onDelete={() => setDeleting(f)} />
+                </td>
+              </tr>
+            );
+          })}
+        />
+      )}
+
+      {editing && <FolhaItemForm initial={editing} onSave={save} onClose={() => setEditing(null)} funcionarios={funcionarios} />}
+      {deleting && (
+        <ConfirmDelete label={`o lançamento de "${deleting.funcionario}"`} dados={deleting} onConfirm={() => remove(deleting.id)} onCancel={() => setDeleting(null)} />
+      )}
+      {verRelatorio && (
+        <RelatorioMensalFolha mes={mesSelecionado} itens={itensDoMes} onClose={() => setVerRelatorio(false)} />
+      )}
+    </div>
+  );
+}
+
+function RelatorioMensalFolha({ mes, itens, onClose }) {
+  const [gerandoPdf, setGerandoPdf] = useState(false);
+  const [aviso, setAviso] = useState("");
+
+  const nomeMes = new Date(`${mes}-01T00:00:00`).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+  const totalGeral = itens.reduce((s, f) => s + valorLiquidoFolha(f), 0);
+  const totalPago = itens.filter((f) => f.status === "Pago").reduce((s, f) => s + valorLiquidoFolha(f), 0);
+  const totalPendente = totalGeral - totalPago;
+
+  const porFuncionario = useMemo(() => {
+    const mapa = new Map();
+    itens.forEach((f) => {
+      if (!mapa.has(f.funcionario)) mapa.set(f.funcionario, []);
+      mapa.get(f.funcionario).push(f);
+    });
+    return [...mapa.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+  }, [itens]);
+
+  const enviar = async () => {
+    setGerandoPdf(true);
+    setAviso("");
+    const blob = await gerarPdfFolhaPagamento(mes, itens);
+    setGerandoPdf(false);
+
+    const texto =
+      `*Relatório de Folha de Pagamento — ${nomeMes}*\n\n` +
+      `Funcionários: ${porFuncionario.length}\n` +
+      `Total da folha: ${money(totalGeral)}\n` +
+      `Já pago: ${money(totalPago)}\n` +
+      `Pendente: ${money(totalPendente)}\n\n${PREFS_ATUAL_REF?.nomeEmpresa || "RJL Mix Concreto"}`;
+
+    if (!blob) {
+      setAviso("Ainda não gero PDF de verdade — mandando como texto. Pra enviar com a logo, use "Imprimir" e escolha "Salvar como PDF".");
+      window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, "_blank");
+      return;
+    }
+
+    const fileName = `folha-pagamento-${mes}.pdf`;
+    const file = new File([blob], fileName, { type: "application/pdf" });
+
+    if (ehCelular && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: `Folha de Pagamento - ${nomeMes}`, text: PREFS_ATUAL_REF?.nomeEmpresa || "RJL Mix Concreto" });
+        return;
+      } catch (e) {
+        /* segue pro download abaixo */
+      }
+    }
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    window.alert(`PDF baixado como "${fileName}" (confira a pasta Downloads).\n\nO WhatsApp vai abrir agora só com o texto — anexe esse arquivo baixado na conversa antes de enviar.`);
+    window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, "_blank");
+    setAviso("PDF baixado e WhatsApp aberto — é só anexar o arquivo baixado na conversa.");
+  };
+
+  return (
+    <Modal title={`Relatório mensal — ${nomeMes}`} onClose={onClose} wide>
+      <div className="tl-print-area" style={{ background: "#fff", color: "#1a1a1a", borderRadius: "6px", padding: "28px", fontFamily: "Inter, sans-serif" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", borderBottom: "2px solid #1a1a1a", paddingBottom: "14px", marginBottom: "20px" }}>
+          <img src={LOGO_DATA_URI()} onError={onLogoError} alt="" style={{ width: "44px", height: "44px", borderRadius: "6px" }} />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "19px" }}>{PREFS_ATUAL_REF?.nomeEmpresa || "RJL Mix Concreto"}</div>
+            <div style={{ fontSize: "11px", color: "#555" }}>{[PREFS_ATUAL_REF?.cnpjEmpresa ? `CNPJ: ${PREFS_ATUAL_REF.cnpjEmpresa}` : "", PREFS_ATUAL_REF?.enderecoEmpresa || ""].filter(Boolean).join(" — ") || "Dados da empresa em Configurações"}</div>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700, fontSize: "17px", textTransform: "capitalize" }}>FOLHA DE PAGAMENTO</div>
+            <div style={{ fontSize: "11px", color: "#555", textTransform: "capitalize" }}>{nomeMes}</div>
+          </div>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px", marginBottom: "20px" }}>
+          <div style={{ background: "#f5f5f5", borderRadius: "6px", padding: "10px 12px" }}>
+            <div style={{ fontSize: "10.5px", color: "#777" }}>TOTAL DA FOLHA</div>
+            <div style={{ fontSize: "16px", fontWeight: 700 }}>{money(totalGeral)}</div>
+          </div>
+          <div style={{ background: "#f5f5f5", borderRadius: "6px", padding: "10px 12px" }}>
+            <div style={{ fontSize: "10.5px", color: "#777" }}>JÁ PAGO</div>
+            <div style={{ fontSize: "16px", fontWeight: 700, color: "#2e7d32" }}>{money(totalPago)}</div>
+          </div>
+          <div style={{ background: "#f5f5f5", borderRadius: "6px", padding: "10px 12px" }}>
+            <div style={{ fontSize: "10.5px", color: "#777" }}>PENDENTE</div>
+            <div style={{ fontSize: "16px", fontWeight: 700, color: "#c77700" }}>{money(totalPendente)}</div>
+          </div>
+        </div>
+
+        {porFuncionario.length === 0 ? (
+          <p style={{ fontSize: "13px", color: "#777" }}>Nenhum lançamento nesse mês ainda.</p>
+        ) : (
+          porFuncionario.map(([nome, lancamentos]) => {
+            const totalFuncionario = lancamentos.reduce((s, f) => s + valorLiquidoFolha(f), 0);
+            return (
+              <div key={nome} style={{ marginBottom: "16px" }}>
+                <strong style={{ fontSize: "13.5px" }}>{nome} — {money(totalFuncionario)}</strong>
+                {lancamentos.map((f) => (
+                  <div key={f.id} style={{ borderBottom: "1px solid #eee", padding: "6px 0" }}>
+                    <ReportRow
+                      label={`${f.tipoPagamento} — vencimento ${fmtDate(f.vencimento)} (${f.status})`}
+                      value={<strong>{money(valorLiquidoFolha(f))}</strong>}
+                    />
+                    <div style={{ fontSize: "11px", color: "#777", paddingLeft: "4px" }}>
+                      Salário: {money(f.salarioBase)} · Vale transp.: {money(f.valeTransporte)} · Vale alim.: {money(f.valeAlimentacao)} · Ajuda de custo: {money(f.ajudaCusto)}
+                      {numeroSeguro(f.premiacao) > 0 && ` · Premiação: +${money(f.premiacao)}`}
+                      {numeroSeguro(f.desconto) > 0 && ` · Desconto: -${money(f.desconto)}`}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "16px", flexWrap: "wrap" }}>
+        <Button variant="ghost" onClick={onClose}>Fechar</Button>
+        <Button
+          variant="subtle"
+          icon={MessageCircle}
+          disabled={gerandoPdf}
+          style={{ background: "#25D366", color: "#fff", borderColor: "#25D366", fontWeight: 700 }}
+          onClick={enviar}
+        >
+          {gerandoPdf ? "Gerando PDF..." : "WhatsApp"}
+        </Button>
+        <Button icon={Printer} onClick={() => window.print()}>Imprimir</Button>
+      </div>
+      {aviso && <p style={{ fontSize: "12.5px", color: "var(--amber)", marginTop: "10px", textAlign: "right" }}>{aviso}</p>}
+    </Modal>
+  );
+}
+
+function FolhaItemForm({ initial, onSave, onClose, funcionarios }) {
+  const [form, setForm] = useState(initial);
+  const [rascunhoRecuperado] = useState(() => !!initial.__rascunho);
+  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+  const liquido = valorLiquidoFolha(form);
+
+  useEffect(() => {
+    salvarRascunho("folha", form);
+  }, [form]);
+
+  // Muda o mês ou o tipo (Vale/Salário) e a data de vencimento sugerida se
+  // atualiza sozinha — mas só se o usuário ainda não tiver mexido nela.
+  const setMesOuTipo = (k) => (e) => {
+    const novoForm = { ...form, [k]: e.target.value };
+    novoForm.vencimento = vencimentoSugerido(novoForm.mesReferencia, novoForm.tipoPagamento);
+    setForm(novoForm);
+  };
+
+  return (
+    <Modal title={initial.funcionario ? "Editar lançamento" : "Novo funcionário na folha"} onClose={() => { limparRascunho("folha"); onClose(); }}>
+      {rascunhoRecuperado && <RascunhoBanner />}
+      <form onSubmit={(e) => { e.preventDefault(); limparRascunho("folha"); onSave(form); }}>
+        <Field label="Nome do funcionário" required>
+          {funcionarios && funcionarios.length > 0 ? (
+            <Select value={form.funcionario} onChange={set("funcionario")} required>
+              <option value="">Selecione...</option>
+              {porNome(funcionarios).map((f) => (
+                <option key={f.id} value={f.nome}>{f.nome}</option>
+              ))}
+              {form.funcionario && !funcionarios.some((f) => f.nome === form.funcionario) && (
+                <option value={form.funcionario}>{form.funcionario}</option>
+              )}
+            </Select>
+          ) : (
+            <Input value={form.funcionario} onChange={set("funcionario")} placeholder="Ex: João da Silva" required />
+          )}
+        </Field>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+          <Field label="Mês de referência">
+            <Input type="month" value={form.mesReferencia} onChange={setMesOuTipo("mesReferencia")} />
+          </Field>
+          <Field label="Tipo de pagamento">
+            <Select value={form.tipoPagamento} onChange={setMesOuTipo("tipoPagamento")}>
+              <option value="Vale">Vale (dia 20)</option>
+              <option value="Salário">Salário (5º dia útil)</option>
+            </Select>
+          </Field>
+        </div>
+        <Field label="Data de vencimento" hint="Sugerida automaticamente — pode ajustar se precisar">
+          <Input type="date" value={form.vencimento} onChange={set("vencimento")} />
+        </Field>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+          <Field label="Salário base (R$)">
+            <Input type="number" step="0.01" value={form.salarioBase} onChange={set("salarioBase")} />
+          </Field>
+          <Field label="Vale transporte (R$)">
+            <Input type="number" step="0.01" value={form.valeTransporte} onChange={set("valeTransporte")} />
+          </Field>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+          <Field label="Vale alimentação (R$)">
+            <Input type="number" step="0.01" value={form.valeAlimentacao} onChange={set("valeAlimentacao")} />
+          </Field>
+          <Field label="Ajuda de custo (R$)">
+            <Input type="number" step="0.01" value={form.ajudaCusto} onChange={set("ajudaCusto")} />
+          </Field>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+          <Field label="Premiação (R$)" hint="Soma no total">
+            <Input type="number" step="0.01" value={form.premiacao} onChange={set("premiacao")} />
+          </Field>
+          <Field label="Desconto (R$)" hint="Subtrai — ex: vale já adiantado, falta">
+            <Input type="number" step="0.01" value={form.desconto} onChange={set("desconto")} />
+          </Field>
+        </div>
+
+        <div style={{ background: "var(--bg-base)", border: "1px solid var(--border-soft)", borderRadius: "6px", padding: "10px 12px", marginBottom: "16px", display: "flex", justifyContent: "space-between" }}>
+          <span style={{ fontSize: "13px", color: "var(--text-muted)" }}>Valor líquido a pagar</span>
+          <strong className="tl-mono">{money(liquido)}</strong>
+        </div>
+
+        <Field label="Status">
+          <Select value={form.status} onChange={set("status")}>
+            <option value="Pendente">Pendente</option>
+            <option value="Pago">Pago</option>
+          </Select>
+        </Field>
+        {form.status === "Pago" && (
+          <Field label="Data do pagamento">
+            <Input type="date" value={form.dataPagamento} onChange={set("dataPagamento")} />
+          </Field>
+        )}
+
+        <Field label="Observação (opcional)">
+          <TextArea value={form.observacao} onChange={set("observacao")} placeholder="Ex: motivo do desconto, motivo da premiação..." />
+        </Field>
+
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "6px" }}>
+          <Button type="button" variant="ghost" onClick={() => { limparRascunho("folha"); onClose(); }}>Cancelar</Button>
+          <Button type="submit">Salvar</Button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function DespesasModule({ despesas, onChange, financeiro, onChangeFinanceiro }) {
+  const [editing, setEditing] = useState(null);
+  const [deleting, setDeleting] = useState(null);
+  const [filtroCategoria, setFiltroCategoria] = useState("todas");
+  const [filtroStatus, setFiltroStatus] = useState("todos");
+
+  const hojeISO = new Date().toISOString().slice(0, 10);
+
+  // Cada despesa fica amarrada a uma conta a pagar correspondente
+  // (via despesaId) — cria na hora se ainda não existir, ou atualiza se já
+  // existir. Assim ela aparece automaticamente em Contas a Pagar.
+  const sincronizarConta = (despesa, contasBase) => {
+    if (!financeiro || !onChangeFinanceiro) return;
+    const existente = contasBase.find((c) => c.despesaId === despesa.id);
+    const contaAtualizada = {
+      id: existente?.id || uid(),
+      despesaId: despesa.id,
+      tipo: "Pagar",
+      descricao: `${despesa.categoria} — ${despesa.descricao}`,
+      fornecedor: despesa.categoria,
+      pedido: "",
+      valor: numeroSeguro(despesa.valor),
+      vencimento: despesa.vencimento || "",
+      dataPagamento: despesa.status === "Pago" ? despesa.dataPagamento || hojeISO : "",
+      status: despesa.status === "Pago" ? "Pago" : "Pendente",
+      formaPagamento: existente?.formaPagamento || "",
+    };
+    onChangeFinanceiro(existente ? contasBase.map((c) => (c.id === existente.id ? contaAtualizada : c)) : [...contasBase, contaAtualizada]);
+  };
+
+  const save = (record) => {
+    const exists = despesas.some((r) => r.id === record.id);
+    onChange(exists ? despesas.map((r) => (r.id === record.id ? record : r)) : [...despesas, record]);
+    sincronizarConta(record, financeiro || []);
+    setEditing(null);
+  };
+  const remove = (id) => {
+    onChange(despesas.filter((r) => r.id !== id));
+    if (financeiro && onChangeFinanceiro) {
+      onChangeFinanceiro(financeiro.filter((c) => c.despesaId !== id));
+    }
+    setDeleting(null);
+  };
+  const marcarPago = (r) => {
+    const atualizada = { ...r, status: "Pago", dataPagamento: r.dataPagamento || hojeISO };
+    onChange(despesas.map((d) => (d.id === r.id ? atualizada : d)));
+    sincronizarConta(atualizada, financeiro || []);
+  };
+
+  const filtradas = despesas.filter((d) => {
+    if (filtroCategoria !== "todas" && d.categoria !== filtroCategoria) return false;
+    if (filtroStatus === "pendentes" && d.status === "Pago") return false;
+    if (filtroStatus === "pagas" && d.status !== "Pago") return false;
+    if (filtroStatus === "atrasadas" && !(d.status !== "Pago" && d.vencimento && dataOrdenavel(d.vencimento) < hojeISO)) return false;
+    return true;
+  });
+
+  const totalPendente = despesas.filter((d) => d.status !== "Pago").reduce((s, d) => s + numeroSeguro(d.valor), 0);
+  const totalPagoMes = despesas
+    .filter((d) => d.status === "Pago" && (d.dataPagamento || "").slice(0, 7) === hojeISO.slice(0, 7))
+    .reduce((s, d) => s + numeroSeguro(d.valor), 0);
+  const totalAtrasado = despesas.filter((d) => d.status !== "Pago" && d.vencimento && dataOrdenavel(d.vencimento) < hojeISO).reduce((s, d) => s + numeroSeguro(d.valor), 0);
+
+  const porCategoria = useMemo(() => {
+    const mapa = new Map();
+    despesas.filter((d) => d.status !== "Pago").forEach((d) => {
+      mapa.set(d.categoria, (mapa.get(d.categoria) || 0) + numeroSeguro(d.valor));
+    });
+    return [...mapa.entries()].sort((a, b) => b[1] - a[1]);
+  }, [despesas]);
+
+  return (
+    <div className="tl-fade-in">
+      <PageHeader
+        eyebrow="Operação"
+        title="Despesas Fixas"
+        action={<Button icon={Plus} onClick={() => setEditing(abrirNovoRegistro("despesa", emptyDespesa))}>Nova despesa</Button>}
+      />
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "12px", marginBottom: "20px" }}>
+        <MiniStat label="Em aberto" valor={money(totalPendente)} cor="var(--amber)" />
+        <MiniStat label="Pago este mês" valor={money(totalPagoMes)} cor="var(--success)" />
+        <MiniStat label="Atrasadas" valor={money(totalAtrasado)} cor="var(--danger)" />
+      </div>
+
+      {porCategoria.length > 0 && (
+        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "20px" }}>
+          {porCategoria.map(([cat, valor]) => (
+            <div key={cat} style={{ background: "var(--bg-panel)", border: "1px solid var(--border-soft)", borderRadius: "7px", padding: "8px 12px", fontSize: "12px" }}>
+              <span style={{ color: "var(--text-muted)" }}>{cat}:</span> <strong className="tl-mono">{money(valor)}</strong>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div style={{ display: "flex", gap: "8px", marginBottom: "16px", flexWrap: "wrap" }}>
+        <Select value={filtroCategoria} onChange={(e) => setFiltroCategoria(e.target.value)} style={{ width: "180px" }}>
+          <option value="todas">Toda categoria</option>
+          {CATEGORIAS_DESPESA.map((c) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </Select>
+        <Select value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value)} style={{ width: "160px" }}>
+          <option value="todos">Todo status</option>
+          <option value="pendentes">Só pendentes</option>
+          <option value="pagas">Só pagas</option>
+          <option value="atrasadas">Só atrasadas</option>
+        </Select>
+      </div>
+
+      {filtradas.length === 0 ? (
+        <EmptyState icon={Home} title="Nenhuma despesa cadastrada" hint="Cadastre aluguel, água, luz, funcionários e outras contas fixas da empresa." />
+      ) : (
+        <Table
+          columns={["Categoria", "Descrição", "Vencimento", "Valor", "Status", ""]}
+          rows={[...filtradas]
+            .sort((a, b) => dataOrdenavel(b.vencimento).localeCompare(dataOrdenavel(a.vencimento)))
+            .map((d) => {
+              const atrasada = d.status !== "Pago" && d.vencimento && dataOrdenavel(d.vencimento) < hojeISO;
+              return (
+                <tr key={d.id} style={rowStyle}>
+                  <td style={tdStyle}>{d.categoria}</td>
+                  <td style={{ ...tdStyle, fontWeight: 500 }}>
+                    {d.descricao || "-"}{d.recorrente && <span title="Recorrente mensal" style={{ marginLeft: "6px", fontSize: "10px", color: "var(--text-faint)" }}>↻</span>}
+                  </td>
+                  <td style={{ ...tdStyle, color: atrasada ? "var(--danger)" : "var(--text-muted)" }}>{fmtDate(d.vencimento)}</td>
+                  <td style={{ ...tdStyle, fontWeight: 600 }} className="tl-mono">{money(d.valor)}</td>
+                  <td style={tdStyle}>
+                    {d.status === "Pago" ? (
+                      <StatusBadge status="PAGO" />
+                    ) : (
+                      <button onClick={() => marcarPago(d)} className="tl-focus" style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }} title="Clique pra marcar como pago">
+                        <StatusBadge status={atrasada ? "CANCELADO" : "EM ABERTO"} />
+                      </button>
+                    )}
+                  </td>
+                  <td style={{ ...tdStyle, textAlign: "right" }}>
+                    <RowActions onEdit={() => setEditing(d)} onDelete={() => setDeleting(d)} />
+                  </td>
+                </tr>
+              );
+            })}
+        />
+      )}
+
+      {editing && <DespesaForm initial={editing} onSave={save} onClose={() => setEditing(null)} />}
+      {deleting && (
+        <ConfirmDelete label={`a despesa "${deleting.descricao || deleting.categoria}"`} dados={deleting} onConfirm={() => remove(deleting.id)} onCancel={() => setDeleting(null)} />
+      )}
+    </div>
+  );
+}
+
+function DespesaForm({ initial, onSave, onClose }) {
+  const [form, setForm] = useState(initial);
+  const [rascunhoRecuperado] = useState(() => !!initial.__rascunho);
+  const set = (k) => (e) => setForm({ ...form, [k]: e.target.type === "checkbox" ? e.target.checked : e.target.value });
+
+  useEffect(() => {
+    salvarRascunho("despesa", form);
+  }, [form]);
+
+  return (
+    <Modal title={initial.descricao ? "Editar despesa" : "Nova despesa"} onClose={() => { limparRascunho("despesa"); onClose(); }}>
+      {rascunhoRecuperado && <RascunhoBanner />}
+      <form onSubmit={(e) => { e.preventDefault(); limparRascunho("despesa"); onSave({ ...form, valor: numeroSeguro(form.valor) }); }}>
+        <Field label="Categoria">
+          <Select value={form.categoria} onChange={set("categoria")}>
+            {CATEGORIAS_DESPESA.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </Select>
+        </Field>
+        <Field label="Descrição" required>
+          <Input value={form.descricao} onChange={set("descricao")} placeholder="Ex: Salário João, Aluguel do pátio..." required />
+        </Field>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+          <Field label="Valor (R$)" required>
+            <Input type="number" step="0.01" value={form.valor} onChange={set("valor")} required />
+          </Field>
+          <Field label="Vencimento">
+            <Input type="date" value={form.vencimento} onChange={set("vencimento")} />
+          </Field>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 16px" }}>
+          <Field label="Status">
+            <Select value={form.status} onChange={set("status")}>
+              <option value="Pendente">Pendente</option>
+              <option value="Pago">Pago</option>
+            </Select>
+          </Field>
+          {form.status === "Pago" && (
+            <Field label="Data do pagamento">
+              <Input type="date" value={form.dataPagamento} onChange={set("dataPagamento")} />
+            </Field>
+          )}
+        </div>
+
+        <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", marginBottom: "14px", cursor: "pointer" }}>
+          <input type="checkbox" checked={form.recorrente} onChange={set("recorrente")} />
+          Recorrente (repete todo mês — ex: aluguel, água, luz)
+        </label>
+
+        <Field label="Observação (opcional)">
+          <TextArea value={form.observacao} onChange={set("observacao")} />
+        </Field>
+
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", marginTop: "6px" }}>
+          <Button type="button" variant="ghost" onClick={() => { limparRascunho("despesa"); onClose(); }}>Cancelar</Button>
+          <Button type="submit">Salvar despesa</Button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+
+
+
+
+
+
+
+/* ------------------------------------------------------------------ */
+/*  Modo Campo — acesso restrito para equipe em obra                    */
+/* ------------------------------------------------------------------ */
+function CampoShell({ maquinas, manutencoes, controleDiario, onChangeManutencoes, onChangeControleDiario }) {
+  const [aba, setAba] = useState("abastecimento");
+
+  return (
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "14px 18px", borderBottom: "1px solid var(--border-soft)", background: "var(--bg-panel)" }}>
+        <img src={LOGO_DATA_URI()} onError={onLogoError} alt="" style={{ width: "34px", height: "34px", borderRadius: "6px", background: "#F5F2E9" }} />
+        <div>
+          <div className="tl-display" style={{ fontSize: "16px", fontWeight: 700, lineHeight: 1 }}>
+            {PREFS_ATUAL_REF?.nomeEmpresa || "RJL Mix Concreto"}
+          </div>
+          <div className="tl-mono" style={{ fontSize: "9px", color: "var(--text-faint)", marginTop: "2px" }}>ACESSO DE CAMPO</div>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", gap: "2px", padding: "10px 14px", background: "var(--bg-panel)", borderBottom: "1px solid var(--border-soft)" }}>
+        {[
+          { id: "abastecimento", label: "Abastecimento", icon: Fuel },
+          { id: "apontamento", label: "Apontamento", icon: Gauge },
+        ].map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setAba(t.id)}
+            className="tl-focus"
+            style={{
+              flex: 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "6px",
+              padding: "10px",
+              borderRadius: "6px",
+              border: "none",
+              cursor: "pointer",
+              background: aba === t.id ? "var(--bg-panel-raised)" : "transparent",
+              color: aba === t.id ? "var(--text-primary)" : "var(--text-muted)",
+              fontSize: "13px",
+              fontWeight: aba === t.id ? 600 : 500,
+            }}
+          >
+            <t.icon size={15} />
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ flex: 1, padding: "20px", maxWidth: "700px", margin: "0 auto", width: "100%" }}>
+        {aba === "abastecimento" && (
+          <CampoAbastecimento maquinas={maquinas} manutencoes={manutencoes} onChange={onChangeManutencoes} />
+        )}
+        {aba === "apontamento" && (
+          <ControleDiarioModule
+            registros={controleDiario}
+            maquinas={maquinas}
+            onChange={onChangeControleDiario}
+            isAdmin={false}
+            requireAdmin={(action) => action()}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CampoAbastecimento({ maquinas, manutencoes, onChange }) {
+  const [editing, setEditing] = useState(null);
+  const abastecimentos = manutencoes.filter((m) => m.tipo === "Abastecimento");
+
+  const salvar = (r) => {
+    onChange([...manutencoes, r]);
+    setEditing(null);
+  };
+
+  return (
+    <div className="tl-fade-in">
+      <PageHeader eyebrow="Registro de campo" title="Abastecimento" action={<Button icon={Plus} onClick={() => setEditing({ ...emptyManutencao(), tipo: "Abastecimento" })}>Novo abastecimento</Button>} />
+
+      {abastecimentos.length === 0 ? (
+        <EmptyState icon={Fuel} title="Nenhum abastecimento registrado ainda" hint="Registre sempre que abastecer uma máquina." />
+      ) : (
+        <Table
+          columns={["Máquina", "Data", "Litros", "Descrição", ""]}
+          rows={[...abastecimentos].sort((a, b) => (b.data || "").localeCompare(a.data || "")).slice(0, 30).map((r) => (
+            <tr key={r.id} style={rowStyle}>
+              <td style={{ ...tdStyle, fontWeight: 500 }}>{maquinas.find((m) => m.id === r.maquinaId)?.nome || "-"}</td>
+              <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{fmtDate(r.data)}</td>
+              <td style={tdStyle} className="tl-mono">{r.litros || "-"} L</td>
+              <td style={{ ...tdStyle, color: "var(--text-muted)" }}>{r.descricao || "-"}</td>
+              <td style={tdStyle}></td>
+            </tr>
+          ))}
+        />
+      )}
+
+      {editing && <ManutencaoForm initial={editing} maquinas={maquinas} onSave={salvar} onClose={() => setEditing(null)} />}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Mascote guia — escavadeira animada com tour passo a passo           */
+/* ------------------------------------------------------------------ */
+const TOUR_PASSOS = [
+  {
+    titulo: "Oi, eu sou o Betoninho! 👋",
+    texto: "Vou te mostrar rapidinho as principais partes do sistema. Você pode pular a qualquer momento, e chamar de novo sempre que quiser clicando em mim, ali no canto.",
+  },
+  {
+    titulo: "Painel",
+    texto: "É a tela inicial — mostra os números do dia (pedidos em aberto, propostas, financeiro) e o calendário com as máquinas trabalhando. Clique em qualquer cartão pra ir direto naquela área.",
+  },
+  {
+    titulo: "Clientes e Produção",
+    texto: "Em Clientes você cadastra quem contratou o serviço, com um número de pedido. Esse número conecta tudo: em Produção você lança o trabalho feito, e o cliente aparece sozinho.",
+  },
+  {
+    titulo: "Propostas",
+    texto: "Pode gerar uma proposta a partir de um pedido já lançado em Produção, ou criar uma do zero. Dá pra imprimir ou mandar por WhatsApp com a logo da empresa.",
+  },
+  {
+    titulo: "Financeiro",
+    texto: "Contas a pagar e a receber, com boletos, atrasados e um relatório diário, semanal e mensal. Quando uma conta a receber é marcada como paga, dá pra emitir um recibo pro cliente na hora.",
+  },
+  {
+    titulo: "Agenda e Cubicagem",
+    texto: "A Agenda tem um calendário mostrando compromissos e quais máquinas estão em obra em cada dia. A Cubicagem de Concretagem ajuda a calcular o volume de concreto de uma obra e quantas viagens de caminhão-betoneira isso representa.",
+  },
+  {
+    titulo: "Configurações",
+    texto: "Aqui você cadastra as pessoas que usam o sistema (com senha individual), acompanha quem entrou e o que foi excluído, ajusta o tema, o tamanho da letra, e cadastra máquinas, operadores e vendedores.",
+  },
+  {
+    titulo: "Pronto! 🎉",
+    texto: "É isso — comece explorando, e sempre que tiver dúvida é só clicar em mim de novo. Bom trabalho!",
+  },
+];
+
+function EscavadeiraAndando() {
+  return (
+    <div style={{ width: "180px", height: "56px", margin: "0 auto", position: "relative", overflow: "hidden" }}>
+      <style>{`
+        @keyframes tlAndar {
+          0% { left: -10px; transform: scaleX(1); }
+          45% { left: 130px; transform: scaleX(1); }
+          50% { left: 130px; transform: scaleX(-1); }
+          95% { left: -10px; transform: scaleX(-1); }
+          100% { left: -10px; transform: scaleX(1); }
+        }
+        .tl-andando { animation: tlAndar 3.2s ease-in-out infinite; }
+      `}</style>
+      <div
+        className="tl-andando"
+        style={{ position: "absolute", bottom: "6px", width: "60px", transformOrigin: "center" }}
+      >
+        <Escavadeirinha tamanho={56} />
+      </div>
+      <div style={{ position: "absolute", bottom: "2px", left: 0, right: 0, height: "2px", background: "var(--border-soft)" }} />
+    </div>
+  );
+}
+
+// Mascote da betoneira, andando de um lado pro outro — usada na tela de
+// carregamento. Antes era uma imagem pronta que, sem ninguém perceber,
+// ainda trazia a marca "RJL" estampada no tambor (sobra de outro
+// sistema). Agora é um desenho vetorial (SVG) montado do zero, em cores
+// neutras — sem depender de nenhuma imagem externa.
+function BetoneiraAndando() {
+  return (
+    <div style={{ width: "180px", height: "70px", margin: "0 auto", position: "relative", overflow: "hidden" }}>
+      <style>{`
+        @keyframes tlAndarBetoneira {
+          0% { left: -20px; transform: scaleX(1); }
+          45% { left: 110px; transform: scaleX(1); }
+          50% { left: 110px; transform: scaleX(-1); }
+          95% { left: -20px; transform: scaleX(-1); }
+          100% { left: -20px; transform: scaleX(1); }
+        }
+        .tl-andando-betoneira { animation: tlAndarBetoneira 3.2s ease-in-out infinite; }
+      `}</style>
+      <div className="tl-andando-betoneira" style={{ position: "absolute", bottom: "10px", width: "70px", transformOrigin: "center" }}>
+        <Betoneirinha tamanho={70} animando={true} />
+      </div>
+      <div style={{ position: "absolute", bottom: "6px", left: 0, right: 0, height: "2px", background: "var(--border-soft)" }} />
+    </div>
+  );
+}
+
+// Mascote da betoneira em tamanho pequeno — usada no tour de boas-vindas e
+// no botão de ajuda flutuante. Desenho próprio (SVG), em cores neutras
+// (cinza-azulado), sem depender de nenhuma imagem pronta.
+function Betoneirinha({ tamanho = 64, animando = true }) {
+  return (
+    <svg width={tamanho} height={tamanho} viewBox="0 0 100 100" style={{ display: "block" }}>
+      <style>{`
+        @keyframes betBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+        @keyframes betGirar { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes betPiscar { 0%, 92%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.1); } }
+        .bet-corpo { animation: ${animando ? "betBounce 2.2s ease-in-out infinite" : "none"}; transform-origin: center bottom; }
+        .bet-tambor { animation: ${animando ? "betGirar 4s linear infinite" : "none"}; transform-origin: 62px 48px; }
+        .bet-olho { animation: ${animando ? "betPiscar 4s ease-in-out infinite" : "none"}; transform-origin: center; }
+      `}</style>
+      <g className="bet-corpo">
+        <ellipse cx="50" cy="90" rx="34" ry="4" fill="#000" opacity="0.15" />
+        <circle cx="28" cy="82" r="9" fill="#2a2a2a" />
+        <circle cx="28" cy="82" r="3.5" fill="#5a616f" />
+        <circle cx="70" cy="82" r="9" fill="#2a2a2a" />
+        <circle cx="70" cy="82" r="3.5" fill="#5a616f" />
+        <rect x="14" y="68" width="72" height="10" rx="3" fill="#2a2a2a" />
+        <rect x="12" y="46" width="26" height="26" rx="6" fill="#F0EFEC" stroke="#3D5670" strokeWidth="2" />
+        <rect x="16" y="50" width="18" height="10" rx="3" fill="#3D5670" opacity="0.25" />
+        <g className="bet-olho">
+          <circle cx="21" cy="58" r="2.2" fill="#1a1a1a" />
+          <circle cx="29" cy="58" r="2.2" fill="#1a1a1a" />
+        </g>
+        <path d="M20 64 Q25 68 30 64" stroke="#1a1a1a" strokeWidth="2" fill="none" strokeLinecap="round" />
+        <rect x="34" y="58" width="10" height="10" fill="#2a2a2a" />
+        <g className="bet-tambor">
+          <ellipse cx="62" cy="48" rx="24" ry="17" fill="#5B7A99" stroke="#3D5670" strokeWidth="2" />
+          <path d="M40 42 L84 54" stroke="#3D5670" strokeWidth="5" strokeLinecap="round" opacity="0.55" />
+          <path d="M42 56 L82 40" stroke="#3D5670" strokeWidth="5" strokeLinecap="round" opacity="0.55" />
+          <ellipse cx="62" cy="48" rx="24" ry="17" fill="none" stroke="#3D5670" strokeWidth="2" />
+        </g>
+        <path d="M82 58 L92 62 L88 70 L80 66 Z" fill="#3D5670" />
+      </g>
+    </svg>
+  );
+}
+
+function Escavadeirinha({ tamanho = 64, animando = true }) {
+  return (
+    <svg width={tamanho} height={tamanho} viewBox="0 0 100 100" style={{ display: "block" }}>
+      <style>{`
+        @keyframes escBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+        @keyframes escBraco { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-8deg); } }
+        @keyframes escPiscar { 0%, 92%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.1); } }
+        .esc-corpo { animation: ${animando ? "escBounce 2.2s ease-in-out infinite" : "none"}; transform-origin: center bottom; }
+        .esc-braco { animation: ${animando ? "escBraco 2.2s ease-in-out infinite" : "none"}; transform-origin: 58px 48px; }
+        .esc-olho { animation: ${animando ? "escPiscar 4s ease-in-out infinite" : "none"}; transform-origin: center; }
+      `}</style>
+      <g className="esc-corpo">
+        {/* esteiras */}
+        <rect x="10" y="78" width="60" height="12" rx="6" fill="#2a2a2a" />
+        <circle cx="18" cy="84" r="6" fill="#444" />
+        <circle cx="62" cy="84" r="6" fill="#444" />
+        {/* corpo */}
+        <rect x="18" y="55" width="46" height="26" rx="6" fill="#E8A63D" />
+        {/* cabine */}
+        <rect x="24" y="34" width="26" height="24" rx="5" fill="#F5F2E9" stroke="#c9922e" strokeWidth="2" />
+        {/* rostinho */}
+        <g className="esc-olho">
+          <circle cx="33" cy="45" r="2.4" fill="#1a1a1a" />
+          <circle cx="43" cy="45" r="2.4" fill="#1a1a1a" />
+        </g>
+        <path d="M33 51 Q38 55 43 51" stroke="#1a1a1a" strokeWidth="2" fill="none" strokeLinecap="round" />
+        {/* braço + caçamba */}
+        <g className="esc-braco">
+          <rect x="56" y="46" width="26" height="6" rx="3" fill="#c9922e" />
+          <path d="M80 48 L92 42 L90 56 L78 58 Z" fill="#E8A63D" stroke="#c9922e" strokeWidth="1.5" />
+        </g>
+      </g>
+    </svg>
+  );
+}
+
+function MascoteTour({ onFechar }) {
+  const [passo, setPasso] = useState(0);
+  const atual = TOUR_PASSOS[passo];
+  const ultimo = passo === TOUR_PASSOS.length - 1;
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0,0,0,0.55)",
+        zIndex: 1200,
+        display: "flex",
+        alignItems: "flex-end",
+        justifyContent: "center",
+        padding: "20px",
+      }}
+      onClick={onFechar}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: "var(--bg-panel)",
+          border: "1px solid var(--border)",
+          borderRadius: "16px",
+          padding: "22px",
+          maxWidth: "420px",
+          width: "100%",
+          marginBottom: "40px",
+          boxShadow: "0 20px 60px rgba(0,0,0,0.4)",
+        }}
+      >
+        <div style={{ display: "flex", gap: "14px", alignItems: "flex-start" }}>
+          <Betoneirinha tamanho={64} />
+          <div style={{ flex: 1 }}>
+            <h3 className="tl-display" style={{ fontSize: "17px", fontWeight: 700, marginBottom: "6px" }}>{atual.titulo}</h3>
+            <p style={{ fontSize: "13.5px", color: "var(--text-muted)", lineHeight: 1.6 }}>{atual.texto}</p>
+          </div>
+        </div>
+
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "18px" }}>
+          <div style={{ display: "flex", gap: "4px" }}>
+            {TOUR_PASSOS.map((_, i) => (
+              <div
+                key={i}
+                style={{
+                  width: i === passo ? "16px" : "6px",
+                  height: "6px",
+                  borderRadius: "3px",
+                  background: i === passo ? "var(--amber)" : "var(--border)",
+                  transition: "all 0.2s",
+                }}
+              />
+            ))}
+          </div>
+          <div style={{ display: "flex", gap: "8px" }}>
+            {!ultimo && (
+              <Button variant="ghost" size="sm" onClick={onFechar}>Pular</Button>
+            )}
+            {passo > 0 && (
+              <Button variant="subtle" size="sm" onClick={() => setPasso(passo - 1)}>Voltar</Button>
+            )}
+            <Button size="sm" onClick={() => (ultimo ? onFechar() : setPasso(passo + 1))}>
+              {ultimo ? "Entendi!" : "Próximo"}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BotaoAjudaMascote({ onAbrir }) {
+  return (
+    <button
+      onClick={onAbrir}
+      className="tl-focus"
+      title="Como usar o sistema"
+      style={{
+        position: "fixed",
+        bottom: "20px",
+        right: "20px",
+        zIndex: 900,
+        width: "60px",
+        height: "60px",
+        borderRadius: "50%",
+        background: "var(--bg-panel)",
+        border: "2px solid var(--amber)",
+        boxShadow: "0 6px 20px rgba(0,0,0,0.35)",
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 0,
+      }}
+    >
+      <Betoneirinha tamanho={40} />
+    </button>
+  );
+}
